@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,7 +35,6 @@ interface Stats {
 }
 
 export default function Admin() {
-  const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdmin();
   const [users, setUsers] = useState<UserData[]>([]);
@@ -51,22 +49,11 @@ export default function Admin() {
   const [dataLoading, setDataLoading] = useState(false);
 
   useEffect(() => {
-    // Wait for both auth and admin loading to complete
+    // ProtectedRoute already guarantees auth + admin.
+    // Only fetch after loading states are settled.
     if (authLoading || adminLoading) return;
-    
-    // Only redirect if we're sure user is not authenticated
-    if (!user) {
-      navigate('/auth', { replace: true });
-      return;
-    }
-    
-    // Only redirect if admin check is complete and user is NOT admin
-    if (!isAdmin) {
-      navigate('/', { replace: true });
-      return;
-    }
-    
-    // Only fetch data when we're sure user is admin
+    if (!user || !isAdmin) return;
+
     fetchAdminData();
   }, [user, isAdmin, authLoading, adminLoading]);
 
