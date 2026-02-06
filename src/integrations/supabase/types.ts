@@ -175,6 +175,114 @@ export type Database = {
           },
         ]
       }
+      payment_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          description: string | null
+          gateway_transaction_id: string | null
+          id: string
+          metadata: Json | null
+          payment_gateway: Database["public"]["Enums"]["payment_gateway"]
+          payment_method: string | null
+          profile_id: string
+          status: string
+          subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          gateway_transaction_id?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_gateway: Database["public"]["Enums"]["payment_gateway"]
+          payment_method?: string | null
+          profile_id: string
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          gateway_transaction_id?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_gateway?: Database["public"]["Enums"]["payment_gateway"]
+          payment_method?: string | null
+          profile_id?: string
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_transactions_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          created_at: string
+          currency: string
+          description: string | null
+          features: Json
+          id: string
+          is_active: boolean
+          limits: Json
+          name: string
+          price_monthly: number
+          price_yearly: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          limits?: Json
+          name: string
+          price_monthly?: number
+          price_yearly?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          limits?: Json
+          name?: string
+          price_monthly?: number
+          price_yearly?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -201,6 +309,144 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          billing_cycle: string
+          canceled_at: string | null
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          gateway_customer_id: string | null
+          gateway_subscription_id: string | null
+          id: string
+          metadata: Json | null
+          payment_gateway: Database["public"]["Enums"]["payment_gateway"] | null
+          plan_id: string
+          profile_id: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          billing_cycle?: string
+          canceled_at?: string | null
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          gateway_customer_id?: string | null
+          gateway_subscription_id?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_gateway?:
+            | Database["public"]["Enums"]["payment_gateway"]
+            | null
+          plan_id: string
+          profile_id: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          billing_cycle?: string
+          canceled_at?: string | null
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          gateway_customer_id?: string | null
+          gateway_subscription_id?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_gateway?:
+            | Database["public"]["Enums"]["payment_gateway"]
+            | null
+          plan_id?: string
+          profile_id?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usage_tracking: {
+        Row: {
+          ai_tokens_used: number
+          created_at: string
+          executions_count: number
+          id: string
+          period_end: string
+          period_start: string
+          profile_id: string
+          storage_bytes_used: number
+          updated_at: string
+        }
+        Insert: {
+          ai_tokens_used?: number
+          created_at?: string
+          executions_count?: number
+          id?: string
+          period_end: string
+          period_start: string
+          profile_id: string
+          storage_bytes_used?: number
+          updated_at?: string
+        }
+        Update: {
+          ai_tokens_used?: number
+          created_at?: string
+          executions_count?: number
+          id?: string
+          period_end?: string
+          period_start?: string
+          profile_id?: string
+          storage_bytes_used?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_tracking_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
         Relationships: []
@@ -435,13 +681,28 @@ export type Database = {
         Args: { p_profile_id: string; p_workspace_id: string }
         Returns: string
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: never; Returns: boolean }
       is_workspace_member: {
         Args: { p_profile_id: string; p_workspace_id: string }
         Returns: boolean
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      payment_gateway: "sslcommerz" | "bkash" | "nagad" | "stripe" | "manual"
+      subscription_status:
+        | "active"
+        | "trial"
+        | "canceled"
+        | "past_due"
+        | "paused"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -568,6 +829,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      payment_gateway: ["sslcommerz", "bkash", "nagad", "stripe", "manual"],
+      subscription_status: [
+        "active",
+        "trial",
+        "canceled",
+        "past_due",
+        "paused",
+      ],
+    },
   },
 } as const

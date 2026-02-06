@@ -11,6 +11,8 @@ import Templates from "./pages/Templates";
 import Marketplace from "./pages/Marketplace";
 import Executions from "./pages/Executions";
 import Credentials from "./pages/Credentials";
+import Admin from "./pages/Admin";
+import Billing from "./pages/Billing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +32,8 @@ const App = () => (
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/executions" element={<Executions />} />
           <Route path="/credentials" element={<Credentials />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/billing" element={<Billing />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
