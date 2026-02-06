@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useWorkflowStore, NodeData } from '@/stores/workflowStore';
 import { getNodeDefinition } from '@/data/nodeDefinitions';
 import { Button } from '@/components/ui/button';
@@ -12,15 +13,96 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { X, Settings, Trash2, Copy, Play } from 'lucide-react';
+import { X, Settings, Trash2, Copy, Play, Plus, Key, ExternalLink } from 'lucide-react';
 import { CATEGORY_COLORS } from '@/types/nodes';
 import { toast } from 'sonner';
 import { ExpressionEditor } from './ExpressionEditor';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { Link } from 'react-router-dom';
+interface Credential {
+  id: string;
+  name: string;
+  type: string;
+}
 
 export function NodeConfigPanel() {
   const { selectedNode, updateNode, deleteNode, selectNode } = useWorkflowStore();
+  const { activeWorkspace, profile } = useAuth();
+  const [credentials, setCredentials] = useState<Credential[]>([]);
+  const [credentialsLoading, setCredentialsLoading] = useState(false);
+  const [showAddCredential, setShowAddCredential] = useState(false);
+  const [newCredName, setNewCredName] = useState('');
+  const [newCredType, setNewCredType] = useState('');
+  const [addingCredentialForField, setAddingCredentialForField] = useState<string | null>(null);
+  
+  // Fetch credentials when workspace is available
+  useEffect(() => {
+    if (activeWorkspace) {
+      fetchCredentials();
+    }
+  }, [activeWorkspace]);
+  
+  const fetchCredentials = async () => {
+    if (!activeWorkspace) return;
+    setCredentialsLoading(true);
+    const { data, error } = await supabase
+      .from('credentials')
+      .select('id, name, type')
+      .eq('workspace_id', activeWorkspace.id);
+    
+    if (!error && data) {
+      setCredentials(data);
+    }
+    setCredentialsLoading(false);
+  };
+  
+  const createCredential = async () => {
+    if (!activeWorkspace || !profile || !newCredName || !newCredType) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+    
+    const { data, error } = await supabase
+      .from('credentials')
+      .insert({
+        name: newCredName,
+        type: newCredType,
+        workspace_id: activeWorkspace.id,
+        created_by: profile.id,
+        settings: {},
+      })
+      .select('id, name, type')
+      .single();
+    
+    if (error) {
+      toast.error('Failed to create credential');
+      return;
+    }
+    
+    toast.success('Credential created');
+    setCredentials(prev => [...prev, data]);
+    
+    // Auto-select the new credential for the field
+    if (addingCredentialForField && selectedNode) {
+      handleConfigChange(addingCredentialForField, data.id);
+    }
+    
+    setShowAddCredential(false);
+    setNewCredName('');
+    setNewCredType('');
+    setAddingCredentialForField(null);
+  };
   
   if (!selectedNode) {
     return (
@@ -172,18 +254,65 @@ export function NodeConfigPanel() {
         );
         
       case 'credential':
+        const selectedCred = credentials.find(c => c.id === value);
         return (
-          <Select
-            value={String(value)}
-            onValueChange={(v) => handleConfigChange(field.name, v)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select credential" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="new">+ Add new credential</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="space-y-2">
+            <Select
+              value={String(value) || undefined}
+              onValueChange={(v) => {
+                if (v === '__add_new__') {
+                  setAddingCredentialForField(field.name);
+                  setShowAddCredential(true);
+                } else {
+                  handleConfigChange(field.name, v);
+                }
+              }}
+              disabled={credentialsLoading}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={credentialsLoading ? "Loading..." : "Select credential"} />
+              </SelectTrigger>
+              <SelectContent>
+                {credentials.length === 0 && !credentialsLoading && (
+                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                    No credentials yet
+                  </div>
+                )}
+                {credentials.map((cred) => (
+                  <SelectItem key={cred.id} value={cred.id}>
+                    <div className="flex items-center gap-2">
+                      <Key className="h-3 w-3" />
+                      <span>{cred.name}</span>
+                      <span className="text-xs text-muted-foreground">({cred.type})</span>
+                    </div>
+                  </SelectItem>
+                ))}
+                <Separator className="my-1" />
+                <SelectItem value="__add_new__">
+                  <div className="flex items-center gap-2 text-primary">
+                    <Plus className="h-3 w-3" />
+                    <span>Add new credential</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            {selectedCred && (
+              <p className="text-xs text-muted-foreground">
+                Using: {selectedCred.name} ({selectedCred.type})
+              </p>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs"
+              asChild
+            >
+              <Link to="/credentials">
+                <ExternalLink className="h-3 w-3 mr-1" />
+                Manage all credentials
+              </Link>
+            </Button>
+          </div>
         );
         
       default:
@@ -316,6 +445,64 @@ export function NodeConfigPanel() {
           Delete Node
         </Button>
       </div>
+      
+      {/* Add Credential Dialog */}
+      <Dialog open={showAddCredential} onOpenChange={setShowAddCredential}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Credential</DialogTitle>
+            <DialogDescription>
+              Create a credential to connect this node to external services
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="cred-name">Credential Name</Label>
+              <Input
+                id="cred-name"
+                placeholder="e.g., My OpenAI Key"
+                value={newCredName}
+                onChange={(e) => setNewCredName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cred-type">Type</Label>
+              <Select value={newCredType} onValueChange={setNewCredType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="openai">OpenAI</SelectItem>
+                  <SelectItem value="anthropic">Anthropic</SelectItem>
+                  <SelectItem value="google">Google</SelectItem>
+                  <SelectItem value="slack">Slack</SelectItem>
+                  <SelectItem value="discord">Discord</SelectItem>
+                  <SelectItem value="telegram">Telegram</SelectItem>
+                  <SelectItem value="github">GitHub</SelectItem>
+                  <SelectItem value="stripe">Stripe</SelectItem>
+                  <SelectItem value="aws">AWS</SelectItem>
+                  <SelectItem value="smtp">SMTP</SelectItem>
+                  <SelectItem value="http">HTTP Basic Auth</SelectItem>
+                  <SelectItem value="bearer">Bearer Token</SelectItem>
+                  <SelectItem value="apikey">API Key</SelectItem>
+                  <SelectItem value="oauth2">OAuth2</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              You can configure the credential details in the Credentials page after creation.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddCredential(false)}>
+              Cancel
+            </Button>
+            <Button onClick={createCredential} disabled={!newCredName || !newCredType}>
+              Create Credential
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
