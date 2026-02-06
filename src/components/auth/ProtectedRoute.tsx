@@ -13,7 +13,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdmin();
 
-  // Wait for auth to settle first
+  // Always wait for auth to finish loading first
   if (authLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -22,13 +22,14 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
     );
   }
 
-  // Not signed in
+  // Not signed in - redirect to auth
   if (!user) {
     return <Navigate to="/auth" replace state={{ from: location.pathname }} />;
   }
 
-  // Admin-only route
+  // For admin routes, wait for admin check to complete
   if (requireAdmin) {
+    // Still checking admin status - show loading
     if (adminLoading) {
       return (
         <div className="min-h-[60vh] flex items-center justify-center">
@@ -37,6 +38,7 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
       );
     }
 
+    // Admin check complete - not an admin
     if (!isAdmin) {
       return <Navigate to="/dashboard" replace />;
     }
