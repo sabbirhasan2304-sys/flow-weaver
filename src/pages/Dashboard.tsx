@@ -49,7 +49,7 @@ interface Workflow {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user, profile, signOut, activeWorkspace } = useAuth();
+  const { user, profile, signOut, activeWorkspace, loading: authLoading } = useAuth();
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -59,6 +59,9 @@ export default function Dashboard() {
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
 
   useEffect(() => {
+    // Wait for auth to finish loading before checking user
+    if (authLoading) return;
+    
     if (!user) {
       navigate('/auth');
       return;
@@ -67,7 +70,7 @@ export default function Dashboard() {
     if (activeWorkspace) {
       fetchWorkflows();
     }
-  }, [user, activeWorkspace, navigate]);
+  }, [user, activeWorkspace, navigate, authLoading]);
 
   const fetchWorkflows = async () => {
     if (!activeWorkspace) return;
