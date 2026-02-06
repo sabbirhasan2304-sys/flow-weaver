@@ -22,7 +22,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'openai',
     label: 'OpenAI',
-    icon: 'Bot',
+    icon: 'OpenAI',
     description: 'Connect to OpenAI API for GPT models, DALL-E, and more',
     fields: [
       { name: 'apiKey', label: 'API Key', type: 'password', placeholder: 'sk-...', required: true, description: 'Your OpenAI API key from platform.openai.com' },
@@ -32,7 +32,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'anthropic',
     label: 'Anthropic Claude',
-    icon: 'Bot',
+    icon: 'Anthropic',
     description: 'Connect to Anthropic API for Claude models',
     fields: [
       { name: 'apiKey', label: 'API Key', type: 'password', placeholder: 'sk-ant-...', required: true, description: 'Your Anthropic API key' },
@@ -41,7 +41,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'google',
     label: 'Google (Gmail, Sheets, Drive)',
-    icon: 'Mail',
+    icon: 'Google',
     description: 'Connect to Google services via OAuth or API key',
     fields: [
       { name: 'clientId', label: 'Client ID', type: 'text', required: true, description: 'OAuth 2.0 Client ID from Google Cloud Console' },
@@ -52,7 +52,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'slack',
     label: 'Slack',
-    icon: 'MessageSquare',
+    icon: 'Slack',
     description: 'Connect to Slack workspace for messaging and notifications',
     fields: [
       { name: 'botToken', label: 'Bot Token', type: 'password', placeholder: 'xoxb-...', required: true, description: 'Bot User OAuth Token from Slack App settings' },
@@ -62,7 +62,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'discord',
     label: 'Discord',
-    icon: 'MessageSquare',
+    icon: 'Discord',
     description: 'Connect to Discord for bot messaging',
     fields: [
       { name: 'botToken', label: 'Bot Token', type: 'password', required: true, description: 'Discord bot token from Developer Portal' },
@@ -72,7 +72,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'telegram',
     label: 'Telegram',
-    icon: 'MessageSquare',
+    icon: 'Telegram',
     description: 'Connect to Telegram Bot API',
     fields: [
       { name: 'botToken', label: 'Bot Token', type: 'password', required: true, description: 'Token from @BotFather' },
@@ -81,7 +81,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'github',
     label: 'GitHub',
-    icon: 'Github',
+    icon: 'GitHub',
     description: 'Connect to GitHub API for repositories and actions',
     fields: [
       { name: 'accessToken', label: 'Personal Access Token', type: 'password', placeholder: 'ghp_...', required: true, description: 'GitHub PAT with required scopes' },
@@ -90,7 +90,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'stripe',
     label: 'Stripe',
-    icon: 'CreditCard',
+    icon: 'Stripe',
     description: 'Connect to Stripe for payments',
     fields: [
       { name: 'secretKey', label: 'Secret Key', type: 'password', placeholder: 'sk_...', required: true, description: 'Stripe Secret Key (use test key for testing)' },
@@ -101,7 +101,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'aws',
     label: 'AWS',
-    icon: 'Cloud',
+    icon: 'AWS',
     description: 'Connect to Amazon Web Services',
     fields: [
       { name: 'accessKeyId', label: 'Access Key ID', type: 'text', required: true, description: 'IAM Access Key ID' },
@@ -119,7 +119,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'supabase',
     label: 'Supabase',
-    icon: 'Database',
+    icon: 'Supabase',
     description: 'Connect to an external Supabase project',
     fields: [
       { name: 'url', label: 'Project URL', type: 'text', placeholder: 'https://xxx.supabase.co', required: true },
@@ -130,7 +130,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'postgres',
     label: 'PostgreSQL',
-    icon: 'Database',
+    icon: 'Postgres',
     description: 'Connect to a PostgreSQL database',
     fields: [
       { name: 'host', label: 'Host', type: 'text', placeholder: 'localhost', required: true },
@@ -148,7 +148,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'mongodb',
     label: 'MongoDB',
-    icon: 'Database',
+    icon: 'MongoDB',
     description: 'Connect to MongoDB database',
     fields: [
       { name: 'connectionString', label: 'Connection String', type: 'password', placeholder: 'mongodb+srv://...', required: true, description: 'Full MongoDB connection URI' },
@@ -157,7 +157,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'smtp',
     label: 'SMTP Email',
-    icon: 'Mail',
+    icon: 'SMTP',
     description: 'Send emails via SMTP server',
     fields: [
       { name: 'host', label: 'SMTP Host', type: 'text', placeholder: 'smtp.gmail.com', required: true },
@@ -176,7 +176,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'sendgrid',
     label: 'SendGrid',
-    icon: 'Mail',
+    icon: 'SendGrid',
     description: 'Send emails via SendGrid',
     fields: [
       { name: 'apiKey', label: 'API Key', type: 'password', placeholder: 'SG...', required: true },
@@ -187,7 +187,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'twilio',
     label: 'Twilio',
-    icon: 'MessageSquare',
+    icon: 'Twilio',
     description: 'Send SMS and make calls via Twilio',
     fields: [
       { name: 'accountSid', label: 'Account SID', type: 'text', required: true },
@@ -198,7 +198,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'http',
     label: 'HTTP Basic Auth',
-    icon: 'Globe',
+    icon: 'HTTP',
     description: 'HTTP Basic Authentication credentials',
     fields: [
       { name: 'username', label: 'Username', type: 'text', required: true },
@@ -208,7 +208,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'bearer',
     label: 'Bearer Token',
-    icon: 'Key',
+    icon: 'Bearer',
     description: 'Bearer token for API authentication',
     fields: [
       { name: 'token', label: 'Bearer Token', type: 'password', required: true, description: 'Token to be sent in Authorization header' },
@@ -217,7 +217,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'apikey',
     label: 'API Key',
-    icon: 'Key',
+    icon: 'APIKey',
     description: 'Generic API key authentication',
     fields: [
       { name: 'apiKey', label: 'API Key', type: 'password', required: true },
@@ -227,7 +227,7 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
   {
     value: 'oauth2',
     label: 'OAuth2',
-    icon: 'Shield',
+    icon: 'OAuth2',
     description: 'OAuth 2.0 authentication',
     fields: [
       { name: 'clientId', label: 'Client ID', type: 'text', required: true },

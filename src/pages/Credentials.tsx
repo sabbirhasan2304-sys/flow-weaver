@@ -15,15 +15,17 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { 
-  Zap, ArrowLeft, Plus, Search, Key, Trash2, Edit,
-  Mail, MessageSquare, Database, Cloud, Bot, CreditCard,
-  Globe, Github, Shield
-} from 'lucide-react';
+import { Zap, ArrowLeft, Plus, Search, Key, Trash2, Edit, Shield } from 'lucide-react';
 import { format } from 'date-fns';
 import { CredentialForm } from '@/components/credentials/CredentialForm';
 import { credentialTypeConfigs, getCredentialTypeConfig } from '@/components/credentials/CredentialFieldsConfig';
 import type { Json } from '@/integrations/supabase/types';
+import {
+  OpenAIIcon, AnthropicIcon, GoogleIcon, SlackIcon, DiscordIcon,
+  TelegramIcon, GitHubIcon, StripeIcon, AWSIcon, SupabaseIcon,
+  PostgresIcon, MongoDBIcon, SMTPIcon, SendGridIcon, TwilioIcon,
+  HTTPIcon, BearerIcon, APIKeyIcon, OAuth2Icon
+} from '@/components/icons/ServiceIcons';
 
 interface Credential {
   id: string;
@@ -34,29 +36,30 @@ interface Credential {
   updated_at: string;
 }
 
-const getCredentialIcon = (type: string) => {
+const getCredentialIcon = (type: string, size: 'sm' | 'md' = 'sm') => {
+  const sizeClass = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
   const iconMap: Record<string, React.ReactNode> = {
-    openai: <Bot className="h-4 w-4" />,
-    anthropic: <Bot className="h-4 w-4" />,
-    google: <Mail className="h-4 w-4" />,
-    slack: <MessageSquare className="h-4 w-4" />,
-    discord: <MessageSquare className="h-4 w-4" />,
-    telegram: <MessageSquare className="h-4 w-4" />,
-    github: <Github className="h-4 w-4" />,
-    stripe: <CreditCard className="h-4 w-4" />,
-    aws: <Cloud className="h-4 w-4" />,
-    supabase: <Database className="h-4 w-4" />,
-    postgres: <Database className="h-4 w-4" />,
-    mongodb: <Database className="h-4 w-4" />,
-    smtp: <Mail className="h-4 w-4" />,
-    sendgrid: <Mail className="h-4 w-4" />,
-    twilio: <MessageSquare className="h-4 w-4" />,
-    http: <Globe className="h-4 w-4" />,
-    bearer: <Key className="h-4 w-4" />,
-    apikey: <Key className="h-4 w-4" />,
-    oauth2: <Shield className="h-4 w-4" />,
+    openai: <OpenAIIcon className={sizeClass} />,
+    anthropic: <AnthropicIcon className={sizeClass} />,
+    google: <GoogleIcon className={sizeClass} />,
+    slack: <SlackIcon className={sizeClass} />,
+    discord: <DiscordIcon className={sizeClass} />,
+    telegram: <TelegramIcon className={sizeClass} />,
+    github: <GitHubIcon className={sizeClass} />,
+    stripe: <StripeIcon className={sizeClass} />,
+    aws: <AWSIcon className={sizeClass} />,
+    supabase: <SupabaseIcon className={sizeClass} />,
+    postgres: <PostgresIcon className={sizeClass} />,
+    mongodb: <MongoDBIcon className={sizeClass} />,
+    smtp: <SMTPIcon className={sizeClass} />,
+    sendgrid: <SendGridIcon className={sizeClass} />,
+    twilio: <TwilioIcon className={sizeClass} />,
+    http: <HTTPIcon className={sizeClass} />,
+    bearer: <BearerIcon className={sizeClass} />,
+    apikey: <APIKeyIcon className={sizeClass} />,
+    oauth2: <OAuth2Icon className={sizeClass} />,
   };
-  return iconMap[type] || <Key className="h-4 w-4" />;
+  return iconMap[type] || <Key className={sizeClass} />;
 };
 
 export default function Credentials() {
@@ -384,17 +387,17 @@ export default function Credentials() {
           <h2 className="text-xl font-bold mb-4">Quick Connect</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {[
-              { name: 'Google', icon: <Mail className="h-5 w-5" />, type: 'google' },
-              { name: 'Slack', icon: <MessageSquare className="h-5 w-5" />, type: 'slack' },
-              { name: 'GitHub', icon: <Github className="h-5 w-5" />, type: 'github' },
-              { name: 'Stripe', icon: <CreditCard className="h-5 w-5" />, type: 'stripe' },
-              { name: 'OpenAI', icon: <Bot className="h-5 w-5" />, type: 'openai' },
-              { name: 'AWS', icon: <Cloud className="h-5 w-5" />, type: 'aws' },
+              { name: 'Google', type: 'google' },
+              { name: 'Slack', type: 'slack' },
+              { name: 'GitHub', type: 'github' },
+              { name: 'Stripe', type: 'stripe' },
+              { name: 'OpenAI', type: 'openai' },
+              { name: 'AWS', type: 'aws' },
             ].map((service) => (
               <Button
                 key={service.name}
                 variant="outline"
-                className="h-auto py-4 flex-col gap-2"
+                className="h-auto py-4 flex-col gap-2 hover:border-primary/50 transition-all"
                 onClick={() => {
                   setNewCredType(service.type);
                   setNewCredName(`My ${service.name}`);
@@ -402,7 +405,7 @@ export default function Credentials() {
                   setCreateDialogOpen(true);
                 }}
               >
-                {service.icon}
+                {getCredentialIcon(service.type, 'md')}
                 <span className="text-xs">{service.name}</span>
               </Button>
             ))}
