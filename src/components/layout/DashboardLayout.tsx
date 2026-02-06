@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { 
   Zap, Folder, Sparkles, Store, History, Key,
-  LogOut, Settings, User, ChevronDown, Moon, Sun
+  LogOut, Settings, User, ChevronDown, CreditCard, Shield
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -32,6 +33,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { profile, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
 
   const handleSignOut = async () => {
     await signOut();
@@ -77,7 +79,41 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </nav>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            {/* Billing Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                'text-muted-foreground',
+                location.pathname === '/billing' && 'text-foreground bg-muted'
+              )}
+              asChild
+            >
+              <Link to="/billing">
+                <CreditCard className="h-4 w-4 mr-2" />
+                <span className="hidden md:inline">Billing</span>
+              </Link>
+            </Button>
+
+            {/* Admin Button - Only visible to admins */}
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  'text-muted-foreground',
+                  location.pathname === '/admin' && 'text-foreground bg-muted'
+                )}
+                asChild
+              >
+                <Link to="/admin">
+                  <Shield className="h-4 w-4 mr-2" />
+                  <span className="hidden md:inline">Admin</span>
+                </Link>
+              </Button>
+            )}
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-2">
@@ -98,10 +134,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/billing">
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Billing & Subscription
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="h-4 w-4 mr-2" />

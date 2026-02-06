@@ -45,6 +45,7 @@ export const NODE_CATEGORIES = {
   IOT: 'IoT & Real-Time',
   MEDIA: 'Media Processing',
   SECURITY: 'Security',
+  PAYMENTS: 'Payments',
   CUSTOM: 'Custom Nodes',
 } as const;
 
@@ -68,5 +69,6 @@ export const CATEGORY_COLORS: Record<string, string> = {
   [NODE_CATEGORIES.IOT]: '#4ade80',
   [NODE_CATEGORIES.MEDIA]: '#fb7185',
   [NODE_CATEGORIES.SECURITY]: '#ef4444',
+  [NODE_CATEGORIES.PAYMENTS]: '#00897B',
   [NODE_CATEGORIES.CUSTOM]: '#94a3b8',
 };

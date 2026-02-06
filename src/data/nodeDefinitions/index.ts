@@ -21,6 +21,7 @@ import { iotNodes } from './iot';
 import { mediaNodes } from './media';
 import { securityNodes } from './security';
 import { customNodes } from './custom';
+import { paymentNodes } from './payments';
 
 // Combine all node definitions
 export const nodeDefinitions: NodeDefinition[] = [
@@ -40,6 +41,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   ...mediaNodes,
   ...securityNodes,
   ...customNodes,
+  ...paymentNodes,
 ];
 
 // Helper function to get node by type

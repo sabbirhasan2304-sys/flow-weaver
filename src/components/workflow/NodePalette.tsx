@@ -16,7 +16,8 @@ import {
   Filter, Merge, Split, Bot, Brain, Sparkles, 
   Globe, FileJson, Zap, Bell, Upload, Download,
   Cloud, Server, Lock, Shield, Coins, BarChart,
-  Image, Video, Mic, Settings, Puzzle
+  Image, Video, Mic, Settings, Puzzle, Wallet, Rocket,
+  CreditCard, CheckCircle, RotateCcw, User
 } from 'lucide-react';
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -25,7 +26,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Filter, Merge, Split, Bot, Brain, Sparkles,
   Globe, FileJson, Zap, Bell, Upload, Download,
   Cloud, Server, Lock, Shield, Coins, BarChart,
-  Image, Video, Mic, Settings, Puzzle,
+  Image, Video, Mic, Settings, Puzzle, Wallet, Rocket,
+  CreditCard, CheckCircle, RotateCcw, User,
 };
 
 interface NodePaletteProps {
