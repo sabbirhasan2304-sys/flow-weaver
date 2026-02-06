@@ -35,7 +35,7 @@ interface Workflow {
 export default function WorkflowPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -44,6 +44,9 @@ export default function WorkflowPage() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   useEffect(() => {
+    // Wait for auth to finish loading before redirecting
+    if (authLoading) return;
+    
     if (!user) {
       navigate('/auth');
       return;
@@ -52,7 +55,7 @@ export default function WorkflowPage() {
     if (id) {
       fetchWorkflow();
     }
-  }, [id, user, navigate]);
+  }, [id, user, authLoading, navigate]);
 
   const fetchWorkflow = async () => {
     if (!id) return;
@@ -132,7 +135,7 @@ export default function WorkflowPage() {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="text-center">
