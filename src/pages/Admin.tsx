@@ -51,20 +51,24 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Wait for both auth and admin loading to complete
     if (authLoading || adminLoading) return;
     
+    // Only redirect if we're sure user is not authenticated
     if (!user) {
-      navigate('/auth');
+      navigate('/auth', { replace: true });
       return;
     }
     
+    // Only redirect if admin check is complete and user is NOT admin
     if (!isAdmin) {
-      navigate('/');
+      navigate('/', { replace: true });
       return;
     }
     
+    // Only fetch data when we're sure user is admin
     fetchAdminData();
-  }, [user, isAdmin, authLoading, adminLoading, navigate]);
+  }, [user, isAdmin, authLoading, adminLoading]);
 
   const fetchAdminData = async () => {
     try {
