@@ -107,15 +107,18 @@ export function NodeConfigPanel() {
       case 'select':
         return (
           <Select
-            value={String(value)}
-            onValueChange={(v) => handleConfigChange(field.name, v)}
+            value={String(value) || undefined}
+            onValueChange={(v) => handleConfigChange(field.name, v === '__none__' ? '' : v)}
           >
             <SelectTrigger>
               <SelectValue placeholder={`Select ${field.label}`} />
             </SelectTrigger>
             <SelectContent>
               {field.options?.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
+                <SelectItem 
+                  key={option.value || '__none__'} 
+                  value={option.value || '__none__'}
+                >
                   {option.label}
                 </SelectItem>
               ))}
