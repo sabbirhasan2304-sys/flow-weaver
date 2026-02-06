@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Key } from 'lucide-react';
 import { credentialTypeConfigs, getCredentialTypeConfig, CredentialField } from './CredentialFieldsConfig';
+import {
+  OpenAIIcon, AnthropicIcon, GoogleIcon, SlackIcon, DiscordIcon,
+  TelegramIcon, GitHubIcon, StripeIcon, AWSIcon, SupabaseIcon,
+  PostgresIcon, MongoDBIcon, SMTPIcon, SendGridIcon, TwilioIcon,
+  HTTPIcon, BearerIcon, APIKeyIcon, OAuth2Icon
+} from '@/components/icons/ServiceIcons';
+
+const getServiceIcon = (type: string) => {
+  const iconMap: Record<string, React.ReactNode> = {
+    openai: <OpenAIIcon className="h-4 w-4" />,
+    anthropic: <AnthropicIcon className="h-4 w-4" />,
+    google: <GoogleIcon className="h-4 w-4" />,
+    slack: <SlackIcon className="h-4 w-4" />,
+    discord: <DiscordIcon className="h-4 w-4" />,
+    telegram: <TelegramIcon className="h-4 w-4" />,
+    github: <GitHubIcon className="h-4 w-4" />,
+    stripe: <StripeIcon className="h-4 w-4" />,
+    aws: <AWSIcon className="h-4 w-4" />,
+    supabase: <SupabaseIcon className="h-4 w-4" />,
+    postgres: <PostgresIcon className="h-4 w-4" />,
+    mongodb: <MongoDBIcon className="h-4 w-4" />,
+    smtp: <SMTPIcon className="h-4 w-4" />,
+    sendgrid: <SendGridIcon className="h-4 w-4" />,
+    twilio: <TwilioIcon className="h-4 w-4" />,
+    http: <HTTPIcon className="h-4 w-4" />,
+    bearer: <BearerIcon className="h-4 w-4" />,
+    apikey: <APIKeyIcon className="h-4 w-4" />,
+    oauth2: <OAuth2Icon className="h-4 w-4" />,
+  };
+  return iconMap[type] || <Key className="h-4 w-4" />;
+};
 
 interface CredentialFormProps {
   name: string;
@@ -126,7 +157,10 @@ export function CredentialForm({
             <SelectContent>
               {credentialTypeConfigs.map((cfg) => (
                 <SelectItem key={cfg.value} value={cfg.value}>
-                  {cfg.label}
+                  <div className="flex items-center gap-2">
+                    {getServiceIcon(cfg.value)}
+                    <span>{cfg.label}</span>
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
