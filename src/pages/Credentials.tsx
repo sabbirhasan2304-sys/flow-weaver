@@ -4,9 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -16,54 +14,49 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { toast } from 'sonner';
 import { 
   Zap, ArrowLeft, Plus, Search, Key, Trash2, Edit,
   Mail, MessageSquare, Database, Cloud, Bot, CreditCard,
-  Globe, Github, Shield, ExternalLink
+  Globe, Github, Shield
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { CredentialForm } from '@/components/credentials/CredentialForm';
+import { credentialTypeConfigs, getCredentialTypeConfig } from '@/components/credentials/CredentialFieldsConfig';
+import type { Json } from '@/integrations/supabase/types';
 
 interface Credential {
   id: string;
   name: string;
   type: string;
+  settings: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
 
-const credentialTypes = [
-  { value: 'openai', label: 'OpenAI', icon: <Bot className="h-4 w-4" /> },
-  { value: 'anthropic', label: 'Anthropic Claude', icon: <Bot className="h-4 w-4" /> },
-  { value: 'google', label: 'Google (Gmail, Sheets, Drive)', icon: <Mail className="h-4 w-4" /> },
-  { value: 'slack', label: 'Slack', icon: <MessageSquare className="h-4 w-4" /> },
-  { value: 'discord', label: 'Discord', icon: <MessageSquare className="h-4 w-4" /> },
-  { value: 'telegram', label: 'Telegram', icon: <MessageSquare className="h-4 w-4" /> },
-  { value: 'github', label: 'GitHub', icon: <Github className="h-4 w-4" /> },
-  { value: 'stripe', label: 'Stripe', icon: <CreditCard className="h-4 w-4" /> },
-  { value: 'aws', label: 'AWS', icon: <Cloud className="h-4 w-4" /> },
-  { value: 'supabase', label: 'Supabase', icon: <Database className="h-4 w-4" /> },
-  { value: 'postgres', label: 'PostgreSQL', icon: <Database className="h-4 w-4" /> },
-  { value: 'mongodb', label: 'MongoDB', icon: <Database className="h-4 w-4" /> },
-  { value: 'smtp', label: 'SMTP Email', icon: <Mail className="h-4 w-4" /> },
-  { value: 'sendgrid', label: 'SendGrid', icon: <Mail className="h-4 w-4" /> },
-  { value: 'twilio', label: 'Twilio', icon: <MessageSquare className="h-4 w-4" /> },
-  { value: 'http', label: 'HTTP Basic Auth', icon: <Globe className="h-4 w-4" /> },
-  { value: 'bearer', label: 'Bearer Token', icon: <Key className="h-4 w-4" /> },
-  { value: 'apikey', label: 'API Key', icon: <Key className="h-4 w-4" /> },
-  { value: 'oauth2', label: 'OAuth2', icon: <Shield className="h-4 w-4" /> },
-];
-
 const getCredentialIcon = (type: string) => {
-  const cred = credentialTypes.find(c => c.value === type);
-  return cred?.icon || <Key className="h-4 w-4" />;
+  const iconMap: Record<string, React.ReactNode> = {
+    openai: <Bot className="h-4 w-4" />,
+    anthropic: <Bot className="h-4 w-4" />,
+    google: <Mail className="h-4 w-4" />,
+    slack: <MessageSquare className="h-4 w-4" />,
+    discord: <MessageSquare className="h-4 w-4" />,
+    telegram: <MessageSquare className="h-4 w-4" />,
+    github: <Github className="h-4 w-4" />,
+    stripe: <CreditCard className="h-4 w-4" />,
+    aws: <Cloud className="h-4 w-4" />,
+    supabase: <Database className="h-4 w-4" />,
+    postgres: <Database className="h-4 w-4" />,
+    mongodb: <Database className="h-4 w-4" />,
+    smtp: <Mail className="h-4 w-4" />,
+    sendgrid: <Mail className="h-4 w-4" />,
+    twilio: <MessageSquare className="h-4 w-4" />,
+    http: <Globe className="h-4 w-4" />,
+    bearer: <Key className="h-4 w-4" />,
+    apikey: <Key className="h-4 w-4" />,
+    oauth2: <Shield className="h-4 w-4" />,
+  };
+  return iconMap[type] || <Key className="h-4 w-4" />;
 };
 
 export default function Credentials() {
@@ -72,9 +65,20 @@ export default function Credentials() {
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  
+  // Create dialog state
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newCredName, setNewCredName] = useState('');
   const [newCredType, setNewCredType] = useState('');
+  const [newCredSettings, setNewCredSettings] = useState<Record<string, unknown>>({});
+  const [creating, setCreating] = useState(false);
+  
+  // Edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingCredential, setEditingCredential] = useState<Credential | null>(null);
+  const [editCredName, setEditCredName] = useState('');
+  const [editCredSettings, setEditCredSettings] = useState<Record<string, unknown>>({});
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -95,24 +99,47 @@ export default function Credentials() {
     setLoading(true);
     const { data, error } = await supabase
       .from('credentials')
-      .select('id, name, type, created_at, updated_at')
+      .select('id, name, type, settings, created_at, updated_at')
       .eq('workspace_id', activeWorkspace.id)
       .order('created_at', { ascending: false });
     
     if (error) {
       toast.error('Failed to load credentials');
     } else {
-      setCredentials(data || []);
+      setCredentials((data || []).map(c => ({
+        ...c,
+        settings: (c.settings as Record<string, unknown>) || {},
+      })));
     }
     setLoading(false);
   };
 
+  const resetCreateForm = () => {
+    setNewCredName('');
+    setNewCredType('');
+    setNewCredSettings({});
+  };
+
   const createCredential = async () => {
     if (!activeWorkspace || !profile || !newCredName || !newCredType) {
-      toast.error('Please fill in all fields');
+      toast.error('Please fill in name and type');
       return;
     }
     
+    // Validate required fields
+    const config = getCredentialTypeConfig(newCredType);
+    if (config) {
+      const missingRequired = config.fields
+        .filter(f => f.required)
+        .filter(f => !newCredSettings[f.name]);
+      
+      if (missingRequired.length > 0) {
+        toast.error(`Please fill in: ${missingRequired.map(f => f.label).join(', ')}`);
+        return;
+      }
+    }
+    
+    setCreating(true);
     const { error } = await supabase
       .from('credentials')
       .insert({
@@ -120,7 +147,7 @@ export default function Credentials() {
         type: newCredType,
         workspace_id: activeWorkspace.id,
         created_by: profile.id,
-        settings: {}, // Encrypted settings would go here
+        settings: newCredSettings as Json,
       });
     
     if (error) {
@@ -128,10 +155,56 @@ export default function Credentials() {
     } else {
       toast.success('Credential created');
       setCreateDialogOpen(false);
-      setNewCredName('');
-      setNewCredType('');
+      resetCreateForm();
       fetchCredentials();
     }
+    setCreating(false);
+  };
+
+  const openEditDialog = (credential: Credential) => {
+    setEditingCredential(credential);
+    setEditCredName(credential.name);
+    setEditCredSettings(credential.settings || {});
+    setEditDialogOpen(true);
+  };
+
+  const updateCredential = async () => {
+    if (!editingCredential || !editCredName) {
+      toast.error('Please fill in the name');
+      return;
+    }
+    
+    // Validate required fields
+    const config = getCredentialTypeConfig(editingCredential.type);
+    if (config) {
+      const missingRequired = config.fields
+        .filter(f => f.required)
+        .filter(f => !editCredSettings[f.name]);
+      
+      if (missingRequired.length > 0) {
+        toast.error(`Please fill in: ${missingRequired.map(f => f.label).join(', ')}`);
+        return;
+      }
+    }
+    
+    setUpdating(true);
+    const { error } = await supabase
+      .from('credentials')
+      .update({
+        name: editCredName,
+        settings: editCredSettings as Json,
+      })
+      .eq('id', editingCredential.id);
+    
+    if (error) {
+      toast.error('Failed to update credential');
+    } else {
+      toast.success('Credential updated');
+      setEditDialogOpen(false);
+      setEditingCredential(null);
+      fetchCredentials();
+    }
+    setUpdating(false);
   };
 
   const deleteCredential = async (id: string) => {
@@ -172,55 +245,40 @@ export default function Credentials() {
             </div>
           </div>
           
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <Dialog open={createDialogOpen} onOpenChange={(open) => {
+            setCreateDialogOpen(open);
+            if (!open) resetCreateForm();
+          }}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Credential
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Credential</DialogTitle>
                 <DialogDescription>
                   Securely store API keys and authentication tokens
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="cred-name">Name</Label>
-                  <Input
-                    id="cred-name"
-                    placeholder="My API Key"
-                    value={newCredName}
-                    onChange={(e) => setNewCredName(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cred-type">Type</Label>
-                  <Select value={newCredType} onValueChange={setNewCredType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select credential type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {credentialTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          <div className="flex items-center gap-2">
-                            {type.icon}
-                            {type.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <CredentialForm
+                name={newCredName}
+                type={newCredType}
+                settings={newCredSettings}
+                onNameChange={setNewCredName}
+                onTypeChange={(type) => {
+                  setNewCredType(type);
+                  setNewCredSettings({}); // Reset settings when type changes
+                }}
+                onSettingsChange={setNewCredSettings}
+              />
               <DialogFooter>
                 <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={createCredential}>
-                  Create Credential
+                <Button onClick={createCredential} disabled={creating || !newCredName || !newCredType}>
+                  {creating ? 'Creating...' : 'Create Credential'}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -274,67 +332,75 @@ export default function Credentials() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredCredentials.map((credential) => (
-              <Card key={credential.id} className="group hover:border-primary/50 transition-colors">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                        {getCredentialIcon(credential.type)}
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">{credential.name}</CardTitle>
-                        <CardDescription className="capitalize">{credential.type}</CardDescription>
+            {filteredCredentials.map((credential) => {
+              const config = getCredentialTypeConfig(credential.type);
+              return (
+                <Card key={credential.id} className="group hover:border-primary/50 transition-colors">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                          {getCredentialIcon(credential.type)}
+                        </div>
+                        <div>
+                          <CardTitle className="text-base">{credential.name}</CardTitle>
+                          <CardDescription>{config?.label || credential.type}</CardDescription>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                    <span>Created {format(new Date(credential.created_at), 'MMM d, yyyy')}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => toast.info('Edit credential coming soon')}
-                    >
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => deleteCredential(credential.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+                      <span>Created {format(new Date(credential.created_at), 'MMM d, yyyy')}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => openEditDialog(credential)}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => deleteCredential(credential.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
 
-        {/* OAuth Helper Section */}
+        {/* Quick Connect Section */}
         <div className="mt-12">
           <h2 className="text-xl font-bold mb-4">Quick Connect</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {[
-              { name: 'Google', icon: <Mail className="h-5 w-5" /> },
-              { name: 'Slack', icon: <MessageSquare className="h-5 w-5" /> },
-              { name: 'GitHub', icon: <Github className="h-5 w-5" /> },
-              { name: 'Stripe', icon: <CreditCard className="h-5 w-5" /> },
-              { name: 'OpenAI', icon: <Bot className="h-5 w-5" /> },
-              { name: 'AWS', icon: <Cloud className="h-5 w-5" /> },
+              { name: 'Google', icon: <Mail className="h-5 w-5" />, type: 'google' },
+              { name: 'Slack', icon: <MessageSquare className="h-5 w-5" />, type: 'slack' },
+              { name: 'GitHub', icon: <Github className="h-5 w-5" />, type: 'github' },
+              { name: 'Stripe', icon: <CreditCard className="h-5 w-5" />, type: 'stripe' },
+              { name: 'OpenAI', icon: <Bot className="h-5 w-5" />, type: 'openai' },
+              { name: 'AWS', icon: <Cloud className="h-5 w-5" />, type: 'aws' },
             ].map((service) => (
               <Button
                 key={service.name}
                 variant="outline"
                 className="h-auto py-4 flex-col gap-2"
-                onClick={() => toast.info(`Connect to ${service.name} coming soon`)}
+                onClick={() => {
+                  setNewCredType(service.type);
+                  setNewCredName(`My ${service.name}`);
+                  setNewCredSettings({});
+                  setCreateDialogOpen(true);
+                }}
               >
                 {service.icon}
                 <span className="text-xs">{service.name}</span>
@@ -343,6 +409,40 @@ export default function Credentials() {
           </div>
         </div>
       </main>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={(open) => {
+        setEditDialogOpen(open);
+        if (!open) setEditingCredential(null);
+      }}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Credential</DialogTitle>
+            <DialogDescription>
+              Update your credential settings
+            </DialogDescription>
+          </DialogHeader>
+          {editingCredential && (
+            <CredentialForm
+              name={editCredName}
+              type={editingCredential.type}
+              settings={editCredSettings}
+              onNameChange={setEditCredName}
+              onTypeChange={() => {}} // Type can't be changed after creation
+              onSettingsChange={setEditCredSettings}
+              showTypeSelector={false}
+            />
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={updateCredential} disabled={updating || !editCredName}>
+              {updating ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
