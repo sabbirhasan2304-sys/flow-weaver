@@ -1,0 +1,75 @@
+// ============================================================
+// FLOWFORGE NODE DEFINITIONS - COMPREHENSIVE 250+ NODES
+// Full n8n parity + advanced capabilities
+// ============================================================
+
+import { NodeDefinition, NODE_CATEGORIES, CATEGORY_COLORS } from '@/types/nodes';
+import { triggerNodes } from './triggers';
+import { actionNodes } from './actions';
+import { dataNodes } from './data';
+import { logicNodes } from './logic';
+import { aiNodes } from './ai';
+// communicationNodes are included in productivity for now
+import { productivityNodes } from './productivity';
+import { storageNodes } from './storage';
+import { databaseNodes } from './databases';
+import { developmentNodes } from './development';
+import { ecommerceNodes } from './ecommerce';
+import { analyticsNodes } from './analytics';
+import { blockchainNodes } from './blockchain';
+import { iotNodes } from './iot';
+import { mediaNodes } from './media';
+import { securityNodes } from './security';
+import { customNodes } from './custom';
+
+// Combine all node definitions
+export const nodeDefinitions: NodeDefinition[] = [
+  ...triggerNodes,
+  ...actionNodes,
+  ...dataNodes,
+  ...logicNodes,
+  ...aiNodes,
+  ...productivityNodes,
+  ...storageNodes,
+  ...databaseNodes,
+  ...developmentNodes,
+  ...ecommerceNodes,
+  ...analyticsNodes,
+  ...blockchainNodes,
+  ...iotNodes,
+  ...mediaNodes,
+  ...securityNodes,
+  ...customNodes,
+];
+
+// Helper function to get node by type
+export function getNodeDefinition(type: string): NodeDefinition | undefined {
+  return nodeDefinitions.find((node) => node.type === type);
+}
+
+// Get nodes by category
+export function getNodesByCategory(category: string): NodeDefinition[] {
+  return nodeDefinitions.filter((node) => node.category === category);
+}
+
+// Get all categories with node counts
+export function getCategoriesWithCounts(): Record<string, number> {
+  const counts: Record<string, number> = {};
+  nodeDefinitions.forEach((node) => {
+    counts[node.category] = (counts[node.category] || 0) + 1;
+  });
+  return counts;
+}
+
+// Search nodes
+export function searchNodes(query: string): NodeDefinition[] {
+  const lowerQuery = query.toLowerCase();
+  return nodeDefinitions.filter(
+    (node) =>
+      node.displayName.toLowerCase().includes(lowerQuery) ||
+      node.description.toLowerCase().includes(lowerQuery) ||
+      node.type.toLowerCase().includes(lowerQuery)
+  );
+}
+
+export { NODE_CATEGORIES, CATEGORY_COLORS } from '@/types/nodes';
