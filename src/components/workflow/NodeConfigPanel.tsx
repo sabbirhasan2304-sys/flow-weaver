@@ -30,6 +30,10 @@ import { ExpressionEditor } from './ExpressionEditor';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
+import { CredentialForm } from '@/components/credentials/CredentialForm';
+import { getCredentialTypeConfig } from '@/components/credentials/CredentialFieldsConfig';
+import type { Json } from '@/integrations/supabase/types';
+
 interface Credential {
   id: string;
   name: string;
@@ -44,7 +48,9 @@ export function NodeConfigPanel() {
   const [showAddCredential, setShowAddCredential] = useState(false);
   const [newCredName, setNewCredName] = useState('');
   const [newCredType, setNewCredType] = useState('');
+  const [newCredSettings, setNewCredSettings] = useState<Record<string, unknown>>({});
   const [addingCredentialForField, setAddingCredentialForField] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
   
   // Fetch credentials when workspace is available
   useEffect(() => {
@@ -69,10 +75,24 @@ export function NodeConfigPanel() {
   
   const createCredential = async () => {
     if (!activeWorkspace || !profile || !newCredName || !newCredType) {
-      toast.error('Please fill in all fields');
+      toast.error('Please fill in name and type');
       return;
     }
     
+    // Validate required fields
+    const config = getCredentialTypeConfig(newCredType);
+    if (config) {
+      const missingRequired = config.fields
+        .filter(f => f.required)
+        .filter(f => !newCredSettings[f.name]);
+      
+      if (missingRequired.length > 0) {
+        toast.error(`Please fill in: ${missingRequired.map(f => f.label).join(', ')}`);
+        return;
+      }
+    }
+    
+    setCreating(true);
     const { data, error } = await supabase
       .from('credentials')
       .insert({
@@ -80,13 +100,14 @@ export function NodeConfigPanel() {
         type: newCredType,
         workspace_id: activeWorkspace.id,
         created_by: profile.id,
-        settings: {},
+        settings: newCredSettings as Json,
       })
       .select('id, name, type')
       .single();
     
     if (error) {
       toast.error('Failed to create credential');
+      setCreating(false);
       return;
     }
     
@@ -101,7 +122,9 @@ export function NodeConfigPanel() {
     setShowAddCredential(false);
     setNewCredName('');
     setNewCredType('');
+    setNewCredSettings({});
     setAddingCredentialForField(null);
+    setCreating(false);
   };
   
   if (!selectedNode) {
@@ -447,58 +470,39 @@ export function NodeConfigPanel() {
       </div>
       
       {/* Add Credential Dialog */}
-      <Dialog open={showAddCredential} onOpenChange={setShowAddCredential}>
-        <DialogContent>
+      <Dialog open={showAddCredential} onOpenChange={(open) => {
+        setShowAddCredential(open);
+        if (!open) {
+          setNewCredName('');
+          setNewCredType('');
+          setNewCredSettings({});
+          setAddingCredentialForField(null);
+        }
+      }}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Credential</DialogTitle>
             <DialogDescription>
               Create a credential to connect this node to external services
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="cred-name">Credential Name</Label>
-              <Input
-                id="cred-name"
-                placeholder="e.g., My OpenAI Key"
-                value={newCredName}
-                onChange={(e) => setNewCredName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cred-type">Type</Label>
-              <Select value={newCredType} onValueChange={setNewCredType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="openai">OpenAI</SelectItem>
-                  <SelectItem value="anthropic">Anthropic</SelectItem>
-                  <SelectItem value="google">Google</SelectItem>
-                  <SelectItem value="slack">Slack</SelectItem>
-                  <SelectItem value="discord">Discord</SelectItem>
-                  <SelectItem value="telegram">Telegram</SelectItem>
-                  <SelectItem value="github">GitHub</SelectItem>
-                  <SelectItem value="stripe">Stripe</SelectItem>
-                  <SelectItem value="aws">AWS</SelectItem>
-                  <SelectItem value="smtp">SMTP</SelectItem>
-                  <SelectItem value="http">HTTP Basic Auth</SelectItem>
-                  <SelectItem value="bearer">Bearer Token</SelectItem>
-                  <SelectItem value="apikey">API Key</SelectItem>
-                  <SelectItem value="oauth2">OAuth2</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              You can configure the credential details in the Credentials page after creation.
-            </p>
-          </div>
+          <CredentialForm
+            name={newCredName}
+            type={newCredType}
+            settings={newCredSettings}
+            onNameChange={setNewCredName}
+            onTypeChange={(type) => {
+              setNewCredType(type);
+              setNewCredSettings({}); // Reset settings when type changes
+            }}
+            onSettingsChange={setNewCredSettings}
+          />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddCredential(false)}>
               Cancel
             </Button>
-            <Button onClick={createCredential} disabled={!newCredName || !newCredType}>
-              Create Credential
+            <Button onClick={createCredential} disabled={creating || !newCredName || !newCredType}>
+              {creating ? 'Creating...' : 'Create Credential'}
             </Button>
           </DialogFooter>
         </DialogContent>
