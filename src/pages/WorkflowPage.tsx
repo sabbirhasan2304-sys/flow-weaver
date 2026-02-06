@@ -1,0 +1,268 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { WorkflowEditor } from '@/components/workflow/WorkflowEditor';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { 
+  Zap, ArrowLeft, Save, Play, Pause, 
+  Settings, Share2, MoreHorizontal,
+  CheckCircle2, Clock
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Json } from '@/integrations/supabase/types';
+
+interface Workflow {
+  id: string;
+  name: string;
+  description: string | null;
+  data: Json;
+  is_active: boolean;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export default function WorkflowPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [workflow, setWorkflow] = useState<Workflow | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [workflowName, setWorkflowName] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    
+    if (id) {
+      fetchWorkflow();
+    }
+  }, [id, user, navigate]);
+
+  const fetchWorkflow = async () => {
+    if (!id) return;
+    
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('workflows')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      toast.error('Workflow not found');
+      navigate('/dashboard');
+    } else {
+      setWorkflow(data);
+      setWorkflowName(data.name);
+    }
+    setLoading(false);
+  };
+
+  const handleSave = async (data: { nodes: any[]; edges: any[] }) => {
+    if (!workflow) return;
+    
+    setSaving(true);
+    const { error } = await supabase
+      .from('workflows')
+      .update({
+        name: workflowName,
+        data: data as unknown as Json,
+        version: workflow.version + 1,
+      })
+      .eq('id', workflow.id);
+    
+    if (error) {
+      toast.error('Failed to save workflow');
+    } else {
+      setLastSaved(new Date());
+      toast.success('Workflow saved');
+    }
+    setSaving(false);
+  };
+
+  const handleNameChange = async () => {
+    if (!workflow || workflowName === workflow.name) {
+      setIsEditing(false);
+      return;
+    }
+    
+    const { error } = await supabase
+      .from('workflows')
+      .update({ name: workflowName })
+      .eq('id', workflow.id);
+    
+    if (error) {
+      toast.error('Failed to update name');
+      setWorkflowName(workflow.name);
+    } else {
+      setWorkflow({ ...workflow, name: workflowName });
+    }
+    setIsEditing(false);
+  };
+
+  const toggleActive = async () => {
+    if (!workflow) return;
+    
+    const { error } = await supabase
+      .from('workflows')
+      .update({ is_active: !workflow.is_active })
+      .eq('id', workflow.id);
+    
+    if (error) {
+      toast.error('Failed to update workflow');
+    } else {
+      setWorkflow({ ...workflow, is_active: !workflow.is_active });
+      toast.success(workflow.is_active ? 'Workflow deactivated' : 'Workflow activated');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading workflow...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!workflow) {
+    return null;
+  }
+
+  return (
+    <div className="h-screen flex flex-col">
+      {/* Header */}
+      <header className="flex-shrink-0 h-14 border-b border-border bg-card flex items-center justify-between px-4">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/dashboard">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded bg-primary flex items-center justify-center">
+              <Zap className="h-4 w-4 text-primary-foreground" />
+            </div>
+            
+            {isEditing ? (
+              <Input
+                value={workflowName}
+                onChange={(e) => setWorkflowName(e.target.value)}
+                onBlur={handleNameChange}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleNameChange();
+                  if (e.key === 'Escape') {
+                    setWorkflowName(workflow.name);
+                    setIsEditing(false);
+                  }
+                }}
+                className="h-8 w-[200px]"
+                autoFocus
+              />
+            ) : (
+              <button
+                className="text-lg font-medium hover:bg-muted px-2 py-1 rounded-md transition-colors"
+                onClick={() => setIsEditing(true)}
+              >
+                {workflow.name}
+              </button>
+            )}
+            
+            {workflow.is_active ? (
+              <Badge variant="default" className="bg-success text-success-foreground">
+                <CheckCircle2 className="h-3 w-3 mr-1" />
+                Active
+              </Badge>
+            ) : (
+              <Badge variant="secondary">Draft</Badge>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {lastSaved && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              Saved {lastSaved.toLocaleTimeString()}
+            </span>
+          )}
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleActive}
+          >
+            {workflow.is_active ? (
+              <>
+                <Pause className="h-4 w-4 mr-2" />
+                Deactivate
+              </>
+            ) : (
+              <>
+                <Play className="h-4 w-4 mr-2" />
+                Activate
+              </>
+            )}
+          </Button>
+          
+          <Button variant="outline" size="icon" className="h-9 w-9">
+            <Share2 className="h-4 w-4" />
+          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-9 w-9">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <Settings className="h-4 w-4 mr-2" />
+                Workflow Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem>Export as JSON</DropdownMenuItem>
+              <DropdownMenuItem>View Executions</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive">
+                Delete Workflow
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <Button size="sm" onClick={() => toast.info('Use the save button in the canvas')} disabled={saving}>
+            <Save className="h-4 w-4 mr-2" />
+            {saving ? 'Saving...' : 'Save'}
+          </Button>
+        </div>
+      </header>
+      
+      {/* Editor */}
+      <div className="flex-1 overflow-hidden">
+        <WorkflowEditor
+          workflowId={workflow.id}
+          workflowName={workflow.name}
+          onSave={handleSave}
+        />
+      </div>
+    </div>
+  );
+}
