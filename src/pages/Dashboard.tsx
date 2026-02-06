@@ -199,14 +199,30 @@ export default function Dashboard() {
                 <Folder className="h-4 w-4 mr-2" />
                 Workflows
               </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                <Sparkles className="h-4 w-4 mr-2" />
-                Templates
-              </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                <Store className="h-4 w-4 mr-2" />
-                Marketplace
-              </Button>
+              <Link to="/templates">
+                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Templates
+                </Button>
+              </Link>
+              <Link to="/marketplace">
+                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                  <Store className="h-4 w-4 mr-2" />
+                  Marketplace
+                </Button>
+              </Link>
+              <Link to="/executions">
+                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                  <Clock className="h-4 w-4 mr-2" />
+                  Executions
+                </Button>
+              </Link>
+              <Link to="/credentials">
+                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Credentials
+                </Button>
+              </Link>
             </nav>
           </div>
           

@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { X, Settings, Trash2, Copy, Play } from 'lucide-react';
 import { CATEGORY_COLORS } from '@/types/nodes';
 import { toast } from 'sonner';
+import { ExpressionEditor } from './ExpressionEditor';
 
 export function NodeConfigPanel() {
   const { selectedNode, updateNode, deleteNode, selectNode } = useWorkflowStore();
@@ -35,6 +36,7 @@ export function NodeConfigPanel() {
   
   const definition = getNodeDefinition(selectedNode.data.type);
   const categoryColor = CATEGORY_COLORS[selectedNode.data.category] || '#6366f1';
+  const { nodes } = useWorkflowStore();
   
   const handleConfigChange = (field: string, value: unknown) => {
     updateNode(selectedNode.id, {
@@ -79,12 +81,15 @@ export function NodeConfigPanel() {
         
       case 'textarea':
         return (
-          <Textarea
-            id={field.name}
+          <ExpressionEditor
             value={String(value)}
-            onChange={(e) => handleConfigChange(field.name, e.target.value)}
-            placeholder={field.placeholder}
-            rows={3}
+            onChange={(v) => handleConfigChange(field.name, v)}
+            placeholder={field.placeholder || 'Enter value or expression...'}
+            availableNodes={nodes.filter(n => n.id !== selectedNode.id).map(n => ({
+              id: n.id,
+              label: n.data.label,
+              data: n.data,
+            }))}
           />
         );
         
