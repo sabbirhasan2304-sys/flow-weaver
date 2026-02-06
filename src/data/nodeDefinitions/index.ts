@@ -47,8 +47,20 @@ export function getNodeDefinition(type: string): NodeDefinition | undefined {
   return nodeDefinitions.find((node) => node.type === type);
 }
 
-// Get nodes by category
-export function getNodesByCategory(category: string): NodeDefinition[] {
+// Get nodes grouped by category (for NodePalette)
+export function getNodesByCategory(): Record<string, NodeDefinition[]> {
+  const grouped: Record<string, NodeDefinition[]> = {};
+  nodeDefinitions.forEach((node) => {
+    if (!grouped[node.category]) {
+      grouped[node.category] = [];
+    }
+    grouped[node.category].push(node);
+  });
+  return grouped;
+}
+
+// Get nodes by specific category
+export function getNodesByCategoryName(category: string): NodeDefinition[] {
   return nodeDefinitions.filter((node) => node.category === category);
 }
 
