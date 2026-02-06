@@ -48,7 +48,7 @@ export default function Admin() {
     revenue: 0,
   });
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(false);
 
   useEffect(() => {
     // Wait for both auth and admin loading to complete
@@ -72,7 +72,7 @@ export default function Admin() {
 
   const fetchAdminData = async () => {
     try {
-      setLoading(true);
+      setDataLoading(true);
       
       // Fetch users with their subscriptions
       const { data: profilesData } = await supabase
@@ -135,7 +135,7 @@ export default function Admin() {
     } catch (error) {
       console.error('Error fetching admin data:', error);
     } finally {
-      setLoading(false);
+      setDataLoading(false);
     }
   };
 
@@ -156,7 +156,7 @@ export default function Admin() {
     return <Badge variant={variants[status] || 'outline'}>{status}</Badge>;
   };
 
-  if (authLoading || adminLoading || loading) {
+  if (authLoading || adminLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-[60vh]">
