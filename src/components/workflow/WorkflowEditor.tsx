@@ -2,6 +2,9 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { NodePalette } from './NodePalette';
 import { WorkflowCanvas } from './WorkflowCanvas';
 import { NodeConfigPanel } from './NodeConfigPanel';
+import { AIAssistant } from './AIAssistant';
+import { ExecutionPanel } from './ExecutionPanel';
+import { WorkflowImportExport } from './WorkflowImportExport';
 import { useWorkflowStore } from '@/stores/workflowStore';
 import {
   ResizablePanelGroup,
@@ -25,7 +28,13 @@ export function WorkflowEditor({ workflowId, workflowName, onSave }: WorkflowEdi
 
   return (
     <ReactFlowProvider>
-      <div className="h-full w-full">
+      <div className="h-full w-full relative">
+        {/* Top toolbar for import/export and execution */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
+          <WorkflowImportExport workflowName={workflowName} />
+          {workflowId && <ExecutionPanel workflowId={workflowId} />}
+        </div>
+
         <ResizablePanelGroup direction="horizontal">
           {/* Left Panel - Node Palette */}
           <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
@@ -49,6 +58,9 @@ export function WorkflowEditor({ workflowId, workflowName, onSave }: WorkflowEdi
             </>
           )}
         </ResizablePanelGroup>
+
+        {/* AI Assistant */}
+        <AIAssistant />
       </div>
     </ReactFlowProvider>
   );
