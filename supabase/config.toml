@@ -1,1 +1,13 @@
 project_id = "euocvkvdixpxfznrduzi"
+
+[functions.generate-workflow]
+verify_jwt = false
+
+[functions.ai-assistant]
+verify_jwt = false
+
+[functions.execute-workflow]
+verify_jwt = false
+
+[functions.payment-gateway]
+verify_jwt = false

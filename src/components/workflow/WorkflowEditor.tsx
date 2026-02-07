@@ -3,6 +3,7 @@ import { NodePalette } from './NodePalette';
 import { WorkflowCanvas } from './WorkflowCanvas';
 import { NodeConfigPanel } from './NodeConfigPanel';
 import { AIAssistant } from './AIAssistant';
+import { AIWorkflowBuilder } from './AIWorkflowBuilder';
 import { ExecutionPanel } from './ExecutionPanel';
 import { WorkflowImportExport } from './WorkflowImportExport';
 import { useWorkflowStore } from '@/stores/workflowStore';
@@ -31,6 +32,7 @@ export function WorkflowEditor({ workflowId, workflowName, onSave }: WorkflowEdi
       <div className="h-full w-full relative">
         {/* Top toolbar for import/export and execution */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
+          <AIWorkflowBuilder />
           <WorkflowImportExport workflowName={workflowName} />
           {workflowId && <ExecutionPanel workflowId={workflowId} />}
         </div>
