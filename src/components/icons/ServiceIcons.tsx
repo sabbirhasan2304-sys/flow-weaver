@@ -558,3 +558,563 @@ export const FramerIcon = (props: LucideProps) => (
     <path d="M4 0h16v8h-8zM4 8h8l8 8H4zM4 16h8v8z" />
   </svg>
 );
+
+// ElevenLabs Logo
+export const ElevenLabsIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M7 4h3v16H7zM14 4h3v16h-3z" />
+  </svg>
+);
+
+// Perplexity Logo
+export const PerplexityIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L4 6v12l8 4 8-4V6l-8-4zm0 2.5L17.5 7.5v8l-5.5 3-5.5-3v-8L12 4.5z" />
+  </svg>
+);
+
+// Midjourney Logo
+export const MidjourneyIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+  </svg>
+);
+
+// Runway Logo
+export const RunwayIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M3 3h18v2H3V3zm0 16h18v2H3v-2zm0-8h18v2H3v-2z" />
+  </svg>
+);
+
+// Luma AI Logo
+export const LumaIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+  </svg>
+);
+
+// Pika Labs Logo
+export const PikaIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+  </svg>
+);
+
+// Sora Logo
+export const SoraIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm4-8l-6-4v8l6-4z" />
+  </svg>
+);
+
+// Dify Logo
+export const DifyIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+  </svg>
+);
+
+// LangChain Logo
+export const LangChainIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L4 6v4l8 4 8-4V6l-8-4zM4 14v4l8 4 8-4v-4l-8 4-8-4z" />
+  </svg>
+);
+
+// Pinecone Logo
+export const PineconeIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L8 6v4l4 4 4-4V6l-4-4zm0 10l-4 4v4l4 4 4-4v-4l-4-4z" />
+  </svg>
+);
+
+// Weaviate Logo
+export const WeaviateIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.5l7.5 3.75L12 12l-7.5-3.75L12 4.5z" />
+  </svg>
+);
+
+// Qdrant Logo
+export const QdrantIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+  </svg>
+);
+
+// Chroma Logo
+export const ChromaIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+  </svg>
+);
+
+// Milvus Logo
+export const MilvusIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L2 12l10 10 10-10L12 2zm0 15l-5-5 5-5 5 5-5 5z" />
+  </svg>
+);
+
+// Supabase Vector Logo
+export const SupabaseVectorIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M11.9 1.036c-.015-.986-1.26-1.41-1.874-.637L.764 12.05C-.33 13.427.65 15.455 2.409 15.455h9.579l.113 7.51c.014.985 1.259 1.408 1.873.636l9.262-11.653c1.093-1.375.113-3.403-1.645-3.403h-9.642z" />
+  </svg>
+);
+
+// Astra DB Logo
+export const AstraDBIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+  </svg>
+);
+
+// Neon Logo
+export const NeonIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L4 6v12l8 4 8-4V6l-8-4zm0 2.5l5.5 2.75V17.5L12 20.25l-5.5-2.75V7.25L12 4.5z" />
+  </svg>
+);
+
+// PlanetScale Logo
+export const PlanetScaleIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" />
+  </svg>
+);
+
+// CockroachDB Logo
+export const CockroachDBIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.14-7-7 3.14-7 7-7z" />
+  </svg>
+);
+
+// TimescaleDB Logo
+export const TimescaleDBIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm1-13h-2v6l5.25 3.15.75-1.23-4-2.42V7z" />
+  </svg>
+);
+
+// ClickHouse Logo
+export const ClickHouseIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M4 4h3v16H4V4zm5 0h3v16H9V4zm5 0h3v16h-3V4zm5 4h3v8h-3V8z" />
+  </svg>
+);
+
+// DynamoDB Logo
+export const DynamoDBIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L4 5v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V5l-8-3zm0 10.99h6c-.53 4.12-3.28 7.79-6 8.94V13H6V6.3l6-2.25v8.94z" />
+  </svg>
+);
+
+// Cassandra Logo
+export const CassandraIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+  </svg>
+);
+
+// Neo4j Logo
+export const Neo4jIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14c-2.33 0-4.31-1.46-5.11-3.5h10.22c-.8 2.04-2.78 3.5-5.11 3.5z" />
+  </svg>
+);
+
+// Datadog Logo
+export const DatadogIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12.26 2.02c-.24-.02-.52.02-.77.12L5.26 4.98c-.42.16-.77.54-.92.98L2.05 13.9c-.12.42-.03.88.24 1.24l5.32 6.63c.28.36.72.56 1.18.54l8.08-.38c.44-.02.85-.24 1.12-.6l4.38-5.88c.26-.36.34-.82.2-1.24l-3.15-9.12c-.15-.44-.5-.8-.94-.95l-6.22-2.12z" />
+  </svg>
+);
+
+// Grafana Logo
+export const GrafanaIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+  </svg>
+);
+
+// Prometheus Logo
+export const PrometheusIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zM7 14h10v2H7z" />
+  </svg>
+);
+
+// Sentry Logo
+export const SentryIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M13.91 2.514c-.42-.73-1.47-.73-1.89 0L9.67 6.958c.06.05.12.12.17.18l5.4 9.35h-2.98c0-3.65-2.96-6.62-6.62-6.62v2.98l-1.64-2.86c-.42-.73-.14-1.64.63-1.89.14-.05.29-.07.44-.07h.19l4.55 7.87H6.91v-2.98a3.64 3.64 0 0 0 3.64 3.64h5.28l1.64 2.86c.42.73.14 1.64-.63 1.89-.14.05-.29.07-.44.07H4.54a1.09 1.09 0 0 1-.94-.55l6.06-10.5-1.06-1.84L2.62 20.21c.22.39.62.63 1.06.63h12.28c.93 0 1.68-.75 1.68-1.68a1.68 1.68 0 0 0-.22-.82L13.91 2.514z" />
+  </svg>
+);
+
+// LogRocket Logo
+export const LogRocketIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L4 6v12l8 4 8-4V6l-8-4zm0 2.5l5.5 2.75L12 10l-5.5-2.75L12 4.5z" />
+  </svg>
+);
+
+// LaunchDarkly Logo
+export const LaunchDarklyIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L2 12h7v10l12-12h-7V2z" />
+  </svg>
+);
+
+// PostHog Logo
+export const PostHogIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+  </svg>
+);
+
+// Plausible Logo
+export const PlausibleIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L4 6v12l8 4 8-4V6l-8-4z" />
+  </svg>
+);
+
+// Umami Logo
+export const UmamiIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+  </svg>
+);
+
+// Resend Logo
+export const ResendIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M6 4h12v2H8v4h10v2H8v8H6V4z" />
+  </svg>
+);
+
+// Postmark Logo
+export const PostmarkIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+  </svg>
+);
+
+// Loops Logo
+export const LoopsIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-1-6h2v2h-2v-2zm0-8h2v6h-2V6z" />
+  </svg>
+);
+
+// Customer.io Logo
+export const CustomerIOIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+  </svg>
+);
+
+// Brevo Logo
+export const BrevoIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+  </svg>
+);
+
+// ConvertKit Logo
+export const ConvertKitIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L4 5v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V5l-8-3z" />
+  </svg>
+);
+
+// Lemlist Logo
+export const LemlistIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+  </svg>
+);
+
+// Apollo Logo
+export const ApolloIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L2 12h3v8h14v-8h3L12 2z" />
+  </svg>
+);
+
+// Outreach Logo
+export const OutreachIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
+  </svg>
+);
+
+// Clearbit Logo
+export const ClearbitIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+  </svg>
+);
+
+// ZoomInfo Logo
+export const ZoomInfoIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 0 0 1.48-5.34c-.47-2.78-2.79-5-5.59-5.34a6.505 6.505 0 0 0-7.27 7.27c.34 2.8 2.56 5.12 5.34 5.59a6.5 6.5 0 0 0 5.34-1.48l.27.28v.79l4.25 4.25c.41.41 1.08.41 1.49 0 .41-.41.41-1.08 0-1.49L15.5 14zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+  </svg>
+);
+
+// Gong Logo
+export const GongIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-1-11v4l3.47 2.08.75-1.23-2.72-1.62V9H11z" />
+  </svg>
+);
+
+// Chorus Logo
+export const ChorusIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+  </svg>
+);
+
+// Klenty Logo
+export const KlentyIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+  </svg>
+);
+
+// Loom Logo
+export const LoomIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
+  </svg>
+);
+
+// Vimeo Logo
+export const VimeoIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M23.9765 6.4168c-.105 2.338-1.739 5.543-4.894 9.609-3.268 4.247-6.026 6.37-8.29 6.37-1.409 0-2.578-1.294-3.553-3.881L5.3 11.85c-.601-2.398-1.277-3.703-2.01-3.891-.165-.053-.731-.115-1.682-.189L1 6.8l9.972-5.7.889.098c2.49-.165 4.044 1.228 4.659 4.18.66 3.16 1.12 5.12 1.381 5.886.768 3.489 1.606 5.232 2.52 5.232.711 0 1.78-1.125 3.21-3.374 1.419-2.25 2.18-3.96 2.27-5.125.18-1.936-.555-2.906-2.205-2.906-.789 0-1.6.182-2.43.54 1.609-5.267 4.68-7.83 9.21-7.676 3.36.095 4.946 2.278 4.75 6.54z" />
+  </svg>
+);
+
+// YouTube Logo
+export const YouTubeIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+  </svg>
+);
+
+// Spotify Logo
+export const SpotifyIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.48.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+  </svg>
+);
+
+// TikTok Logo
+export const TikTokIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
+  </svg>
+);
+
+// X/Twitter Logo
+export const XIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+  </svg>
+);
+
+// Instagram Logo
+export const InstagramIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
+  </svg>
+);
+
+// LinkedIn Logo
+export const LinkedInIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+  </svg>
+);
+
+// Facebook Logo
+export const FacebookIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+  </svg>
+);
+
+// Pinterest Logo
+export const PinterestIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z" />
+  </svg>
+);
+
+// Reddit Logo
+export const RedditIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z" />
+  </svg>
+);
+
+// Threads Logo
+export const ThreadsIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.96-.065-1.182.408-2.256 1.333-3.022.812-.672 1.927-1.084 3.227-1.191.856-.07 1.72-.043 2.574.078-.064-1.056-.407-1.866-1.016-2.404-.763-.678-1.966-.99-3.556-.96l-.017-2.12c2.02-.038 3.652.422 4.853 1.368.933.734 1.571 1.756 1.906 3.05.408.092.798.202 1.167.332 1.056.37 1.954.93 2.67 1.665 1.01 1.04 1.493 2.408 1.395 3.96-.082 1.3-.53 2.55-1.334 3.715-1.08 1.564-2.79 2.774-5.086 3.597-1.85.664-4.078.99-6.62.958h-.001l.001-.001ZM8.81 12.617c-.02.363.085.652.313.862.263.241.673.381 1.18.39 1.062.016 2.283-.486 2.766-1.54-.456-.1-.943-.163-1.452-.163-.79 0-1.508.15-2.025.422-.41.214-.766.48-.782 1.03v-.001Z" />
+  </svg>
+);
+
+// Mastodon Logo
+export const MastodonIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M23.268 5.313c-.35-2.578-2.617-4.61-5.304-5.004C17.51.242 15.792 0 11.813 0h-.03c-3.98 0-4.835.242-5.288.309C3.882.692 1.496 2.518.917 5.127.64 6.412.61 7.837.661 9.143c.074 1.874.088 3.745.26 5.611.118 1.24.325 2.47.62 3.68.55 2.237 2.777 4.098 4.96 4.857 2.336.792 4.849.923 7.256.38.265-.061.527-.132.786-.213.585-.184 1.27-.39 1.774-.753a.057.057 0 0 0 .023-.043v-1.809a.052.052 0 0 0-.02-.041.053.053 0 0 0-.046-.01 20.282 20.282 0 0 1-4.709.545c-2.73 0-3.463-1.284-3.674-1.818a5.593 5.593 0 0 1-.319-1.433.053.053 0 0 1 .066-.054c1.517.363 3.072.546 4.632.546.376 0 .75 0 1.125-.01 1.57-.044 3.224-.124 4.768-.422.038-.008.077-.015.11-.024 2.435-.464 4.753-1.92 4.989-5.604.008-.145.03-1.52.03-1.67.002-.512.167-3.63-.024-5.545zm-3.748 9.195h-2.561V8.29c0-1.309-.55-1.976-1.67-1.976-1.23 0-1.846.79-1.846 2.35v3.403h-2.546V8.663c0-1.56-.617-2.35-1.848-2.35-1.112 0-1.668.668-1.67 1.977v6.218H4.822V8.102c0-1.31.337-2.35 1.011-3.12.696-.77 1.608-1.164 2.74-1.164 1.311 0 2.302.5 2.962 1.498l.638 1.06.638-1.06c.66-.999 1.65-1.498 2.96-1.498 1.13 0 2.043.395 2.74 1.164.675.77 1.012 1.81 1.012 3.12z" />
+  </svg>
+);
+
+// Bluesky Logo
+export const BlueskyIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.308 4.267-4.308 1.172-6.498-2.74-7.078a8.741 8.741 0 0 1-.415-.056c.14.017.279.036.415.056 2.67.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8Z" />
+  </svg>
+);
+
+// Telegram (Circle variant) Logo
+export const TelegramCircleIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121L8.32 13.617l-2.96-.924c-.64-.203-.654-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z" />
+  </svg>
+);
+
+// Signal Logo
+export const SignalIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm3.5 14.5c-.32.32-.84.32-1.16 0L12 14.16l-2.34 2.34c-.32.32-.84.32-1.16 0-.32-.32-.32-.84 0-1.16L10.84 13l-2.34-2.34c-.32-.32-.32-.84 0-1.16.32-.32.84-.32 1.16 0L12 11.84l2.34-2.34c.32-.32.84-.32 1.16 0 .32.32.32.84 0 1.16L13.16 13l2.34 2.34c.32.32.32.84 0 1.16z" />
+  </svg>
+);
+
+// Matrix Logo
+export const MatrixIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M.632.55v22.9H2.28V24H0V0h2.28v.55zm7.043 7.26v1.157h.033c.309-.443.683-.784 1.117-1.024.433-.245.936-.365 1.5-.365.54 0 1.033.107 1.481.314.448.208.785.582 1.02 1.108.254-.374.6-.706 1.034-.992.434-.287.95-.43 1.546-.43.453 0 .872.056 1.26.167.388.11.716.286.993.53.278.244.494.559.646.95.152.392.23.863.23 1.417v5.728h-2.349V11.52c0-.286-.014-.573-.038-.859a1.82 1.82 0 0 0-.193-.691 1.024 1.024 0 0 0-.449-.448c-.207-.1-.476-.154-.812-.154-.336 0-.612.066-.828.2-.217.134-.379.303-.49.507-.11.205-.178.426-.2.665a4.668 4.668 0 0 0-.033.56v5.02H9.282V11.52c0-.254-.004-.503-.013-.748a2.016 2.016 0 0 0-.147-.673 1.078 1.078 0 0 0-.409-.5c-.194-.128-.47-.192-.831-.192-.093 0-.214.02-.36.06-.146.04-.29.113-.44.217a1.347 1.347 0 0 0-.388.43c-.104.182-.156.43-.156.74v5.466H4.18V7.81zm15.693 15.64V.55H21.72V0H24v24h-2.28v-.55z" />
+  </svg>
+);
+
+// Rocket.Chat Logo
+export const RocketChatIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 20c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8zm-2-9a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm4 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
+  </svg>
+);
+
+// Mattermost Logo
+export const MattermostIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 18.75c-3.722 0-6.75-3.028-6.75-6.75S8.278 5.25 12 5.25s6.75 3.028 6.75 6.75-3.028 6.75-6.75 6.75z" />
+  </svg>
+);
+
+// AWS S3 Logo
+export const AWSS3Icon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+  </svg>
+);
+
+// Google Cloud Storage Logo
+export const GCSIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+  </svg>
+);
+
+// Azure Blob Logo
+export const AzureBlobIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L4 6v12l8 4 8-4V6l-8-4zm0 2.5l5.5 2.75L12 10l-5.5-2.75L12 4.5z" />
+  </svg>
+);
+
+// Cloudinary Logo
+export const CloudinaryIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H8l4-4 4 4h-3v4h-2z" />
+  </svg>
+);
+
+// Uploadthing Logo
+export const UploadthingIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L4 6v12l8 4 8-4V6l-8-4zm0 2.5l5.5 2.75L12 10l-5.5-2.75L12 4.5z" />
+  </svg>
+);
+
+// Imgix Logo
+export const ImgixIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" />
+  </svg>
+);
+
+// Bunny CDN Logo
+export const BunnyCDNIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+  </svg>
+);
+
+// Render Logo
+export const RenderIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L2 12h3v8h14v-8h3L12 2z" />
+  </svg>
+);
+
+// Railway Logo
+export const RailwayIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L4 6v12l8 4 8-4V6l-8-4zm0 2.5l5.5 2.75L12 10l-5.5-2.75L12 4.5z" />
+  </svg>
+);
+
+// Fly.io Logo
+export const FlyIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L2 7v10l10 5 10-5V7L12 2z" />
+  </svg>
+);
+
+// DigitalOcean Logo
+export const DigitalOceanIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12.04 0C5.408-.02.005 5.37.005 11.992h4.638c0-4.923 4.882-8.731 10.064-6.855a6.95 6.95 0 0 1 4.147 4.148c1.889 5.177-1.924 10.055-6.84 10.064v-4.61H7.391v4.623h4.623V24c7.86 0 13.967-7.588 11.397-15.83-1.115-3.59-3.985-6.446-7.575-7.561A12.8 12.8 0 0 0 12.039 0zM7.39 19.362H3.828v3.564H7.39zm-3.563 0v-2.978H.85v2.978z" />
+  </svg>
+);
+
+// Heroku Logo
+export const HerokuIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M20.61 0H3.39C2.189 0 1.23.96 1.23 2.16v19.681c0 1.198.959 2.159 2.16 2.159h17.22c1.2 0 2.159-.961 2.159-2.159V2.16C22.77.96 21.811 0 20.61 0zm.96 21.841c0 .539-.421.96-.96.96H3.39c-.54 0-.96-.421-.96-.96V2.16c0-.54.42-.961.96-.961h17.22c.539 0 .96.421.96.961zM6.63 20.399L9.33 18l-2.7-2.4zm0-9.6V3.6h2.4c1.68 1.68 2.46 3.48 2.46 5.4s-.78 3.72-2.46 5.4zm8.4 9.6H12.6v-4.8c1.02-.599 1.83-1.379 2.43-2.399z" />
+  </svg>
+);
+
+// Linode Logo
+export const LinodeIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+  </svg>
+);
+
+// Vultr Logo
+export const VultrIcon = (props: LucideProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 2L4 6v12l8 4 8-4V6l-8-4z" />
+  </svg>
+);

@@ -45,6 +45,35 @@ import {
   CalendlyIcon, HuggingFaceIcon, SnowflakeIcon, BigQueryIcon,
   ContentfulIcon, StrapiIcon, ZapierIcon, WebflowIcon, FramerIcon,
   MakeIcon, N8nIcon, MondayIcon, SegmentIcon, MixpanelIcon, AmplitudeIcon,
+  // New AI logos
+  ElevenLabsIcon, PerplexityIcon, MidjourneyIcon, RunwayIcon, LumaIcon, 
+  PikaIcon, SoraIcon, DifyIcon, LangChainIcon, PineconeIcon, WeaviateIcon,
+  QdrantIcon, ChromaIcon, MilvusIcon, SupabaseVectorIcon, AstraDBIcon,
+  // New database logos  
+  NeonIcon, PlanetScaleIcon, CockroachDBIcon, TimescaleDBIcon, ClickHouseIcon,
+  DynamoDBIcon, CassandraIcon, Neo4jIcon,
+  // Observability logos
+  DatadogIcon, GrafanaIcon, PrometheusIcon, SentryIcon, LogRocketIcon,
+  LaunchDarklyIcon, PostHogIcon, PlausibleIcon, UmamiIcon,
+  // Email logos
+  ResendIcon, PostmarkIcon, LoopsIcon, CustomerIOIcon, BrevoIcon,
+  ConvertKitIcon, LemlistIcon,
+  // Sales logos
+  ApolloIcon, OutreachIcon, ClearbitIcon, ZoomInfoIcon, GongIcon,
+  ChorusIcon, KlentyIcon,
+  // Video logos
+  LoomIcon, VimeoIcon, YouTubeIcon, SpotifyIcon, TikTokIcon,
+  // Social logos
+  XIcon, InstagramIcon, LinkedInIcon, FacebookIcon, PinterestIcon,
+  RedditIcon, ThreadsIcon, MastodonIcon, BlueskyIcon,
+  // Messaging logos
+  TelegramCircleIcon, SignalIcon, MatrixIcon, RocketChatIcon, MattermostIcon,
+  // Storage logos
+  AWSS3Icon, GCSIcon, AzureBlobIcon, CloudinaryIcon, UploadthingIcon,
+  ImgixIcon, BunnyCDNIcon,
+  // Hosting logos
+  RenderIcon, RailwayIcon, FlyIcon, DigitalOceanIcon, HerokuIcon, 
+  LinodeIcon, VultrIcon,
 } from '@/components/icons/ServiceIcons';
 
 // Extended icon map with service logos and lucide icons
@@ -85,7 +114,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string; style?: 
   OneDrive: OneDriveIcon, HubSpot: HubSpotIcon, Salesforce: SalesforceIcon,
   Gmail: GmailIcon, Mailchimp: MailchimpIcon, WooCommerce: WooCommerceIcon,
   Bkash: BkashIcon, Nagad: NagadIcon, Outlook: OutlookIcon, Square: SquareIcon,
-  // New icons
+  // DevOps & Hosting
   Vercel: VercelIcon, Docker: DockerIcon, Kubernetes: KubernetesIcon,
   Firebase: FirebaseIcon, Cloudflare: CloudflareIcon, Netlify: NetlifyIcon,
   Figma: FigmaIcon, Intercom: IntercomIcon, Zendesk: ZendeskIcon,
@@ -94,6 +123,47 @@ const iconMap: Record<string, React.ComponentType<{ className?: string; style?: 
   Strapi: StrapiIcon, Zapier: ZapierIcon, Webflow: WebflowIcon,
   Framer: FramerIcon, Make: MakeIcon, N8n: N8nIcon, Monday: MondayIcon,
   Segment: SegmentIcon, Mixpanel: MixpanelIcon, Amplitude: AmplitudeIcon,
+  // AI Services
+  ElevenLabs: ElevenLabsIcon, Perplexity: PerplexityIcon, Midjourney: MidjourneyIcon,
+  Runway: RunwayIcon, Luma: LumaIcon, Pika: PikaIcon, Sora: SoraIcon,
+  Dify: DifyIcon, LangChain: LangChainIcon,
+  // Vector Databases
+  Pinecone: PineconeIcon, Weaviate: WeaviateIcon, Qdrant: QdrantIcon,
+  Chroma: ChromaIcon, Milvus: MilvusIcon, SupabaseVector: SupabaseVectorIcon,
+  AstraDB: AstraDBIcon,
+  // Databases
+  Neon: NeonIcon, PlanetScale: PlanetScaleIcon, CockroachDB: CockroachDBIcon,
+  TimescaleDB: TimescaleDBIcon, ClickHouse: ClickHouseIcon, DynamoDB: DynamoDBIcon,
+  Cassandra: CassandraIcon, Neo4j: Neo4jIcon,
+  // Observability
+  Datadog: DatadogIcon, Grafana: GrafanaIcon, Prometheus: PrometheusIcon,
+  Sentry: SentryIcon, LogRocket: LogRocketIcon, LaunchDarkly: LaunchDarklyIcon,
+  PostHog: PostHogIcon, Plausible: PlausibleIcon, Umami: UmamiIcon,
+  // Email
+  Resend: ResendIcon, Postmark: PostmarkIcon, Loops: LoopsIcon,
+  CustomerIO: CustomerIOIcon, Brevo: BrevoIcon, ConvertKit: ConvertKitIcon,
+  Lemlist: LemlistIcon,
+  // Sales
+  Apollo: ApolloIcon, Outreach: OutreachIcon, Clearbit: ClearbitIcon,
+  ZoomInfo: ZoomInfoIcon, Gong: GongIcon, Chorus: ChorusIcon, Klenty: KlentyIcon,
+  // Video & Media
+  Loom: LoomIcon, Vimeo: VimeoIcon, YouTube: YouTubeIcon, Spotify: SpotifyIcon,
+  TikTok: TikTokIcon,
+  // Social Media
+  X: XIcon, Twitter: XIcon, Instagram: InstagramIcon, LinkedIn: LinkedInIcon,
+  Facebook: FacebookIcon, Pinterest: PinterestIcon, Reddit: RedditIcon,
+  Threads: ThreadsIcon, Mastodon: MastodonIcon, Bluesky: BlueskyIcon,
+  // Messaging
+  TelegramCircle: TelegramCircleIcon, Signal: SignalIcon, Matrix: MatrixIcon,
+  RocketChat: RocketChatIcon, Mattermost: MattermostIcon,
+  // Storage
+  AWSS3: AWSS3Icon, GCS: GCSIcon, AzureBlob: AzureBlobIcon,
+  Cloudinary: CloudinaryIcon, Uploadthing: UploadthingIcon, Imgix: ImgixIcon,
+  BunnyCDN: BunnyCDNIcon,
+  // Hosting
+  Render: RenderIcon, Railway: RailwayIcon, Fly: FlyIcon,
+  DigitalOcean: DigitalOceanIcon, Heroku: HerokuIcon, Linode: LinodeIcon,
+  Vultr: VultrIcon,
 };
 
 interface NodePaletteProps {
