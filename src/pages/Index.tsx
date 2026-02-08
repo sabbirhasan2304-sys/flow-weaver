@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Zap, ArrowRight, Play, Users, Shield, 
   Workflow, Bot, Database, Globe, CheckCircle2,
-  LayoutDashboard, Settings
+  LayoutDashboard, Settings, Code, FileText, Book
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -32,9 +32,14 @@ const features = [
     description: 'HTTP requests, webhooks, and real-time triggers for any use case.',
   },
   {
+    icon: Code,
+    title: 'Public API Access',
+    description: 'Full REST API for external integrations. Execute workflows from any platform.',
+  },
+  {
     icon: Shield,
     title: 'Enterprise Security',
-    description: 'Encrypted credentials, role-based access, and audit logs.',
+    description: 'Encrypted credentials, role-based access, API keys with rate limiting.',
   },
   {
     icon: Users,
@@ -76,6 +81,9 @@ export default function Index() {
             <Link to="/docs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Documentation
             </Link>
+            <a href="#api" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              API
+            </a>
           </nav>
           
           <div className="flex items-center gap-3">
@@ -216,6 +224,100 @@ export default function Index() {
                 </p>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* API Section */}
+      <section id="api" className="py-24">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <Code className="h-4 w-4" />
+              Developer API
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Build Integrations with Our API
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Access all platform features programmatically. Execute workflows, 
+              manage automations, and integrate with any external system.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-6"
+            >
+              <div className="space-y-4">
+                {[
+                  { title: 'RESTful API', desc: 'Standard REST endpoints for all operations' },
+                  { title: 'API Key Authentication', desc: 'Secure keys with configurable permissions' },
+                  { title: 'Rate Limiting', desc: 'Customizable limits per API key' },
+                  { title: 'Usage Analytics', desc: 'Track all API calls and performance' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border">
+                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-foreground">{item.title}</h4>
+                      <p className="text-sm text-muted-foreground">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-3">
+                <Button asChild>
+                  <Link to="/api-docs">
+                    <FileText className="h-4 w-4 mr-2" />
+                    View API Docs
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link to="/api-keys">
+                    <Code className="h-4 w-4 mr-2" />
+                    Get API Key
+                  </Link>
+                </Button>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-card rounded-xl border border-border p-6 overflow-hidden"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <div className="h-3 w-3 rounded-full bg-rose-500" />
+                <div className="h-3 w-3 rounded-full bg-amber-500" />
+                <div className="h-3 w-3 rounded-full bg-emerald-500" />
+                <span className="ml-2 text-sm text-muted-foreground">API Example</span>
+              </div>
+              <pre className="text-sm overflow-x-auto">
+                <code className="text-muted-foreground">
+{`curl -X POST \\
+  "https://api.biztoribd.com/workflows/:id/execute" \\
+  -H "x-api-key: bz_your_api_key" \\
+  -H "Content-Type: application/json" \\
+  -d '{"input": {"data": "your data"}}'
+
+# Response
+{
+  "success": true,
+  "executionId": "uuid",
+  "output": { ... }
+}`}
+                </code>
+              </pre>
+            </motion.div>
           </div>
         </div>
       </section>
