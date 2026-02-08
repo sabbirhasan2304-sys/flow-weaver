@@ -98,7 +98,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'email', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Gmail Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Google Account', type: 'credential', required: true, description: 'google' },
       { name: 'labels', label: 'Labels', type: 'text', placeholder: 'INBOX', defaultValue: 'INBOX' },
       { name: 'filters', label: 'Search Filter', type: 'text', placeholder: 'is:unread from:example@gmail.com' },
       { name: 'pollInterval', label: 'Poll Interval (mins)', type: 'number', defaultValue: 5 },
@@ -115,7 +115,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'email', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Microsoft Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Microsoft Account', type: 'credential', required: true, description: 'oauth2' },
       { name: 'folder', label: 'Folder', type: 'text', defaultValue: 'Inbox' },
       { name: 'pollInterval', label: 'Poll Interval (mins)', type: 'number', defaultValue: 5 },
     ],
@@ -132,7 +132,7 @@ export const triggerNodes: NodeDefinition[] = [
     configSchema: [
       { name: 'host', label: 'IMAP Host', type: 'text', required: true },
       { name: 'port', label: 'Port', type: 'number', defaultValue: 993 },
-      { name: 'credential', label: 'Email Credential', type: 'credential', required: true },
+      { name: 'credential', label: 'IMAP Credential', type: 'credential', required: true, description: 'http' },
       { name: 'folder', label: 'Folder', type: 'text', defaultValue: 'INBOX' },
       { name: 'tls', label: 'Use TLS', type: 'checkbox', defaultValue: true },
     ],
@@ -151,7 +151,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'event', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Google Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Google Account', type: 'credential', required: true, description: 'google' },
       { name: 'calendarId', label: 'Calendar ID', type: 'text', placeholder: 'primary' },
       { name: 'triggerOn', label: 'Trigger On', type: 'select', options: [
         { label: 'Event Created', value: 'created' },
@@ -172,7 +172,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'file', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Google Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Google Account', type: 'credential', required: true, description: 'google' },
       { name: 'folderId', label: 'Folder ID', type: 'text', placeholder: 'root' },
       { name: 'triggerOn', label: 'Trigger On', type: 'select', options: [
         { label: 'File Created', value: 'created' },
@@ -196,7 +196,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'event', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Slack Credential', type: 'credential', required: true },
+      { name: 'credential', label: 'Slack Credential', type: 'credential', required: true, description: 'slack' },
       { name: 'event', label: 'Event Type', type: 'select', options: [
         { label: 'New Message', value: 'message' },
         { label: 'Message in Channel', value: 'message.channels' },
@@ -221,7 +221,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'message', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Telegram Bot', type: 'credential', required: true },
+      { name: 'credential', label: 'Telegram Bot', type: 'credential', required: true, description: 'telegram' },
       { name: 'updateType', label: 'Update Type', type: 'select', options: [
         { label: 'Message', value: 'message' },
         { label: 'Edited Message', value: 'edited_message' },
@@ -243,7 +243,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'event', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Discord Bot', type: 'credential', required: true },
+      { name: 'credential', label: 'Discord Bot', type: 'credential', required: true, description: 'discord' },
       { name: 'event', label: 'Event Type', type: 'select', options: [
         { label: 'Message Created', value: 'messageCreate' },
         { label: 'Message Deleted', value: 'messageDelete' },
@@ -266,7 +266,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'message', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'WhatsApp Business', type: 'credential', required: true },
+      { name: 'credential', label: 'WhatsApp Business', type: 'credential', required: true, description: 'whatsapp' },
       { name: 'messageType', label: 'Message Type', type: 'select', options: [
         { label: 'All Messages', value: 'all' },
         { label: 'Text Only', value: 'text' },
@@ -289,7 +289,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'record', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Airtable Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Airtable Account', type: 'credential', required: true, description: 'airtable' },
       { name: 'baseId', label: 'Base ID', type: 'text', required: true },
       { name: 'tableId', label: 'Table ID', type: 'text', required: true },
       { name: 'triggerField', label: 'Trigger Field', type: 'text' },
@@ -305,7 +305,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'page', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Notion Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Notion Account', type: 'credential', required: true, description: 'notion' },
       { name: 'databaseId', label: 'Database ID', type: 'text', required: true },
       { name: 'triggerOn', label: 'Trigger On', type: 'select', options: [
         { label: 'Page Added', value: 'added' },
@@ -323,7 +323,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'record', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Supabase Project', type: 'credential', required: true },
+      { name: 'credential', label: 'Supabase Project', type: 'credential', required: true, description: 'supabase' },
       { name: 'table', label: 'Table Name', type: 'text', required: true },
       { name: 'event', label: 'Event', type: 'select', options: [
         { label: 'INSERT', value: 'INSERT' },
@@ -349,7 +349,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'event', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'GitHub Account', type: 'credential', required: true },
+      { name: 'credential', label: 'GitHub Account', type: 'credential', required: true, description: 'github' },
       { name: 'owner', label: 'Owner/Org', type: 'text', required: true },
       { name: 'repo', label: 'Repository', type: 'text', required: true },
       { name: 'event', label: 'Event', type: 'select', options: [
@@ -376,7 +376,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'event', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'GitLab Account', type: 'credential', required: true },
+      { name: 'credential', label: 'GitLab Account', type: 'credential', required: true, description: 'gitlab' },
       { name: 'projectId', label: 'Project ID', type: 'text', required: true },
       { name: 'event', label: 'Event', type: 'select', options: [
         { label: 'Push', value: 'push' },
@@ -398,7 +398,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'event', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Bitbucket Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Bitbucket Account', type: 'credential', required: true, description: 'oauth2' },
       { name: 'workspace', label: 'Workspace', type: 'text', required: true },
       { name: 'repoSlug', label: 'Repository', type: 'text', required: true },
       { name: 'event', label: 'Event', type: 'select', options: [

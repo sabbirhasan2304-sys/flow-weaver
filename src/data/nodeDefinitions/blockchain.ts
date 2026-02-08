@@ -59,7 +59,7 @@ export const blockchainNodes: NodeDefinition[] = [
         { label: 'Get Block', value: 'getBlock' },
       ], defaultValue: 'getBalance' },
       { name: 'publicKey', label: 'Public Key', type: 'text' },
-      { name: 'credential', label: 'Wallet (Private Key)', type: 'credential' },
+      { name: 'credential', label: 'Wallet (Private Key)', type: 'credential', description: 'wallet' },
     ],
   },
   {
@@ -95,7 +95,7 @@ export const blockchainNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Moralis API Key', type: 'credential', required: true },
+      { name: 'credential', label: 'Moralis API Key', type: 'credential', required: true, description: 'moralis' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Get Wallet NFTs', value: 'getWalletNFTs' },
         { label: 'Get Wallet Tokens', value: 'getWalletTokens' },
@@ -126,7 +126,7 @@ export const blockchainNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Coinbase API', type: 'credential', required: true },
+      { name: 'credential', label: 'Coinbase API', type: 'credential', required: true, description: 'coinbase' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Get Accounts', value: 'getAccounts' },
         { label: 'Get Account', value: 'getAccount' },

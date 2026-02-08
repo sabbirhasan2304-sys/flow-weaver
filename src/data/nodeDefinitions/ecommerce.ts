@@ -11,7 +11,7 @@ export const ecommerceNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Stripe Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Stripe Account', type: 'credential', required: true, description: 'stripe' },
       { name: 'resource', label: 'Resource', type: 'select', options: [
         { label: 'Customer', value: 'customer' },
         { label: 'Charge', value: 'charge' },
@@ -43,7 +43,7 @@ export const ecommerceNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Shopify Store', type: 'credential', required: true },
+      { name: 'credential', label: 'Shopify Store', type: 'credential', required: true, description: 'shopify' },
       { name: 'resource', label: 'Resource', type: 'select', options: [
         { label: 'Product', value: 'product' },
         { label: 'Order', value: 'order' },
@@ -74,7 +74,7 @@ export const ecommerceNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'WooCommerce Store', type: 'credential', required: true },
+      { name: 'credential', label: 'WooCommerce Store', type: 'credential', required: true, description: 'woocommerce' },
       { name: 'resource', label: 'Resource', type: 'select', options: [
         { label: 'Product', value: 'product' },
         { label: 'Order', value: 'order' },
@@ -103,7 +103,7 @@ export const ecommerceNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'PayPal Account', type: 'credential', required: true },
+      { name: 'credential', label: 'PayPal Account', type: 'credential', required: true, description: 'paypal' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Create Order', value: 'createOrder' },
         { label: 'Capture Order', value: 'captureOrder' },
@@ -127,7 +127,7 @@ export const ecommerceNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Square Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Square Account', type: 'credential', required: true, description: 'apikey' },
       { name: 'resource', label: 'Resource', type: 'select', options: [
         { label: 'Payment', value: 'payment' },
         { label: 'Customer', value: 'customer' },

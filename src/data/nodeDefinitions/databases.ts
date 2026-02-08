@@ -11,7 +11,7 @@ export const databaseNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [
-      { name: 'credential', label: 'Supabase Project', type: 'credential', required: true },
+      { name: 'credential', label: 'Supabase Project', type: 'credential', required: true, description: 'supabase' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Select', value: 'select' },
         { label: 'Insert', value: 'insert' },
@@ -38,7 +38,7 @@ export const databaseNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'array' }],
     configSchema: [
-      { name: 'credential', label: 'PostgreSQL Connection', type: 'credential', required: true },
+      { name: 'credential', label: 'PostgreSQL Connection', type: 'credential', required: true, description: 'postgres' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Execute Query', value: 'query' },
         { label: 'Insert Rows', value: 'insert' },
@@ -60,7 +60,7 @@ export const databaseNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'array' }],
     configSchema: [
-      { name: 'credential', label: 'MySQL Connection', type: 'credential', required: true },
+      { name: 'credential', label: 'MySQL Connection', type: 'credential', required: true, description: 'mysql' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Execute Query', value: 'query' },
         { label: 'Insert Rows', value: 'insert' },
@@ -82,7 +82,7 @@ export const databaseNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [
-      { name: 'credential', label: 'MongoDB Connection', type: 'credential', required: true },
+      { name: 'credential', label: 'MongoDB Connection', type: 'credential', required: true, description: 'mongodb' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Find', value: 'find' },
         { label: 'Find One', value: 'findOne' },
@@ -109,7 +109,7 @@ export const databaseNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [
-      { name: 'credential', label: 'Redis Connection', type: 'credential', required: true },
+      { name: 'credential', label: 'Redis Connection', type: 'credential', required: true, description: 'redis' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Get', value: 'get' },
         { label: 'Set', value: 'set' },
@@ -137,7 +137,7 @@ export const databaseNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [
-      { name: 'credential', label: 'Firebase Project', type: 'credential', required: true },
+      { name: 'credential', label: 'Firebase Project', type: 'credential', required: true, description: 'googleCloud' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Get Document', value: 'get' },
         { label: 'Get Collection', value: 'getCollection' },
@@ -163,7 +163,7 @@ export const databaseNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [
-      { name: 'credential', label: 'Elasticsearch', type: 'credential', required: true },
+      { name: 'credential', label: 'Elasticsearch', type: 'credential', required: true, description: 'apikey' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Search', value: 'search' },
         { label: 'Index Document', value: 'index' },

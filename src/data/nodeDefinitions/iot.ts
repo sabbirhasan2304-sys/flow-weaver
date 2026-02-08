@@ -13,7 +13,7 @@ export const iotNodes: NodeDefinition[] = [
     configSchema: [
       { name: 'broker', label: 'Broker URL', type: 'text', required: true },
       { name: 'port', label: 'Port', type: 'number', defaultValue: 1883 },
-      { name: 'credential', label: 'MQTT Credential', type: 'credential' },
+      { name: 'credential', label: 'MQTT Credential', type: 'credential', description: 'mqtt' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Publish', value: 'publish' },
         { label: 'Subscribe', value: 'subscribe' },
@@ -57,7 +57,7 @@ export const iotNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'AWS Credentials', type: 'credential', required: true },
+      { name: 'credential', label: 'AWS Credentials', type: 'credential', required: true, description: 'aws' },
       { name: 'region', label: 'Region', type: 'text', defaultValue: 'us-east-1' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Publish', value: 'publish' },
@@ -81,7 +81,7 @@ export const iotNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Google Cloud', type: 'credential', required: true },
+      { name: 'credential', label: 'Google Cloud', type: 'credential', required: true, description: 'googleCloud' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Send Command', value: 'sendCommand' },
         { label: 'Modify Config', value: 'modifyConfig' },
@@ -119,7 +119,7 @@ export const iotNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Home Assistant Token', type: 'credential', required: true },
+      { name: 'credential', label: 'Home Assistant Token', type: 'credential', required: true, description: 'homeAssistant' },
       { name: 'baseUrl', label: 'Home Assistant URL', type: 'text', required: true },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Get States', value: 'getStates' },
