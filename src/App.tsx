@@ -18,6 +18,8 @@ import Billing from "./pages/Billing";
 import Pricing from "./pages/Pricing";
 import Documentation from "./pages/Documentation";
 import SelectPlan from "./pages/SelectPlan";
+import ApiKeys from "./pages/ApiKeys";
+import ApiDocs from "./pages/ApiDocs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -104,6 +106,22 @@ const App = () => (
             element={
               <ProtectedRoute requireAdmin>
                 <Admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/api-keys"
+            element={
+              <ProtectedRoute>
+                <ApiKeys />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/api-docs"
+            element={
+              <ProtectedRoute>
+                <ApiDocs />
               </ProtectedRoute>
             }
           />
