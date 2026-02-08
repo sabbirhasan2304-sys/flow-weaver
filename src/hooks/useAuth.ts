@@ -105,7 +105,10 @@ export function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!isMounted) return;
-        
+
+        // Ignore transient null sessions unless it's an explicit sign-out
+        if (!session && event !== 'SIGNED_OUT') return;
+
         // Only update if session actually changed
         setSession((prevSession) => {
           if (prevSession?.access_token === session?.access_token) {
@@ -113,21 +116,20 @@ export function useAuth() {
           }
           return session;
         });
-        
+
         setUser(session?.user ?? null);
 
-        // Handle auth events
-        if (event === 'SIGNED_IN' && session?.user) {
-          // Use setTimeout to avoid blocking the auth callback
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-            fetchWorkspaces();
-          }, 0);
-        } else if (event === 'SIGNED_OUT') {
-          setProfile(null);
-          setWorkspaces([]);
-          setActiveWorkspace(null);
+        if (session?.user) {
+          // Fire-and-forget; do NOT delay with setTimeout (avoids race conditions)
+          fetchProfile(session.user.id);
+          fetchWorkspaces();
+          return;
         }
+
+        // Signed out
+        setProfile(null);
+        setWorkspaces([]);
+        setActiveWorkspace(null);
       }
     );
 
