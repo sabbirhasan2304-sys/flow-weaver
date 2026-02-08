@@ -1,4 +1,4 @@
-import { useCallback, useRef, DragEvent, useState } from 'react';
+import { useCallback, useRef, DragEvent, useState, memo } from 'react';
 import {
   ReactFlow,
   Background,
@@ -25,9 +25,10 @@ import {
   Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 const nodeTypes = {
-  workflowNode: WorkflowNode,
+  workflowNode: memo(WorkflowNode),
 };
 
 interface WorkflowCanvasProps {
@@ -152,30 +153,40 @@ export function WorkflowCanvas({ workflowId, onSave }: WorkflowCanvasProps) {
         fitView
         snapToGrid
         snapGrid={[15, 15]}
+        proOptions={{ hideAttribution: true }}
         className="bg-canvas-background"
       >
         <Background 
           variant={BackgroundVariant.Dots} 
           gap={20} 
           size={1}
-          className="!bg-background"
+          className="!bg-canvas-background"
+          color="hsl(var(--canvas-dot))"
         />
-        <Controls className="!bg-card !border-border" />
+        <Controls 
+          className="!bg-card !border-border !shadow-lg"
+          showZoom={false}
+          showFitView={false}
+          showInteractive={false}
+        />
         <MiniMap 
           nodeColor={(node) => {
             const data = node.data as NodeData;
-            return data.category === 'Triggers' ? '#10b981' : '#3b82f6';
+            return data.category === 'Triggers' ? 'hsl(var(--success))' : 'hsl(var(--info))';
           }}
-          className="!bg-card !border-border"
+          maskColor="hsl(var(--background) / 0.8)"
+          className="!bg-card !border-border !rounded-lg !shadow-lg"
+          pannable
+          zoomable
         />
         
         {/* Toolbar */}
         <Panel position="top-right" className="flex gap-2">
-          <div className="flex items-center gap-1 bg-card rounded-lg border border-border p-1 shadow-sm">
+          <div className="flex items-center gap-1 bg-card/95 backdrop-blur-sm rounded-lg border border-border p-1 shadow-lg">
             <Button
-              variant="ghost"
+              variant={isExecuting ? "default" : "ghost"}
               size="icon"
-              className="h-8 w-8"
+              className={cn("h-8 w-8", isExecuting && "bg-success hover:bg-success/90")}
               onClick={handleRun}
             >
               {isExecuting ? (
