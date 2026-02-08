@@ -211,7 +211,7 @@ export default function Dashboard() {
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                 <Zap className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold text-foreground">FlowForge</span>
+              <span className="text-xl font-bold text-foreground">BiztoriBD</span>
             </Link>
             
             <nav className="hidden md:flex items-center gap-1">

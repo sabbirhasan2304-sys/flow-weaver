@@ -130,7 +130,7 @@ async function handleSSLCommerz(
       formData.append('cus_city', 'Dhaka');
       formData.append('cus_country', 'Bangladesh');
       formData.append('shipping_method', 'NO');
-      formData.append('product_name', 'FlowForge Subscription');
+      formData.append('product_name', 'BiztoriBD Subscription');
       formData.append('product_category', 'Digital Services');
       formData.append('product_profile', 'non-physical-goods');
 
