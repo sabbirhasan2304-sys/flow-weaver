@@ -64,12 +64,12 @@ export default function Index() {
             <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Features
             </a>
-            <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Pricing
-            </a>
-            <a href="#docs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            </Link>
+            <Link to="/docs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Documentation
-            </a>
+            </Link>
           </nav>
           
           <div className="flex items-center gap-3">
