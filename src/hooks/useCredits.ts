@@ -22,19 +22,19 @@ export interface CreditTransaction {
   created_at: string;
 }
 
-// Credit packages available for purchase (BDT pricing - competitive with n8n)
+// Credit packages available for purchase (BDT pricing @ ৳127/$1)
 export const CREDIT_PACKAGES = [
-  { id: 'starter', name: 'Starter', credits: 100, price: 199, currency: 'BDT', popular: false },
-  { id: 'basic', name: 'Basic', credits: 500, price: 799, currency: 'BDT', popular: false },
-  { id: 'pro', name: 'Pro', credits: 2000, price: 2499, currency: 'BDT', popular: true },
-  { id: 'enterprise', name: 'Enterprise', credits: 10000, price: 9999, currency: 'BDT', popular: false },
+  { id: 'starter', name: 'Starter', credits: 100, price: 127, currency: 'BDT', popular: false },      // ~$1
+  { id: 'basic', name: 'Basic', credits: 500, price: 508, currency: 'BDT', popular: false },          // ~$4
+  { id: 'pro', name: 'Pro', credits: 2000, price: 1651, currency: 'BDT', popular: true },             // ~$13
+  { id: 'enterprise', name: 'Enterprise', credits: 10000, price: 6350, currency: 'BDT', popular: false }, // ~$50
 ];
 
-// Cost per AI operation (in credits) - affordable pricing
+// Cost per AI operation (in credits) - simple whole numbers
 export const AI_CREDIT_COSTS = {
-  chat: 1, // 1 credit per AI chat message
+  chat: 1,              // 1 credit per AI chat message
   workflow_generation: 10, // 10 credits per AI-generated workflow
-  analysis: 5, // 5 credits per AI analysis/debugging
+  analysis: 5,          // 5 credits per AI analysis/debugging
 };
 
 export function useCredits() {
