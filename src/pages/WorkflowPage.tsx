@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { WorkflowEditor } from '@/components/workflow/WorkflowEditor';
+import { SubscriptionGate } from '@/components/subscription/SubscriptionGate';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -151,121 +152,123 @@ export default function WorkflowPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Header */}
-      <header className="flex-shrink-0 h-14 border-b border-border bg-card flex items-center justify-between px-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link to="/dashboard">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
+    <SubscriptionGate feature="Workflow Editor">
+      <div className="h-screen flex flex-col">
+        {/* Header */}
+        <header className="flex-shrink-0 h-14 border-b border-border bg-card flex items-center justify-between px-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" asChild>
+              <Link to="/dashboard">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            
+            <div className="flex items-center gap-2">
+              <div className="h-7 w-7 rounded bg-primary flex items-center justify-center">
+                <Zap className="h-4 w-4 text-primary-foreground" />
+              </div>
+              
+              {isEditing ? (
+                <Input
+                  value={workflowName}
+                  onChange={(e) => setWorkflowName(e.target.value)}
+                  onBlur={handleNameChange}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleNameChange();
+                    if (e.key === 'Escape') {
+                      setWorkflowName(workflow.name);
+                      setIsEditing(false);
+                    }
+                  }}
+                  className="h-8 w-[200px]"
+                  autoFocus
+                />
+              ) : (
+                <button
+                  className="text-lg font-medium hover:bg-muted px-2 py-1 rounded-md transition-colors"
+                  onClick={() => setIsEditing(true)}
+                >
+                  {workflow.name}
+                </button>
+              )}
+              
+              {workflow.is_active ? (
+                <Badge variant="default" className="bg-success text-success-foreground">
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  Active
+                </Badge>
+              ) : (
+                <Badge variant="secondary">Draft</Badge>
+              )}
+            </div>
+          </div>
           
           <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded bg-primary flex items-center justify-center">
-              <Zap className="h-4 w-4 text-primary-foreground" />
-            </div>
-            
-            {isEditing ? (
-              <Input
-                value={workflowName}
-                onChange={(e) => setWorkflowName(e.target.value)}
-                onBlur={handleNameChange}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleNameChange();
-                  if (e.key === 'Escape') {
-                    setWorkflowName(workflow.name);
-                    setIsEditing(false);
-                  }
-                }}
-                className="h-8 w-[200px]"
-                autoFocus
-              />
-            ) : (
-              <button
-                className="text-lg font-medium hover:bg-muted px-2 py-1 rounded-md transition-colors"
-                onClick={() => setIsEditing(true)}
-              >
-                {workflow.name}
-              </button>
+            {lastSaved && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                Saved {lastSaved.toLocaleTimeString()}
+              </span>
             )}
             
-            {workflow.is_active ? (
-              <Badge variant="default" className="bg-success text-success-foreground">
-                <CheckCircle2 className="h-3 w-3 mr-1" />
-                Active
-              </Badge>
-            ) : (
-              <Badge variant="secondary">Draft</Badge>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleActive}
+            >
+              {workflow.is_active ? (
+                <>
+                  <Pause className="h-4 w-4 mr-2" />
+                  Deactivate
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4 mr-2" />
+                  Activate
+                </>
+              )}
+            </Button>
+            
+            <Button variant="outline" size="icon" className="h-9 w-9">
+              <Share2 className="h-4 w-4" />
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-9 w-9">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Workflow Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem>Export as JSON</DropdownMenuItem>
+                <DropdownMenuItem>View Executions</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-destructive">
+                  Delete Workflow
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <Button size="sm" onClick={() => toast.info('Use the save button in the canvas')} disabled={saving}>
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? 'Saving...' : 'Save'}
+            </Button>
           </div>
-        </div>
+        </header>
         
-        <div className="flex items-center gap-2">
-          {lastSaved && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              Saved {lastSaved.toLocaleTimeString()}
-            </span>
-          )}
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleActive}
-          >
-            {workflow.is_active ? (
-              <>
-                <Pause className="h-4 w-4 mr-2" />
-                Deactivate
-              </>
-            ) : (
-              <>
-                <Play className="h-4 w-4 mr-2" />
-                Activate
-              </>
-            )}
-          </Button>
-          
-          <Button variant="outline" size="icon" className="h-9 w-9">
-            <Share2 className="h-4 w-4" />
-          </Button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="h-9 w-9">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <Settings className="h-4 w-4 mr-2" />
-                Workflow Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem>Export as JSON</DropdownMenuItem>
-              <DropdownMenuItem>View Executions</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">
-                Delete Workflow
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <Button size="sm" onClick={() => toast.info('Use the save button in the canvas')} disabled={saving}>
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? 'Saving...' : 'Save'}
-          </Button>
+        {/* Editor */}
+        <div className="flex-1 overflow-hidden">
+          <WorkflowEditor
+            workflowId={workflow.id}
+            workflowName={workflow.name}
+            onSave={handleSave}
+          />
         </div>
-      </header>
-      
-      {/* Editor */}
-      <div className="flex-1 overflow-hidden">
-        <WorkflowEditor
-          workflowId={workflow.id}
-          workflowName={workflow.name}
-          onSave={handleSave}
-        />
       </div>
-    </div>
+    </SubscriptionGate>
   );
 }

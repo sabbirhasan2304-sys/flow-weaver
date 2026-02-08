@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useSubscription } from '@/hooks/useSubscription';
+import { SubscriptionBadge } from '@/components/subscription/SubscriptionGate';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,7 +35,8 @@ import {
   Clock, CheckCircle2, XCircle, 
   LayoutGrid, List, Filter,
   LogOut, Settings, User, ChevronDown,
-  Folder, FileCode, Sparkles, Store
+  Folder, FileCode, Sparkles, Store,
+  CreditCard, Lock
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -50,6 +53,7 @@ interface Workflow {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, profile, signOut, activeWorkspace, loading: authLoading } = useAuth();
+  const { subscription, isWithinLimits, loading: subscriptionLoading } = useSubscription();
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -57,6 +61,13 @@ export default function Dashboard() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
+
+  // Check if user has active subscription
+  const hasActiveSubscription = subscription && 
+    (subscription.status === 'active' || subscription.status === 'trial');
+  
+  // Check workflow limits
+  const canCreateWorkflow = hasActiveSubscription && isWithinLimits('workflows', workflows.length);
 
   useEffect(() => {
     // Wait for auth to finish loading before checking user
@@ -92,6 +103,13 @@ export default function Dashboard() {
 
   const createWorkflow = async () => {
     if (!activeWorkspace || !profile) return;
+    
+    // Check subscription before creating
+    if (!canCreateWorkflow) {
+      toast.error('Please subscribe to create workflows');
+      navigate('/billing');
+      return;
+    }
     
     const { data, error } = await supabase
       .from('workflows')
@@ -227,6 +245,11 @@ export default function Dashboard() {
           </div>
           
           <div className="flex items-center gap-4">
+            {/* Subscription Badge */}
+            <Link to="/billing">
+              <SubscriptionBadge />
+            </Link>
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-2">
@@ -247,6 +270,12 @@ export default function Dashboard() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/billing">
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Billing & Plans
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
@@ -273,50 +302,68 @@ export default function Dashboard() {
             </p>
           </div>
           
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                New Workflow
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Workflow</DialogTitle>
-                <DialogDescription>
-                  Give your workflow a name and optional description
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="workflow-name">Name</Label>
-                  <Input
-                    id="workflow-name"
-                    placeholder="My Awesome Workflow"
-                    value={newWorkflowName}
-                    onChange={(e) => setNewWorkflowName(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="workflow-description">Description (optional)</Label>
-                  <Textarea
-                    id="workflow-description"
-                    placeholder="What does this workflow do?"
-                    value={newWorkflowDescription}
-                    onChange={(e) => setNewWorkflowDescription(e.target.value)}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                  Cancel
+          {hasActiveSubscription ? (
+            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button disabled={!canCreateWorkflow}>
+                  {canCreateWorkflow ? (
+                    <>
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Workflow
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="h-4 w-4 mr-2" />
+                      Workflow Limit Reached
+                    </>
+                  )}
                 </Button>
-                <Button onClick={createWorkflow}>
-                  Create Workflow
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Workflow</DialogTitle>
+                  <DialogDescription>
+                    Give your workflow a name and optional description
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="workflow-name">Name</Label>
+                    <Input
+                      id="workflow-name"
+                      placeholder="My Awesome Workflow"
+                      value={newWorkflowName}
+                      onChange={(e) => setNewWorkflowName(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="workflow-description">Description (optional)</Label>
+                    <Textarea
+                      id="workflow-description"
+                      placeholder="What does this workflow do?"
+                      value={newWorkflowDescription}
+                      onChange={(e) => setNewWorkflowDescription(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={createWorkflow}>
+                    Create Workflow
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <Button asChild className="gap-2">
+              <Link to="/billing">
+                <Sparkles className="h-4 w-4" />
+                Subscribe to Create Workflows
+              </Link>
+            </Button>
+          )}
         </div>
         
         {/* Toolbar */}
