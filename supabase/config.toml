@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.payment-gateway]
 verify_jwt = false
+
+[functions.public-api]
+verify_jwt = false

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { 
   Zap, Folder, Sparkles, Store, History, Key,
-  LogOut, Settings, User, ChevronDown, CreditCard, Shield
+  LogOut, Settings, User, ChevronDown, CreditCard, Shield, Code, FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -28,6 +28,7 @@ const navItems = [
   { label: 'Marketplace', href: '/marketplace', icon: Store },
   { label: 'Executions', href: '/executions', icon: History },
   { label: 'Credentials', href: '/credentials', icon: Key },
+  { label: 'API', href: '/api-keys', icon: Code },
 ];
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -142,6 +143,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   <Link to="/billing">
                     <CreditCard className="h-4 w-4 mr-2" />
                     Billing & Subscription
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/api-keys">
+                    <Code className="h-4 w-4 mr-2" />
+                    API Keys
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/api-docs">
+                    <FileText className="h-4 w-4 mr-2" />
+                    API Documentation
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
