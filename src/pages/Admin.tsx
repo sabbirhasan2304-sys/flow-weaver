@@ -21,6 +21,7 @@ import {
   Database, Server, Cpu, HardDrive, Eye, Mail, UserCog, Cloud
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PlanManagement } from '@/components/admin/PlanManagement';
 
 interface UserData {
   id: string;
@@ -578,6 +579,13 @@ export default function Admin() {
                 <span>Analytics</span>
               </TabsTrigger>
               <TabsTrigger 
+                value="plans" 
+                className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground px-4 py-2"
+              >
+                <Crown className="h-4 w-4" />
+                <span>Plans</span>
+              </TabsTrigger>
+              <TabsTrigger 
                 value="settings" 
                 className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground px-4 py-2"
               >
@@ -820,6 +828,11 @@ export default function Admin() {
                     </CardContent>
                   </Card>
                 </motion.div>
+              </TabsContent>
+
+              {/* Plans Tab */}
+              <TabsContent value="plans" className="space-y-6 mt-0">
+                <PlanManagement />
               </TabsContent>
 
               {/* Settings Tab */}
