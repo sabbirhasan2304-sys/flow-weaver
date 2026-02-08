@@ -14,6 +14,8 @@ export const aiNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'response', type: 'object' }],
     configSchema: [
+      { name: 'credential', label: 'OpenAI API Key', type: 'credential', description: 'openai', required: false },
+      { name: 'usePlatformCredentials', label: 'Use Platform Credits', type: 'checkbox', defaultValue: true, description: 'Use Lovable AI credits instead of your own API key' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Chat Completion', value: 'chat' },
         { label: 'Text Completion', value: 'completion' },
@@ -29,6 +31,9 @@ export const aiNodes: NodeDefinition[] = [
         { label: 'GPT-5-mini', value: 'openai/gpt-5-mini' },
         { label: 'GPT-5-nano', value: 'openai/gpt-5-nano' },
         { label: 'GPT-5.2', value: 'openai/gpt-5.2' },
+        { label: 'GPT-4o (Own Key)', value: 'gpt-4o' },
+        { label: 'GPT-4o-mini (Own Key)', value: 'gpt-4o-mini' },
+        { label: 'GPT-4-turbo (Own Key)', value: 'gpt-4-turbo' },
       ], defaultValue: 'openai/gpt-5-mini' },
       { name: 'systemPrompt', label: 'System Prompt', type: 'textarea' },
       { name: 'prompt', label: 'User Prompt', type: 'textarea', required: true },
@@ -78,12 +83,16 @@ export const aiNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'response', type: 'object' }],
     configSchema: [
+      { name: 'credential', label: 'Google AI API Key', type: 'credential', description: 'googleai', required: false },
+      { name: 'usePlatformCredentials', label: 'Use Platform Credits', type: 'checkbox', defaultValue: true, description: 'Use Lovable AI credits instead of your own API key' },
       { name: 'model', label: 'Model', type: 'select', options: [
         { label: 'Gemini 3 Pro Preview', value: 'google/gemini-3-pro-preview' },
         { label: 'Gemini 3 Flash Preview', value: 'google/gemini-3-flash-preview' },
         { label: 'Gemini 2.5 Pro', value: 'google/gemini-2.5-pro' },
         { label: 'Gemini 2.5 Flash', value: 'google/gemini-2.5-flash' },
         { label: 'Gemini 2.5 Flash Lite', value: 'google/gemini-2.5-flash-lite' },
+        { label: 'Gemini 1.5 Pro (Own Key)', value: 'gemini-1.5-pro' },
+        { label: 'Gemini 1.5 Flash (Own Key)', value: 'gemini-1.5-flash' },
       ], defaultValue: 'google/gemini-3-flash-preview' },
       { name: 'prompt', label: 'Prompt', type: 'textarea', required: true },
       { name: 'systemInstruction', label: 'System Instruction', type: 'textarea' },

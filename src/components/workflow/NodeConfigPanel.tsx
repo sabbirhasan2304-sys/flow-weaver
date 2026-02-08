@@ -346,8 +346,13 @@ export function NodeConfigPanel() {
       let testResponse: Response | null = null;
       let testMessage = '';
       
-      // Platform AI nodes (uses Lovable AI gateway)
-      if (['openai', 'gemini', 'aiAgent', 'langchainAgent', 'geminiVision'].includes(nodeType)) {
+      // Check if node is configured to use platform credentials
+      const nodeConfig = selectedNode.data.config || {};
+      const usePlatformCredentials = nodeConfig.usePlatformCredentials !== false;
+      
+      // Platform AI nodes using Lovable AI gateway (when usePlatformCredentials is true)
+      if (['aiAgent', 'langchainAgent', 'geminiVision'].includes(nodeType) || 
+          ((['openai', 'gemini'].includes(nodeType)) && usePlatformCredentials)) {
         testMessage = 'Using platform AI gateway';
         setCredentialTestStatuses(prev => {
           const newMap = new Map(prev);
@@ -364,6 +369,20 @@ export function NodeConfigPanel() {
         });
         toast.success('Credential validated');
         return;
+      }
+      
+      // OpenAI with own API key
+      if (nodeType === 'openai') {
+        testResponse = await fetch('https://api.openai.com/v1/models', {
+          headers: { 'Authorization': `Bearer ${apiKey}` }
+        });
+        testMessage = testResponse.ok ? 'OpenAI API key valid' : 'Invalid OpenAI API key';
+      }
+      
+      // Google AI with own API key
+      else if (nodeType === 'gemini') {
+        testResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        testMessage = testResponse.ok ? 'Google AI API key valid' : 'Invalid Google AI API key';
       }
       
       // HuggingFace
