@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 import { useSubscription } from '@/hooks/useSubscription';
 import { SubscriptionBadge } from '@/components/subscription/SubscriptionGate';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,7 @@ import {
   LayoutGrid, List, Filter,
   LogOut, Settings, User, ChevronDown,
   Folder, FileCode, Sparkles, Store,
-  CreditCard, Lock
+  CreditCard, Lock, Shield
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -53,6 +54,7 @@ interface Workflow {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, profile, signOut, activeWorkspace, loading: authLoading } = useAuth();
+  const { isAdmin } = useAdmin();
   const { subscription, isWithinLimits, loading: subscriptionLoading } = useSubscription();
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -241,6 +243,14 @@ export default function Dashboard() {
                   Credentials
                 </Button>
               </Link>
+              {isAdmin && (
+                <Link to="/admin">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground">
+                    <Shield className="h-4 w-4 mr-2" />
+                    Admin
+                  </Button>
+                </Link>
+              )}
             </nav>
           </div>
           
