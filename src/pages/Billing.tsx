@@ -169,7 +169,7 @@ export default function Billing() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-8">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
