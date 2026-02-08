@@ -40,6 +40,11 @@ import {
   PayPalIcon, DropboxIcon, OneDriveIcon, HubSpotIcon, SalesforceIcon,
   GmailIcon, MailchimpIcon, WooCommerceIcon, GitLabIcon, RedisIcon,
   MySQLIcon, BkashIcon, NagadIcon, OutlookIcon, SquareIcon,
+  VercelIcon, DockerIcon, KubernetesIcon, FirebaseIcon, CloudflareIcon,
+  NetlifyIcon, FigmaIcon, IntercomIcon, ZendeskIcon, TypeformIcon,
+  CalendlyIcon, HuggingFaceIcon, SnowflakeIcon, BigQueryIcon,
+  ContentfulIcon, StrapiIcon, ZapierIcon, WebflowIcon, FramerIcon,
+  MakeIcon, N8nIcon, MondayIcon, SegmentIcon, MixpanelIcon, AmplitudeIcon,
 } from '@/components/icons/ServiceIcons';
 
 // Extended icon map with service logos and lucide icons
@@ -80,6 +85,15 @@ const iconMap: Record<string, React.ComponentType<{ className?: string; style?: 
   OneDrive: OneDriveIcon, HubSpot: HubSpotIcon, Salesforce: SalesforceIcon,
   Gmail: GmailIcon, Mailchimp: MailchimpIcon, WooCommerce: WooCommerceIcon,
   Bkash: BkashIcon, Nagad: NagadIcon, Outlook: OutlookIcon, Square: SquareIcon,
+  // New icons
+  Vercel: VercelIcon, Docker: DockerIcon, Kubernetes: KubernetesIcon,
+  Firebase: FirebaseIcon, Cloudflare: CloudflareIcon, Netlify: NetlifyIcon,
+  Figma: FigmaIcon, Intercom: IntercomIcon, Zendesk: ZendeskIcon,
+  Typeform: TypeformIcon, Calendly: CalendlyIcon, HuggingFace: HuggingFaceIcon,
+  Snowflake: SnowflakeIcon, BigQuery: BigQueryIcon, Contentful: ContentfulIcon,
+  Strapi: StrapiIcon, Zapier: ZapierIcon, Webflow: WebflowIcon,
+  Framer: FramerIcon, Make: MakeIcon, N8n: N8nIcon, Monday: MondayIcon,
+  Segment: SegmentIcon, Mixpanel: MixpanelIcon, Amplitude: AmplitudeIcon,
 };
 
 interface NodePaletteProps {
