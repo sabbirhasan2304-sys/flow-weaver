@@ -22,19 +22,19 @@ export interface CreditTransaction {
   created_at: string;
 }
 
-// Credit packages available for purchase
+// Credit packages available for purchase (priced above Lovable AI costs, below direct API pricing)
 export const CREDIT_PACKAGES = [
-  { id: 'starter', name: 'Starter', credits: 10, price: 5, currency: 'USD', popular: false },
-  { id: 'basic', name: 'Basic', credits: 50, price: 20, currency: 'USD', popular: false },
-  { id: 'pro', name: 'Pro', credits: 150, price: 50, currency: 'USD', popular: true },
-  { id: 'enterprise', name: 'Enterprise', credits: 500, price: 150, currency: 'USD', popular: false },
+  { id: 'starter', name: 'Starter', credits: 10, price: 12, currency: 'USD', popular: false },
+  { id: 'basic', name: 'Basic', credits: 50, price: 45, currency: 'USD', popular: false },
+  { id: 'pro', name: 'Pro', credits: 150, price: 120, currency: 'USD', popular: true },
+  { id: 'enterprise', name: 'Enterprise', credits: 500, price: 350, currency: 'USD', popular: false },
 ];
 
-// Cost per AI operation (in credits)
+// Cost per AI operation (in credits) - balanced for value
 export const AI_CREDIT_COSTS = {
-  chat: 0.1, // Per message
-  workflow_generation: 1, // Per workflow generated
-  analysis: 0.5, // Per analysis
+  chat: 0.15, // Per message (~$0.18-0.27 per message)
+  workflow_generation: 2, // Per workflow generated (~$2.40-3.50 per workflow)
+  analysis: 0.75, // Per analysis (~$0.90-1.30 per analysis)
 };
 
 export function useCredits() {

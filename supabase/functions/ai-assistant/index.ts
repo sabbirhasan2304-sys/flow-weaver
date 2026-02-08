@@ -31,7 +31,7 @@ Respond with: BUILD_NOW: [workflow description]
 
 Keep responses under 200 words unless explaining complex logic.`;
 
-const CREDIT_COST_PER_MESSAGE = 0.1; // Cost per AI message
+const CREDIT_COST_PER_MESSAGE = 0.15; // Cost per AI message (higher than Lovable AI cost)
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {

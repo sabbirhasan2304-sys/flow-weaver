@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const CREDIT_COST_PER_GENERATION = 1; // Cost per workflow generation
+const CREDIT_COST_PER_GENERATION = 2; // Cost per workflow generation (premium feature)
 
 // Comprehensive node definitions with icons and categories
 const NODE_CATALOG = {
