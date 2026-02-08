@@ -423,7 +423,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'event', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Stripe Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Stripe Account', type: 'credential', required: true, description: 'stripe' },
       { name: 'events', label: 'Events', type: 'select', options: [
         { label: 'Payment Succeeded', value: 'payment_intent.succeeded' },
         { label: 'Payment Failed', value: 'payment_intent.payment_failed' },
@@ -449,7 +449,7 @@ export const triggerNodes: NodeDefinition[] = [
     inputs: [],
     outputs: [{ name: 'event', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Shopify Store', type: 'credential', required: true },
+      { name: 'credential', label: 'Shopify Store', type: 'credential', required: true, description: 'shopify' },
       { name: 'topic', label: 'Topic', type: 'select', options: [
         { label: 'Order Created', value: 'orders/create' },
         { label: 'Order Paid', value: 'orders/paid' },
