@@ -58,13 +58,14 @@ export const aiNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'response', type: 'object' }],
     configSchema: [
+      { name: 'credential', label: 'OpenAI API Key', type: 'credential', description: 'openai', required: true },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Create Thread & Run', value: 'createAndRun' },
         { label: 'Add Message', value: 'addMessage' },
         { label: 'Run Thread', value: 'run' },
         { label: 'Get Messages', value: 'getMessages' },
       ], defaultValue: 'createAndRun' },
-      { name: 'assistantId', label: 'Assistant ID', type: 'text', required: true },
+      { name: 'assistantId', label: 'Assistant ID', type: 'text', required: true, description: 'Get from OpenAI dashboard' },
       { name: 'threadId', label: 'Thread ID', type: 'text' },
       { name: 'message', label: 'Message', type: 'textarea' },
     ],
@@ -112,9 +113,13 @@ export const aiNodes: NodeDefinition[] = [
     inputs: [{ name: 'image', type: 'any' }],
     outputs: [{ name: 'response', type: 'object' }],
     configSchema: [
+      { name: 'credential', label: 'Google AI API Key', type: 'credential', description: 'googleai', required: false },
+      { name: 'usePlatformCredentials', label: 'Use Platform Credits', type: 'checkbox', defaultValue: true, description: 'Use platform AI credits instead of your own API key' },
       { name: 'model', label: 'Model', type: 'select', options: [
         { label: 'Gemini 2.5 Pro', value: 'google/gemini-2.5-pro' },
         { label: 'Gemini 2.5 Flash', value: 'google/gemini-2.5-flash' },
+        { label: 'Gemini 1.5 Pro (Own Key)', value: 'gemini-1.5-pro-vision' },
+        { label: 'Gemini 1.5 Flash (Own Key)', value: 'gemini-1.5-flash' },
       ], defaultValue: 'google/gemini-2.5-flash' },
       { name: 'imageUrl', label: 'Image URL', type: 'text' },
       { name: 'prompt', label: 'Prompt', type: 'textarea', required: true },
