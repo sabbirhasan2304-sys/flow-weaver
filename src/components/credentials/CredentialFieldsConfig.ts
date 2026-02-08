@@ -40,6 +40,15 @@ export const credentialTypeConfigs: CredentialTypeConfig[] = [
     ],
   },
   {
+    value: 'googleai',
+    label: 'Google AI (Gemini)',
+    icon: 'Google',
+    description: 'Connect to Google AI API for Gemini models',
+    fields: [
+      { name: 'apiKey', label: 'API Key', type: 'password', placeholder: 'AIza...', required: true, description: 'Your Google AI API key from aistudio.google.com' },
+    ],
+  },
+  {
     value: 'google',
     label: 'Google (Gmail, Sheets, Drive)',
     icon: 'Google',
