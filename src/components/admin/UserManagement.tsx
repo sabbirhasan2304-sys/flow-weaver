@@ -79,6 +79,7 @@ export function UserManagement() {
   const [isCreditsDialogOpen, setIsCreditsDialogOpen] = useState(false);
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
   const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
   // Form states
@@ -192,6 +193,78 @@ export function UserManagement() {
     setSelectedUser(user);
     setNewPlanId(user.subscription?.plan_id || '');
     setIsSubscriptionDialogOpen(true);
+  };
+
+  const handleDeleteUser = (user: UserData) => {
+    setSelectedUser(user);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!selectedUser) return;
+    setIsLoading(true);
+    try {
+      // Delete user's related data in order (respecting foreign keys)
+      // 1. Delete credit transactions
+      await supabase
+        .from('credit_transactions')
+        .delete()
+        .eq('profile_id', selectedUser.id);
+
+      // 2. Delete user credits
+      await supabase
+        .from('user_credits')
+        .delete()
+        .eq('profile_id', selectedUser.id);
+
+      // 3. Delete subscriptions
+      await supabase
+        .from('subscriptions')
+        .delete()
+        .eq('profile_id', selectedUser.id);
+
+      // 4. Delete usage tracking
+      await supabase
+        .from('usage_tracking')
+        .delete()
+        .eq('profile_id', selectedUser.id);
+
+      // 5. Delete workflow shares
+      await supabase
+        .from('workflow_shares')
+        .delete()
+        .eq('profile_id', selectedUser.id);
+
+      // 6. Delete workspace members
+      await supabase
+        .from('workspace_members')
+        .delete()
+        .eq('profile_id', selectedUser.id);
+
+      // 7. Delete user roles
+      await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', selectedUser.user_id);
+
+      // 8. Delete profile (this should cascade to auth.users via trigger if set up)
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', selectedUser.id);
+
+      if (error) throw error;
+
+      toast.success(`User ${selectedUser.email} has been removed`);
+      setIsDeleteDialogOpen(false);
+      setSelectedUser(null);
+      fetchEnhancedUsers();
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      toast.error(error.message || 'Failed to remove user. Some data may have been deleted.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const saveUserProfile = async () => {
@@ -509,6 +582,14 @@ export function UserManagement() {
                               <CreditCard className="h-4 w-4 mr-2" />
                               Change Plan
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteUser(u)}
+                              className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Remove User
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -780,6 +861,75 @@ export function UserManagement() {
             <Button variant="outline" onClick={() => setIsSubscriptionDialogOpen(false)}>Cancel</Button>
             <Button onClick={saveSubscription} disabled={isLoading || !newPlanId}>
               {isLoading ? 'Updating...' : 'Update Subscription'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" />
+              Remove User
+            </DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete the user account and all associated data.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12 border-2 border-destructive/20">
+                    <AvatarFallback className="bg-destructive/10 text-destructive font-semibold">
+                      {(selectedUser.full_name || selectedUser.email).charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="font-medium">{selectedUser.full_name || 'No name'}</div>
+                    <div className="text-sm text-muted-foreground">{selectedUser.email}</div>
+                  </div>
+                </div>
+              </div>
+              <div className="text-sm text-muted-foreground space-y-1">
+                <p className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  The following data will be deleted:
+                </p>
+                <ul className="ml-6 list-disc text-xs space-y-1">
+                  <li>User profile and account</li>
+                  <li>All subscriptions and billing history</li>
+                  <li>AI credits and transaction history</li>
+                  <li>Workspace memberships</li>
+                  <li>Workflow access permissions</li>
+                  <li>Usage tracking data</li>
+                </ul>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isLoading}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDeleteUser} 
+              disabled={isLoading}
+              className="gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-destructive-foreground border-t-transparent rounded-full animate-spin" />
+                  Removing...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4" />
+                  Remove User
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
