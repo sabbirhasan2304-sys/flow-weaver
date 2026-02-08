@@ -9,8 +9,8 @@ export const aiNodes: NodeDefinition[] = [
     displayName: 'OpenAI',
     category: NODE_CATEGORIES.AI,
     description: 'OpenAI GPT models',
-    icon: 'Bot',
-    color: CATEGORY_COLORS[NODE_CATEGORIES.AI],
+    icon: 'OpenAI',
+    color: '#00A67E',
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'response', type: 'object' }],
     configSchema: [
@@ -48,8 +48,8 @@ export const aiNodes: NodeDefinition[] = [
     displayName: 'OpenAI Assistant',
     category: NODE_CATEGORIES.AI,
     description: 'OpenAI Assistants API',
-    icon: 'Bot',
-    color: CATEGORY_COLORS[NODE_CATEGORIES.AI],
+    icon: 'OpenAI',
+    color: '#00A67E',
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'response', type: 'object' }],
     configSchema: [
@@ -73,8 +73,8 @@ export const aiNodes: NodeDefinition[] = [
     displayName: 'Google Gemini',
     category: NODE_CATEGORIES.AI,
     description: 'Google Gemini models',
-    icon: 'Sparkles',
-    color: CATEGORY_COLORS[NODE_CATEGORIES.AI],
+    icon: 'Google',
+    color: '#4285F4',
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'response', type: 'object' }],
     configSchema: [
@@ -98,8 +98,8 @@ export const aiNodes: NodeDefinition[] = [
     displayName: 'Gemini Vision',
     category: NODE_CATEGORIES.AI,
     description: 'Analyze images with Gemini',
-    icon: 'Eye',
-    color: CATEGORY_COLORS[NODE_CATEGORIES.AI],
+    icon: 'Google',
+    color: '#4285F4',
     inputs: [{ name: 'image', type: 'any' }],
     outputs: [{ name: 'response', type: 'object' }],
     configSchema: [

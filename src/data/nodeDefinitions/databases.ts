@@ -6,8 +6,8 @@ export const databaseNodes: NodeDefinition[] = [
     displayName: 'Supabase',
     category: NODE_CATEGORIES.DATABASES,
     description: 'Supabase database operations',
-    icon: 'Database',
-    color: CATEGORY_COLORS[NODE_CATEGORIES.DATABASES],
+    icon: 'Supabase',
+    color: '#3ECF8E',
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [
@@ -33,8 +33,8 @@ export const databaseNodes: NodeDefinition[] = [
     displayName: 'PostgreSQL',
     category: NODE_CATEGORIES.DATABASES,
     description: 'PostgreSQL database queries',
-    icon: 'Database',
-    color: CATEGORY_COLORS[NODE_CATEGORIES.DATABASES],
+    icon: 'Postgres',
+    color: '#336791',
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'array' }],
     configSchema: [
@@ -77,8 +77,8 @@ export const databaseNodes: NodeDefinition[] = [
     displayName: 'MongoDB',
     category: NODE_CATEGORIES.DATABASES,
     description: 'MongoDB database operations',
-    icon: 'Database',
-    color: CATEGORY_COLORS[NODE_CATEGORIES.DATABASES],
+    icon: 'MongoDB',
+    color: '#47A248',
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [

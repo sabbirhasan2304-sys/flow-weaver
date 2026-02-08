@@ -6,8 +6,8 @@ export const storageNodes: NodeDefinition[] = [
     displayName: 'Google Drive',
     category: NODE_CATEGORIES.STORAGE,
     description: 'Manage Google Drive files',
-    icon: 'HardDrive',
-    color: CATEGORY_COLORS[NODE_CATEGORIES.STORAGE],
+    icon: 'Google',
+    color: '#4285F4',
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [
@@ -59,8 +59,8 @@ export const storageNodes: NodeDefinition[] = [
     displayName: 'AWS S3',
     category: NODE_CATEGORIES.STORAGE,
     description: 'Manage AWS S3 buckets',
-    icon: 'Cloud',
-    color: CATEGORY_COLORS[NODE_CATEGORIES.STORAGE],
+    icon: 'AWS',
+    color: '#FF9900',
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [

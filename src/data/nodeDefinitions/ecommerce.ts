@@ -6,8 +6,8 @@ export const ecommerceNodes: NodeDefinition[] = [
     displayName: 'Stripe',
     category: NODE_CATEGORIES.ECOMMERCE,
     description: 'Stripe payment operations',
-    icon: 'CreditCard',
-    color: CATEGORY_COLORS[NODE_CATEGORIES.ECOMMERCE],
+    icon: 'Stripe',
+    color: '#635BFF',
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
