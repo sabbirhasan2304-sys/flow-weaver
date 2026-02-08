@@ -23,6 +23,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlanManagement } from '@/components/admin/PlanManagement';
 import { UserManagement } from '@/components/admin/UserManagement';
+import { ActiveAnalytics } from '@/components/admin/ActiveAnalytics';
 
 interface UserData {
   id: string;
@@ -691,39 +692,14 @@ export default function Admin() {
               </TabsContent>
 
               {/* Analytics Tab */}
-              <TabsContent value="analytics" className="space-y-4 mt-0">
+              <TabsContent value="analytics" className="mt-0">
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card className="border shadow-sm overflow-hidden">
-                    <CardHeader className="bg-muted/30 border-b">
-                      <CardTitle className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5 text-primary" />
-                        Platform Analytics
-                      </CardTitle>
-                      <CardDescription>Usage metrics and trends</CardDescription>
-                    </CardHeader>
-                    <CardContent className="h-[400px] flex items-center justify-center">
-                      <div className="text-center space-y-6">
-                        <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-violet-600 flex items-center justify-center shadow-lg shadow-primary/25">
-                          <TrendingUp className="h-10 w-10 text-primary-foreground" />
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-xl">Analytics Coming Soon</h3>
-                          <p className="text-muted-foreground text-sm max-w-md mx-auto mt-2">
-                            Track executions, user growth, and revenue with beautiful charts and real-time insights.
-                          </p>
-                        </div>
-                        <Button className="gap-2">
-                          <Globe className="h-4 w-4" />
-                          Get Notified
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <ActiveAnalytics />
                 </motion.div>
               </TabsContent>
 
