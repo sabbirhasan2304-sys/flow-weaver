@@ -3,12 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Bot, Send, Loader2, Sparkles, Wand2, ArrowRight } from 'lucide-react';
+import { Bot, Send, Loader2, Sparkles, Wand2, ArrowRight, Coins, AlertCircle } from 'lucide-react';
 import { useWorkflowStore } from '@/stores/workflowStore';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
+import { useCredits } from '@/hooks/useCredits';
+import { useNavigate } from 'react-router-dom';
 
 interface Message {
   id: string;
@@ -85,9 +87,18 @@ export function AIAssistant() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isBuilding, setIsBuilding] = useState(false);
+  const [insufficientCredits, setInsufficientCredits] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   
   const { selectedNode, nodes, setNodes, setEdges, edges } = useWorkflowStore();
+  const { credits, refetch: refetchCredits, AI_CREDIT_COSTS } = useCredits();
+  
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
   
   useEffect(() => {
     if (scrollRef.current) {
@@ -136,18 +147,34 @@ export function AIAssistant() {
       if (data.buildNow) {
         await buildWorkflow(data.buildNow);
       }
-    } catch (err) {
+      
+      // Refresh credits after successful message
+      refetchCredits();
+    } catch (err: any) {
       console.error('AI error:', err);
-      setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Sorry, an error occurred. Please try again.',
-        timestamp: new Date(),
-      }]);
+      
+      // Check if it's an insufficient credits error
+      const errorBody = err?.context?.body;
+      if (err?.message?.includes('402') || errorBody?.error === 'Insufficient credits') {
+        setInsufficientCredits(true);
+        setMessages(prev => [...prev, {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: '⚠️ **Insufficient Credits**\n\nYou need to add credits to use AI features. Visit the Billing page to purchase credits.',
+          timestamp: new Date(),
+        }]);
+      } else {
+        setMessages(prev => [...prev, {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: 'Sorry, an error occurred. Please try again.',
+          timestamp: new Date(),
+        }]);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [messages, selectedNode, nodes, isLoading]);
+  }, [messages, selectedNode, nodes, isLoading, refetchCredits]);
 
   const buildWorkflow = useCallback(async (description: string) => {
     setIsBuilding(true);
@@ -205,12 +232,45 @@ export function AIAssistant() {
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="w-[380px] p-0 flex flex-col">
-        <SheetHeader className="p-3 border-b border-border bg-gradient-to-r from-primary/5 to-purple-500/5">
-          <SheetTitle className="flex items-center gap-2 text-base">
-            <Sparkles className="h-4 w-4 text-primary" />
-            FlowForge AI
-          </SheetTitle>
+        <SheetHeader className="p-3 border-b border-border bg-gradient-to-r from-primary/5 to-primary/10">
+          <div className="flex items-center justify-between">
+            <SheetTitle className="flex items-center gap-2 text-base">
+              <Sparkles className="h-4 w-4 text-primary" />
+              FlowForge AI
+            </SheetTitle>
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
+              <Coins className="h-3.5 w-3.5 text-amber-500" />
+              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                {credits?.balance?.toFixed(1) || '0'}
+              </span>
+            </div>
+          </div>
         </SheetHeader>
+
+        {/* Insufficient Credits Banner */}
+        {insufficientCredits && (
+          <div className="p-3 bg-amber-500/10 border-b border-amber-500/20">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">
+                  Insufficient credits
+                </p>
+                <p className="text-xs text-amber-600/80 dark:text-amber-400/80">
+                  Add credits to continue using AI
+                </p>
+              </div>
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="h-7 text-xs border-amber-500/30 hover:bg-amber-500/10"
+                onClick={() => { setOpen(false); navigate('/billing'); }}
+              >
+                Add Credits
+              </Button>
+            </div>
+          </div>
+        )}
 
         <ScrollArea className="flex-1 p-3" ref={scrollRef}>
           {messages.length === 0 ? (
@@ -219,6 +279,9 @@ export function AIAssistant() {
                 <Bot className="h-10 w-10 mx-auto mb-2 text-primary/60" />
                 <p className="text-sm text-muted-foreground">
                   What would you like to automate?
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {AI_CREDIT_COSTS.chat} credits per message
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-2">

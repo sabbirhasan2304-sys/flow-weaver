@@ -1,9 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
+
+const CREDIT_COST_PER_GENERATION = 1; // Cost per workflow generation
 
 // Comprehensive node definitions with icons and categories
 const NODE_CATALOG = {
@@ -258,13 +261,61 @@ serve(async (req) => {
       });
     }
 
-    const { description } = await req.json();
+    const { description, skipCredits } = await req.json();
 
     if (!description || typeof description !== 'string') {
       return new Response(JSON.stringify({ error: 'Description is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Check user credits if auth header present
+    const authHeader = req.headers.get('authorization');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    if (authHeader && !skipCredits) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user } } = await supabase.auth.getUser(token);
+      
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile) {
+          const { data: credits } = await supabase
+            .from('user_credits')
+            .select('balance')
+            .eq('profile_id', profile.id)
+            .single();
+
+          const balance = credits?.balance ? Number(credits.balance) : 0;
+          
+          if (balance < CREDIT_COST_PER_GENERATION) {
+            return new Response(JSON.stringify({ 
+              error: 'Insufficient credits',
+              message: 'You need credits to generate workflows. Visit Billing to purchase credits.',
+              creditsRequired: CREDIT_COST_PER_GENERATION,
+              currentBalance: balance,
+            }), {
+              status: 402,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+
+          // Deduct credits
+          await supabase.rpc('deduct_credits', {
+            p_profile_id: profile.id,
+            p_amount: CREDIT_COST_PER_GENERATION,
+            p_description: 'AI Workflow generation',
+          });
+        }
+      }
     }
 
     // Use structured tool calling for reliable output

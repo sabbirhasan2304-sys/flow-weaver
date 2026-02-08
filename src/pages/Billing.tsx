@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useSubscription, Plan } from '@/hooks/useSubscription';
 import { useAuth } from '@/hooks/useAuth';
+import { useCredits, CREDIT_PACKAGES, AI_CREDIT_COSTS } from '@/hooks/useCredits';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,10 +13,11 @@ import {
   CreditCard, Check, Zap, Crown, Rocket, 
   Clock, AlertCircle, Receipt, ArrowRight,
   Wallet, Building, Sparkles, TrendingUp,
-  DollarSign, Activity, Cloud
+  DollarSign, Activity, Cloud, Coins, Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 // AI pricing per 1K tokens
 const AI_PRICE_PER_1K_TOKENS = 0.002; // $0.002 per 1K tokens
@@ -35,7 +37,9 @@ interface UsageBilling {
 export default function Billing() {
   const { profile } = useAuth();
   const { subscription, plans, usage, loading, getDaysRemaining, getUsagePercentage } = useSubscription();
+  const { credits, loading: creditsLoading, addCredits, refetch: refetchCredits } = useCredits();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [purchasingPackage, setPurchasingPackage] = useState<string | null>(null);
   const [usageBilling, setUsageBilling] = useState<UsageBilling>({
     aiTokensUsed: 0,
     aiCost: 0,
@@ -90,6 +94,27 @@ export default function Billing() {
     });
   };
 
+  const handlePurchaseCredits = async (packageId: string) => {
+    const pkg = CREDIT_PACKAGES.find(p => p.id === packageId);
+    if (!pkg) return;
+
+    setPurchasingPackage(packageId);
+    try {
+      // In production, this would go through payment gateway first
+      const success = await addCredits(pkg.credits, `Purchased ${pkg.name} package (${pkg.credits} credits)`);
+      if (success) {
+        toast.success(`Successfully added ${pkg.credits} AI credits!`);
+        refetchCredits();
+      } else {
+        toast.error('Failed to add credits. Please try again.');
+      }
+    } catch (error) {
+      toast.error('Purchase failed. Please try again.');
+    } finally {
+      setPurchasingPackage(null);
+    }
+  };
+
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -132,7 +157,7 @@ export default function Billing() {
     return <Badge variant={variant}>{label}</Badge>;
   };
 
-  if (loading) {
+  if (loading || creditsLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-[60vh]">
@@ -155,6 +180,147 @@ export default function Billing() {
             Pay only for what you use - AI tokens, executions, and storage
           </p>
         </div>
+
+        {/* AI Credits Balance Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="border-2 border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent">
+            <CardContent className="py-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 rounded-2xl bg-amber-500/20">
+                    <Coins className="h-10 w-10 text-amber-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold">AI Credits Balance</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Use platform AI by adding credits to your account
+                    </p>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-5xl font-bold text-amber-500">
+                    {credits?.balance?.toFixed(1) || '0'}
+                  </div>
+                  <p className="text-sm text-muted-foreground">credits available</p>
+                </div>
+                <div className="flex flex-col gap-2 text-sm">
+                  <div className="flex justify-between gap-8">
+                    <span className="text-muted-foreground">Total Purchased:</span>
+                    <span className="font-medium">{credits?.total_purchased?.toFixed(1) || '0'}</span>
+                  </div>
+                  <div className="flex justify-between gap-8">
+                    <span className="text-muted-foreground">Total Used:</span>
+                    <span className="font-medium">{credits?.total_used?.toFixed(1) || '0'}</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Credit Packages */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="space-y-4"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Plus className="h-5 w-5 text-primary" />
+                Add AI Credits
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Purchase credits to use platform AI features
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {CREDIT_PACKAGES.map((pkg) => (
+              <Card 
+                key={pkg.id}
+                className={cn(
+                  "relative transition-all hover:border-primary/50",
+                  pkg.popular && "border-primary ring-2 ring-primary/20"
+                )}
+              >
+                {pkg.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-gradient-to-r from-primary to-primary/80">
+                      Best Value
+                    </Badge>
+                  </div>
+                )}
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">{pkg.name}</CardTitle>
+                  <CardDescription>{pkg.credits} AI Credits</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-3xl font-bold">
+                    ${pkg.price}
+                    <span className="text-sm font-normal text-muted-foreground ml-1">USD</span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    ${(pkg.price / pkg.credits).toFixed(2)} per credit
+                  </div>
+                  <ul className="text-sm space-y-1">
+                    <li className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-primary" />
+                      {Math.floor(pkg.credits / AI_CREDIT_COSTS.chat)} AI chat messages
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-primary" />
+                      {Math.floor(pkg.credits / AI_CREDIT_COSTS.workflow_generation)} workflow generations
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    className="w-full gap-2" 
+                    variant={pkg.popular ? "default" : "outline"}
+                    onClick={() => handlePurchaseCredits(pkg.id)}
+                    disabled={purchasingPackage === pkg.id}
+                  >
+                    {purchasingPackage === pkg.id ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-background border-t-transparent" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Coins className="h-4 w-4" />
+                        Buy Credits
+                      </>
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+
+          {/* Credit Usage Info */}
+          <Card className="bg-muted/30">
+            <CardContent className="py-4">
+              <div className="flex items-start gap-3">
+                <Sparkles className="h-5 w-5 text-primary mt-0.5" />
+                <div className="space-y-2">
+                  <p className="font-medium">How AI Credits Work</p>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• <strong>{AI_CREDIT_COSTS.chat}</strong> credits per AI chat message</li>
+                    <li>• <strong>{AI_CREDIT_COSTS.workflow_generation}</strong> credit per AI-generated workflow</li>
+                    <li>• <strong>{AI_CREDIT_COSTS.analysis}</strong> credits per AI analysis/debugging</li>
+                    <li>• Credits never expire and can be used for any AI feature</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Usage-Based Billing Summary */}
         <motion.div
