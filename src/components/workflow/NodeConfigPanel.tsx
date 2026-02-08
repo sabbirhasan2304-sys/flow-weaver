@@ -277,8 +277,32 @@ export function NodeConfigPanel() {
         );
         
       case 'credential':
-        // Auto-detect credential type from the field's description (set in node definitions)
-        const credentialType = field.description || '';
+        // Auto-detect credential type from field's description OR infer from label
+        const inferTypeFromLabel = (label: string): string => {
+          const labelLower = label.toLowerCase();
+          const typeMap: Record<string, string> = {
+            'stripe': 'stripe', 'slack': 'slack', 'discord': 'discord', 'telegram': 'telegram',
+            'github': 'github', 'gitlab': 'gitlab', 'google': 'google', 'openai': 'openai',
+            'anthropic': 'anthropic', 'aws': 'aws', 'supabase': 'supabase', 'postgres': 'postgres',
+            'mongodb': 'mongodb', 'mysql': 'mysql', 'redis': 'redis', 'sendgrid': 'sendgrid',
+            'twilio': 'twilio', 'smtp': 'smtp', 'notion': 'notion', 'airtable': 'airtable',
+            'shopify': 'shopify', 'woocommerce': 'woocommerce', 'paypal': 'paypal',
+            'hubspot': 'hubspot', 'salesforce': 'salesforce', 'jira': 'jira', 'asana': 'asana',
+            'trello': 'trello', 'linear': 'linear', 'clickup': 'clickup', 'zoom': 'zoom',
+            'teams': 'teams', 'whatsapp': 'whatsapp', 'dropbox': 'dropbox', 'onedrive': 'onedrive',
+            'mailchimp': 'mailchimp', 'twitter': 'oauth2', 'x ': 'oauth2', 'linkedin': 'oauth2',
+            'facebook': 'oauth2', 'instagram': 'oauth2', 'youtube': 'google',
+            'huggingface': 'apikey', 'stability': 'apikey', 'elevenlabs': 'apikey',
+            'replicate': 'apikey', 'perplexity': 'apikey', 'typeform': 'apikey',
+            'microsoft': 'oauth2', 'imap': 'http', 'bitbucket': 'oauth2',
+          };
+          for (const [key, type] of Object.entries(typeMap)) {
+            if (labelLower.includes(key)) return type;
+          }
+          return '';
+        };
+        
+        const credentialType = field.description || inferTypeFromLabel(field.label);
         const filteredCredentials = credentialType 
           ? credentials.filter(c => c.type === credentialType)
           : credentials;
