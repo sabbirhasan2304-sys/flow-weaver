@@ -18,13 +18,14 @@ import {
   Workflow, Zap, AlertTriangle, ArrowUpRight, ArrowDownRight,
   RefreshCw, Download, Filter, Crown,
   Sparkles, Globe, ChevronRight, CheckCircle2, XCircle, Clock,
-  Database, Server, Cpu, HardDrive, Eye, Mail, UserCog, Cloud
+  Database, Server, Cpu, HardDrive, Eye, Mail, UserCog, Cloud, Code
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlanManagement } from '@/components/admin/PlanManagement';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { ActiveAnalytics } from '@/components/admin/ActiveAnalytics';
 import { PaymentGatewaySettings } from '@/components/admin/PaymentGatewaySettings';
+import { ApiManagement } from '@/components/admin/ApiManagement';
 
 interface UserData {
   id: string;
@@ -590,6 +591,13 @@ export default function Admin() {
                 <span>Plans</span>
               </TabsTrigger>
               <TabsTrigger 
+                value="api" 
+                className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground px-4 py-2"
+              >
+                <Code className="h-4 w-4" />
+                <span>API</span>
+              </TabsTrigger>
+              <TabsTrigger 
                 value="settings" 
                 className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground px-4 py-2"
               >
@@ -707,6 +715,18 @@ export default function Admin() {
               {/* Plans Tab */}
               <TabsContent value="plans" className="space-y-6 mt-0">
                 <PlanManagement />
+              </TabsContent>
+
+              {/* API Tab */}
+              <TabsContent value="api" className="space-y-6 mt-0">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ApiManagement />
+                </motion.div>
               </TabsContent>
 
               {/* Settings Tab */}
