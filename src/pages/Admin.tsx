@@ -182,9 +182,9 @@ export default function Admin() {
 
       const totalRevenue = paymentsData?.reduce((acc, p) => acc + p.amount, 0) || 0;
 
-      // Calculate estimated costs (pricing model)
-      // AI: $0.002 per 1K tokens, Cloud: $0.001 per execution + $0.0001 per MB storage
-      const estimatedAiCost = (totalAiTokens / 1000) * 0.002;
+      // Calculate estimated costs in BDT (pricing model)
+      // AI: ৳0.25 per 1K tokens, Cloud: ৳0.12 per execution + ৳0.012 per MB storage
+      const estimatedAiCost = (totalAiTokens / 1000) * 0.25;
       const storageMB = totalStorage / (1024 * 1024);
       const estimatedCloudCost = (totalExecs * 0.001) + (storageMB * 0.0001);
       
@@ -461,14 +461,14 @@ export default function Admin() {
                 </div>
                 <div className="p-4 rounded-xl bg-background/50 border border-border/50">
                   <div className="text-2xl font-bold text-violet-600 dark:text-violet-400">
-                    ${usageStats.estimatedAiCost.toFixed(4)}
+                    ৳{usageStats.estimatedAiCost.toFixed(2)}
                   </div>
                   <div className="text-sm text-muted-foreground">Estimated Cost</div>
                 </div>
               </div>
               <div className="mt-4 p-3 rounded-lg bg-violet-500/5 border border-violet-500/10">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Rate: $0.002 / 1K tokens</span>
+                  <span className="text-muted-foreground">Rate: ৳0.25 / 1K tokens</span>
                   <Badge variant="outline" className="bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20">
                     Platform AI
                   </Badge>
@@ -508,14 +508,14 @@ export default function Admin() {
                 </div>
                 <div className="p-3 rounded-xl bg-background/50 border border-border/50">
                   <div className="text-xl font-bold text-cyan-600 dark:text-cyan-400">
-                    ${usageStats.estimatedCloudCost.toFixed(4)}
+                    ৳{usageStats.estimatedCloudCost.toFixed(2)}
                   </div>
                   <div className="text-xs text-muted-foreground">Est. Cost</div>
                 </div>
               </div>
               <div className="mt-4 p-3 rounded-lg bg-cyan-500/5 border border-cyan-500/10">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Rate: $0.001/exec + $0.0001/MB</span>
+                  <span className="text-muted-foreground">Rate: ৳0.12/exec + ৳0.012/MB</span>
                   <Badge variant="outline" className="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20">
                     Cloud
                   </Badge>
