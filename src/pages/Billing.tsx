@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useSubscription, Plan } from '@/hooks/useSubscription';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,13 +11,98 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   CreditCard, Check, Zap, Crown, Rocket, 
   Clock, AlertCircle, Receipt, ArrowRight,
-  Wallet, Building
+  Wallet, Building, Sparkles, TrendingUp,
+  DollarSign, Activity, Cloud
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
+
+// AI pricing per 1K tokens
+const AI_PRICE_PER_1K_TOKENS = 0.002; // $0.002 per 1K tokens
+const EXECUTION_PRICE = 0.001; // $0.001 per execution
+const STORAGE_PRICE_PER_MB = 0.0001; // $0.0001 per MB
+
+interface UsageBilling {
+  aiTokensUsed: number;
+  aiCost: number;
+  executionsCount: number;
+  executionsCost: number;
+  storageBytesUsed: number;
+  storageCost: number;
+  totalCost: number;
+}
 
 export default function Billing() {
+  const { profile } = useAuth();
   const { subscription, plans, usage, loading, getDaysRemaining, getUsagePercentage } = useSubscription();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [usageBilling, setUsageBilling] = useState<UsageBilling>({
+    aiTokensUsed: 0,
+    aiCost: 0,
+    executionsCount: 0,
+    executionsCost: 0,
+    storageBytesUsed: 0,
+    storageCost: 0,
+    totalCost: 0,
+  });
+
+  useEffect(() => {
+    if (profile?.id) {
+      fetchUsageBilling();
+    }
+  }, [profile?.id]);
+
+  const fetchUsageBilling = async () => {
+    if (!profile?.id) return;
+
+    // Fetch all usage data for this user
+    const { data: usageData } = await supabase
+      .from('usage_tracking')
+      .select('ai_tokens_used, executions_count, storage_bytes_used')
+      .eq('profile_id', profile.id);
+
+    let totalAiTokens = 0;
+    let totalExecutions = 0;
+    let totalStorage = 0;
+
+    if (usageData) {
+      usageData.forEach((u) => {
+        totalAiTokens += u.ai_tokens_used || 0;
+        totalExecutions += u.executions_count || 0;
+        totalStorage += u.storage_bytes_used || 0;
+      });
+    }
+
+    const aiCost = (totalAiTokens / 1000) * AI_PRICE_PER_1K_TOKENS;
+    const executionsCost = totalExecutions * EXECUTION_PRICE;
+    const storageMB = totalStorage / (1024 * 1024);
+    const storageCost = storageMB * STORAGE_PRICE_PER_MB;
+    const totalCost = aiCost + executionsCost + storageCost;
+
+    setUsageBilling({
+      aiTokensUsed: totalAiTokens,
+      aiCost,
+      executionsCount: totalExecutions,
+      executionsCost,
+      storageBytesUsed: totalStorage,
+      storageCost,
+      totalCost,
+    });
+  };
+
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+  };
 
   const getPlanIcon = (planName: string) => {
     switch (planName) {
@@ -62,12 +149,170 @@ export default function Billing() {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <CreditCard className="h-8 w-8 text-primary" />
-            Billing & Subscription
+            Billing & Usage
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage your subscription plan and payment methods
+            Pay only for what you use - AI tokens, executions, and storage
           </p>
         </div>
+
+        {/* Usage-Based Billing Summary */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-4"
+        >
+          {/* AI Usage Card */}
+          <Card className="border border-violet-500/20 bg-gradient-to-br from-violet-500/10 via-violet-500/5 to-transparent">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-violet-500/10">
+                  <Sparkles className="h-5 w-5 text-violet-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-base">AI Usage</CardTitle>
+                  <CardDescription className="text-xs">Lovable AI tokens</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-violet-600 dark:text-violet-400">
+                      {formatNumber(usageBilling.aiTokensUsed)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">tokens used</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-semibold">${usageBilling.aiCost.toFixed(4)}</div>
+                    <div className="text-xs text-muted-foreground">cost</div>
+                  </div>
+                </div>
+                <div className="p-2 rounded-lg bg-violet-500/5 border border-violet-500/10">
+                  <div className="text-xs text-muted-foreground">Rate: ${AI_PRICE_PER_1K_TOKENS} / 1K tokens</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Executions Card */}
+          <Card className="border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-cyan-500/5 to-transparent">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-cyan-500/10">
+                  <Activity className="h-5 w-5 text-cyan-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-base">Executions</CardTitle>
+                  <CardDescription className="text-xs">Workflow runs</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">
+                      {formatNumber(usageBilling.executionsCount)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">executions</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-semibold">${usageBilling.executionsCost.toFixed(4)}</div>
+                    <div className="text-xs text-muted-foreground">cost</div>
+                  </div>
+                </div>
+                <div className="p-2 rounded-lg bg-cyan-500/5 border border-cyan-500/10">
+                  <div className="text-xs text-muted-foreground">Rate: ${EXECUTION_PRICE} / execution</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Storage Card */}
+          <Card className="border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-emerald-500/10">
+                  <Cloud className="h-5 w-5 text-emerald-500" />
+                </div>
+                <div>
+                  <CardTitle className="text-base">Storage</CardTitle>
+                  <CardDescription className="text-xs">Cloud storage</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                      {formatBytes(usageBilling.storageBytesUsed)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">used</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-semibold">${usageBilling.storageCost.toFixed(4)}</div>
+                    <div className="text-xs text-muted-foreground">cost</div>
+                  </div>
+                </div>
+                <div className="p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                  <div className="text-xs text-muted-foreground">Rate: ${STORAGE_PRICE_PER_MB} / MB</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Total Bill Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 via-transparent to-primary/5">
+            <CardContent className="py-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-2xl bg-primary/10">
+                    <DollarSign className="h-8 w-8 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Current Usage Bill</h3>
+                    <p className="text-sm text-muted-foreground">Based on your actual AI and Cloud usage</p>
+                  </div>
+                </div>
+                <div className="text-center md:text-right">
+                  <div className="text-4xl font-bold text-primary">${usageBilling.totalCost.toFixed(2)}</div>
+                  <p className="text-sm text-muted-foreground">This billing period</p>
+                </div>
+                <Button size="lg" className="gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  Pay Now
+                </Button>
+              </div>
+              
+              {/* Breakdown */}
+              <div className="mt-6 pt-6 border-t border-border/50">
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
+                    <span className="text-muted-foreground">AI Tokens</span>
+                    <span className="font-medium">${usageBilling.aiCost.toFixed(4)}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
+                    <span className="text-muted-foreground">Executions</span>
+                    <span className="font-medium">${usageBilling.executionsCost.toFixed(4)}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
+                    <span className="text-muted-foreground">Storage</span>
+                    <span className="font-medium">${usageBilling.storageCost.toFixed(4)}</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Current Plan Card */}
         <Card>
@@ -83,7 +328,7 @@ export default function Billing() {
                     {subscription && getStatusBadge(subscription.status)}
                   </CardTitle>
                   <CardDescription>
-                    {subscription?.plan?.description || 'Select a plan to get started'}
+                    {subscription?.plan?.description || 'Select a plan for base features + pay for AI usage'}
                   </CardDescription>
                 </div>
               </div>
@@ -100,21 +345,23 @@ export default function Billing() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Executions</span>
+                  <span className="text-muted-foreground">Included Executions</span>
                   <span className="font-medium">
                     {usage?.executions_count || 0} / {subscription?.plan?.limits.executions_per_month === -1 ? '∞' : subscription?.plan?.limits.executions_per_month || 100}
                   </span>
                 </div>
                 <Progress value={getUsagePercentage('executions')} className="h-2" />
+                <p className="text-xs text-muted-foreground">Extra executions billed at ${EXECUTION_PRICE}/each</p>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">AI Credits</span>
+                  <span className="text-muted-foreground">Included AI Credits</span>
                   <span className="font-medium">
-                    {usage?.ai_tokens_used || 0} / {subscription?.plan?.limits.ai_credits || 0}
+                    {formatNumber(usage?.ai_tokens_used || 0)} / {formatNumber(subscription?.plan?.limits.ai_credits || 0)}
                   </span>
                 </div>
                 <Progress value={getUsagePercentage('ai_tokens')} className="h-2" />
+                <p className="text-xs text-muted-foreground">Extra tokens billed at ${AI_PRICE_PER_1K_TOKENS}/1K</p>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
@@ -172,6 +419,17 @@ export default function Billing() {
               </Button>
             </div>
 
+            {/* Usage-Based Pricing Note */}
+            <div className="flex items-center gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+              <TrendingUp className="h-5 w-5 text-primary shrink-0" />
+              <div>
+                <p className="font-medium">Usage-Based Pricing</p>
+                <p className="text-sm text-muted-foreground">
+                  Plans include base features + AI credits. Additional AI usage is billed at ${AI_PRICE_PER_1K_TOKENS}/1K tokens.
+                </p>
+              </div>
+            </div>
+
             {/* Plan Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {plans.map((plan) => {
@@ -212,6 +470,7 @@ export default function Billing() {
                             /{billingCycle === 'monthly' ? 'mo' : 'yr'}
                           </span>
                         )}
+                        <p className="text-xs text-muted-foreground mt-1">+ AI usage</p>
                       </div>
 
                       <ul className="space-y-2 text-sm">
@@ -219,19 +478,19 @@ export default function Billing() {
                           <Check className="h-4 w-4 text-primary" />
                           {plan.limits.executions_per_month === -1 
                             ? 'Unlimited executions' 
-                            : `${plan.limits.executions_per_month.toLocaleString()} executions/mo`}
+                            : `${plan.limits.executions_per_month.toLocaleString()} free executions`}
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Check className="h-4 w-4 text-primary" />
+                          {plan.limits.ai_credits === 0 
+                            ? 'Pay-per-use AI' 
+                            : `${formatNumber(plan.limits.ai_credits)} free AI tokens`}
                         </li>
                         <li className="flex items-center gap-2">
                           <Check className="h-4 w-4 text-primary" />
                           {plan.limits.workflows_limit === -1 
                             ? 'Unlimited workflows' 
                             : `${plan.limits.workflows_limit} workflows`}
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Check className="h-4 w-4 text-primary" />
-                          {plan.limits.ai_credits === 0 
-                            ? 'No AI credits' 
-                            : `${plan.limits.ai_credits.toLocaleString()} AI credits`}
                         </li>
                         <li className="flex items-center gap-2">
                           <Check className="h-4 w-4 text-primary" />
@@ -249,12 +508,6 @@ export default function Billing() {
                           <li className="flex items-center gap-2">
                             <Check className="h-4 w-4 text-primary" />
                             Priority support
-                          </li>
-                        )}
-                        {plan.features.sso && (
-                          <li className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            SSO / SAML
                           </li>
                         )}
                       </ul>
@@ -287,7 +540,7 @@ export default function Billing() {
                   <Receipt className="h-5 w-5" />
                   Payment History
                 </CardTitle>
-                <CardDescription>View your past invoices and payments</CardDescription>
+                <CardDescription>View your past invoices and usage payments</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
