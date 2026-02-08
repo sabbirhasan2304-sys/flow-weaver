@@ -15,6 +15,8 @@ import Executions from "./pages/Executions";
 import Credentials from "./pages/Credentials";
 import Admin from "./pages/Admin";
 import Billing from "./pages/Billing";
+import Pricing from "./pages/Pricing";
+import Documentation from "./pages/Documentation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +31,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/docs" element={<Documentation />} />
 
           <Route
             path="/dashboard"
