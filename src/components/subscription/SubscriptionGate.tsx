@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,16 +19,22 @@ interface SubscriptionGateProps {
 
 export function SubscriptionGate({ children, feature = 'this feature', fallback }: SubscriptionGateProps) {
   const { subscription, loading } = useSubscription();
+  const { isAdmin, loading: adminLoading } = useAdmin();
 
-  if (loading) {
+  if (loading || adminLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
           <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Checking subscription...</p>
+          <p className="text-muted-foreground">Checking access...</p>
         </div>
       </div>
     );
+  }
+
+  // Admins bypass subscription check
+  if (isAdmin) {
+    return <>{children}</>;
   }
 
   // Check if user has an active or trial subscription
