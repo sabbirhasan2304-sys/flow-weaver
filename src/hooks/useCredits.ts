@@ -22,19 +22,20 @@ export interface CreditTransaction {
   created_at: string;
 }
 
-// Credit packages available for purchase (BDT pricing @ ৳127/$1)
+// Credit packages (BDT @ ৳127/$1) - 400% markup on AI cost for profit
+// Google Gemini 2.5 Flash: ~$0.001/message, we charge ~$0.04/credit = 40x markup
 export const CREDIT_PACKAGES = [
-  { id: 'starter', name: 'Starter', credits: 100, price: 127, currency: 'BDT', popular: false },      // ~$1
-  { id: 'basic', name: 'Basic', credits: 500, price: 508, currency: 'BDT', popular: false },          // ~$4
-  { id: 'pro', name: 'Pro', credits: 2000, price: 1651, currency: 'BDT', popular: true },             // ~$13
-  { id: 'enterprise', name: 'Enterprise', credits: 10000, price: 6350, currency: 'BDT', popular: false }, // ~$50
+  { id: 'starter', name: 'Starter', credits: 50, price: 254, currency: 'BDT', popular: false },       // ~$2, ৳5.08/credit
+  { id: 'basic', name: 'Basic', credits: 200, price: 762, currency: 'BDT', popular: false },          // ~$6, ৳3.81/credit
+  { id: 'pro', name: 'Pro', credits: 1000, price: 2540, currency: 'BDT', popular: true },             // ~$20, ৳2.54/credit
+  { id: 'enterprise', name: 'Enterprise', credits: 5000, price: 8890, currency: 'BDT', popular: false }, // ~$70, ৳1.78/credit
 ];
 
-// Cost per AI operation (in credits) - simple whole numbers
+// Cost per AI operation (in credits)
 export const AI_CREDIT_COSTS = {
-  chat: 1,              // 1 credit per AI chat message
-  workflow_generation: 10, // 10 credits per AI-generated workflow
-  analysis: 5,          // 5 credits per AI analysis/debugging
+  chat: 1,              // 1 credit per AI chat message (~৳2.54-5.08)
+  workflow_generation: 15, // 15 credits per AI-generated workflow (~৳38-76)
+  analysis: 5,          // 5 credits per AI analysis (~৳12-25)
 };
 
 export function useCredits() {
