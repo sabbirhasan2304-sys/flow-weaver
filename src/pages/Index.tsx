@@ -57,7 +57,7 @@ export default function Index() {
             <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/25">
               <Zap className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-foreground">FlowForge</span>
+            <span className="text-xl font-bold text-foreground">BiztoriBD</span>
           </div>
           
           <nav className="hidden md:flex items-center gap-6">
@@ -109,7 +109,7 @@ export default function Index() {
             </h1>
             
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              FlowForge is a powerful visual workflow automation platform. 
+              BiztoriBD is a powerful visual workflow automation platform. 
               Connect your apps, automate tasks, and build sophisticated AI-powered automations.
             </p>
             
@@ -161,7 +161,7 @@ export default function Index() {
               Everything You Need to Automate
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              From simple tasks to complex workflows, FlowForge has the tools 
+              From simple tasks to complex workflows, BiztoriBD has the tools 
               to make automation accessible to everyone.
             </p>
           </motion.div>
@@ -204,7 +204,7 @@ export default function Index() {
               Ready to Automate?
             </h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-              Join thousands of teams who use FlowForge to automate their workflows 
+              Join thousands of teams who use BiztoriBD to automate their workflows 
               and save hours every week.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -238,11 +238,11 @@ export default function Index() {
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                 <Zap className="h-4 w-4 text-primary-foreground" />
               </div>
-              <span className="font-bold text-foreground">FlowForge</span>
+              <span className="font-bold text-foreground">BiztoriBD</span>
             </div>
             
             <div className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} FlowForge. Made with ❤️ in Bangladesh
+              © {new Date().getFullYear()} BiztoriBD. Made with ❤️ in Bangladesh
             </div>
           </div>
         </div>

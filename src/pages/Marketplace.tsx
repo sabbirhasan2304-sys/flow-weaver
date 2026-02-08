@@ -211,7 +211,7 @@ export default function Marketplace() {
             Plugin Marketplace
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Extend FlowForge with powerful integrations. Install plugins to unlock new nodes and capabilities.
+            Extend BiztoriBD with powerful integrations. Install plugins to unlock new nodes and capabilities.
           </p>
         </motion.div>
 

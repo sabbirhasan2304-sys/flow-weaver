@@ -1,5 +1,5 @@
 // ============================================================
-// FLOWFORGE NODE DEFINITIONS - COMPREHENSIVE 250+ NODES
+// BIZTORIBD NODE DEFINITIONS - COMPREHENSIVE 250+ NODES
 // Full n8n parity + advanced capabilities
 // ============================================================
 

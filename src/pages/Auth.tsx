@@ -79,7 +79,7 @@ export default function Auth() {
           <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
             <Zap className="h-6 w-6 text-primary-foreground" />
           </div>
-          <span className="text-2xl font-bold text-foreground">FlowForge</span>
+          <span className="text-2xl font-bold text-foreground">BiztoriBD</span>
         </div>
         
         <Card>

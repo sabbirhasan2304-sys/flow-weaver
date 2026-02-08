@@ -236,7 +236,7 @@ export function AIAssistant() {
           <div className="flex items-center justify-between">
             <SheetTitle className="flex items-center gap-2 text-base">
               <Sparkles className="h-4 w-4 text-primary" />
-              FlowForge AI
+              BiztoriBD AI
             </SheetTitle>
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/20">
               <Coins className="h-3.5 w-3.5 text-amber-500" />
