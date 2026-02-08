@@ -229,12 +229,12 @@ export function PlanManagement() {
     >
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">প্ল্যান ম্যানেজমেন্ট</h2>
-          <p className="text-muted-foreground">সাবস্ক্রিপশন প্ল্যান যোগ, সম্পাদনা বা মুছুন</p>
+          <h2 className="text-2xl font-bold">Plan Management</h2>
+          <p className="text-muted-foreground">Add, edit or delete subscription plans</p>
         </div>
         <Button onClick={openCreateDialog} className="gap-2">
           <Plus className="h-4 w-4" />
-          নতুন প্ল্যান
+          New Plan
         </Button>
       </div>
 
@@ -242,20 +242,20 @@ export function PlanManagement() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Crown className="h-5 w-5 text-yellow-500" />
-            সক্রিয় প্ল্যানসমূহ
+            Active Plans
           </CardTitle>
-          <CardDescription>সমস্ত সাবস্ক্রিপশন প্ল্যান পরিচালনা করুন</CardDescription>
+          <CardDescription>Manage all subscription plans</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>নাম</TableHead>
-                <TableHead>মাসিক মূল্য</TableHead>
-                <TableHead>বার্ষিক মূল্য</TableHead>
-                <TableHead>সীমা</TableHead>
-                <TableHead>স্ট্যাটাস</TableHead>
-                <TableHead className="text-right">অ্যাকশন</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Monthly Price</TableHead>
+                <TableHead>Yearly Price</TableHead>
+                <TableHead>Limits</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -284,7 +284,7 @@ export function PlanManagement() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={plan.is_active ? 'default' : 'secondary'}>
-                        {plan.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
+                        {plan.is_active ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -312,7 +312,7 @@ export function PlanManagement() {
               {plans.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    কোন প্ল্যান পাওয়া যায়নি। প্রথম প্ল্যান তৈরি করুন।
+                    No plans found. Create your first plan.
                   </TableCell>
                 </TableRow>
               )}
@@ -326,17 +326,17 @@ export function PlanManagement() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {selectedPlan ? 'প্ল্যান সম্পাদনা' : 'নতুন প্ল্যান তৈরি'}
+              {selectedPlan ? 'Edit Plan' : 'Create New Plan'}
             </DialogTitle>
             <DialogDescription>
-              প্ল্যানের বিবরণ এবং সীমা নির্ধারণ করুন
+              Set plan details and limits
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">প্ল্যানের নাম *</Label>
+                <Label htmlFor="name">Plan Name *</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -345,7 +345,7 @@ export function PlanManagement() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sort_order">ক্রম</Label>
+                <Label htmlFor="sort_order">Sort Order</Label>
                 <Input
                   id="sort_order"
                   type="number"
@@ -356,18 +356,18 @@ export function PlanManagement() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">বিবরণ</Label>
+              <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="প্ল্যানের সংক্ষিপ্ত বিবরণ..."
+                placeholder="Short description of the plan..."
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price_monthly">মাসিক মূল্য (৳)</Label>
+                <Label htmlFor="price_monthly">Monthly Price (৳)</Label>
                 <Input
                   id="price_monthly"
                   type="number"
@@ -376,7 +376,7 @@ export function PlanManagement() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="price_yearly">বার্ষিক মূল্য (৳)</Label>
+                <Label htmlFor="price_yearly">Yearly Price (৳)</Label>
                 <Input
                   id="price_yearly"
                   type="number"
@@ -387,10 +387,10 @@ export function PlanManagement() {
             </div>
 
             <div className="border-t pt-4">
-              <h4 className="font-medium mb-3">সীমা</h4>
+              <h4 className="font-medium mb-3">Limits</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="workflows_limit">ওয়ার্কফ্লো সীমা</Label>
+                  <Label htmlFor="workflows_limit">Workflow Limit</Label>
                   <Input
                     id="workflows_limit"
                     type="number"
@@ -399,7 +399,7 @@ export function PlanManagement() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="executions_per_month">মাসিক এক্সিকিউশন</Label>
+                  <Label htmlFor="executions_per_month">Monthly Executions</Label>
                   <Input
                     id="executions_per_month"
                     type="number"
@@ -408,7 +408,7 @@ export function PlanManagement() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="ai_credits">AI ক্রেডিট</Label>
+                  <Label htmlFor="ai_credits">AI Credits</Label>
                   <Input
                     id="ai_credits"
                     type="number"
@@ -417,7 +417,7 @@ export function PlanManagement() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="team_members">টিম মেম্বার</Label>
+                  <Label htmlFor="team_members">Team Members</Label>
                   <Input
                     id="team_members"
                     type="number"
@@ -435,7 +435,7 @@ export function PlanManagement() {
                   checked={formData.custom_nodes}
                   onCheckedChange={(checked) => setFormData({ ...formData, custom_nodes: checked })}
                 />
-                <Label htmlFor="custom_nodes">কাস্টম নোড অনুমোদিত</Label>
+                <Label htmlFor="custom_nodes">Custom Nodes Allowed</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <Switch
@@ -443,12 +443,12 @@ export function PlanManagement() {
                   checked={formData.is_active}
                   onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
                 />
-                <Label htmlFor="is_active">সক্রিয়</Label>
+                <Label htmlFor="is_active">Active</Label>
               </div>
             </div>
 
             <div className="space-y-2 border-t pt-4">
-              <Label htmlFor="features">অতিরিক্ত ফিচার (JSON)</Label>
+              <Label htmlFor="features">Additional Features (JSON)</Label>
               <Textarea
                 id="features"
                 value={formData.features}
@@ -462,11 +462,11 @@ export function PlanManagement() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              বাতিল
+              Cancel
             </Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {selectedPlan ? 'আপডেট করুন' : 'তৈরি করুন'}
+              {selectedPlan ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -476,19 +476,19 @@ export function PlanManagement() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>প্ল্যান মুছুন</DialogTitle>
+            <DialogTitle>Delete Plan</DialogTitle>
             <DialogDescription>
-              আপনি কি নিশ্চিত যে আপনি "{selectedPlan?.name}" প্ল্যানটি মুছতে চান? 
-              এই অ্যাকশন পূর্বাবস্থায় ফেরানো যাবে না।
+              Are you sure you want to delete the "{selectedPlan?.name}" plan? 
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              বাতিল
+              Cancel
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={saving}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              মুছুন
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
