@@ -5,112 +5,34 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-// Available node types for the AI to choose from
-const AVAILABLE_NODES = {
-  triggers: [
-    { type: 'webhook', name: 'Webhook', description: 'Trigger via HTTP webhook' },
-    { type: 'schedule', name: 'Schedule Trigger', description: 'Trigger on cron schedule' },
-    { type: 'manual', name: 'Manual Trigger', description: 'Manually trigger workflow' },
-    { type: 'gmailTrigger', name: 'Gmail Trigger', description: 'Trigger on new emails' },
-    { type: 'slackTrigger', name: 'Slack Trigger', description: 'Trigger on Slack events' },
-    { type: 'githubTrigger', name: 'GitHub Trigger', description: 'Trigger on GitHub events' },
-    { type: 'stripeTrigger', name: 'Stripe Trigger', description: 'Trigger on Stripe events' },
-    { type: 'supabaseTrigger', name: 'Supabase Trigger', description: 'Trigger on database changes' },
-  ],
-  actions: [
-    { type: 'httpRequest', name: 'HTTP Request', description: 'Make API requests' },
-    { type: 'sendEmail', name: 'Send Email', description: 'Send emails via SMTP' },
-    { type: 'gmail', name: 'Gmail', description: 'Send/manage Gmail' },
-    { type: 'slack', name: 'Slack', description: 'Send Slack messages' },
-    { type: 'discord', name: 'Discord', description: 'Send Discord messages' },
-    { type: 'telegram', name: 'Telegram', description: 'Send Telegram messages' },
-    { type: 'twilio', name: 'Twilio', description: 'Send SMS/calls' },
-  ],
-  logic: [
-    { type: 'if', name: 'IF', description: 'Conditional branching' },
-    { type: 'switch', name: 'Switch', description: 'Multiple conditions' },
-    { type: 'loop', name: 'Loop', description: 'Iterate over items' },
-    { type: 'merge', name: 'Merge', description: 'Merge branches' },
-    { type: 'filter', name: 'Filter', description: 'Filter items' },
-    { type: 'wait', name: 'Wait', description: 'Delay execution' },
-    { type: 'errorHandler', name: 'Error Handler', description: 'Handle errors' },
-  ],
-  data: [
-    { type: 'setVariable', name: 'Set', description: 'Set/transform data' },
-    { type: 'function', name: 'Function', description: 'Custom JavaScript' },
-    { type: 'splitInBatches', name: 'Split in Batches', description: 'Process in batches' },
-    { type: 'aggregate', name: 'Aggregate', description: 'Aggregate data' },
-    { type: 'spreadsheet', name: 'Spreadsheet File', description: 'Read/write Excel/CSV' },
-    { type: 'jsonParse', name: 'JSON Parse', description: 'Parse JSON' },
-  ],
-  ai: [
-    { type: 'openai', name: 'OpenAI', description: 'GPT models' },
-    { type: 'anthropic', name: 'Claude', description: 'Anthropic Claude' },
-    { type: 'gemini', name: 'Google Gemini', description: 'Google AI' },
-    { type: 'aiTextGeneration', name: 'AI Text Generation', description: 'Generate text with AI' },
-    { type: 'aiSummarize', name: 'AI Summarize', description: 'Summarize content' },
-    { type: 'aiSentiment', name: 'AI Sentiment', description: 'Analyze sentiment' },
-  ],
-  databases: [
-    { type: 'supabase', name: 'Supabase', description: 'Supabase operations' },
-    { type: 'postgres', name: 'PostgreSQL', description: 'PostgreSQL queries' },
-    { type: 'mysql', name: 'MySQL', description: 'MySQL queries' },
-    { type: 'mongodb', name: 'MongoDB', description: 'MongoDB operations' },
-    { type: 'airtable', name: 'Airtable', description: 'Airtable records' },
-    { type: 'notion', name: 'Notion', description: 'Notion pages/databases' },
-    { type: 'googleSheets', name: 'Google Sheets', description: 'Spreadsheet operations' },
-  ],
-  storage: [
-    { type: 'googleDrive', name: 'Google Drive', description: 'File storage' },
-    { type: 's3', name: 'AWS S3', description: 'S3 bucket operations' },
-    { type: 'dropbox', name: 'Dropbox', description: 'Dropbox files' },
-  ],
+// Compact node list for faster AI processing
+const NODE_TYPES = {
+  triggers: ['webhook', 'schedule', 'manual', 'gmailTrigger', 'slackTrigger', 'githubTrigger', 'stripeTrigger', 'supabaseTrigger', 'discordTrigger', 'telegramTrigger', 'airtableTrigger', 'notionTrigger'],
+  actions: ['httpRequest', 'sendEmail', 'gmail', 'slack', 'discord', 'telegram', 'twilio', 'sendgrid'],
+  logic: ['if', 'switch', 'loop', 'merge', 'filter', 'wait', 'errorHandler'],
+  data: ['setVariable', 'function', 'splitInBatches', 'aggregate', 'spreadsheet', 'jsonParse'],
+  ai: ['openai', 'anthropic', 'gemini', 'aiTextGeneration', 'aiSummarize', 'aiSentiment'],
+  databases: ['supabase', 'postgres', 'mysql', 'mongodb', 'airtable', 'notion', 'googleSheets'],
+  storage: ['googleDrive', 's3', 'dropbox'],
 };
 
-const SYSTEM_PROMPT = `You are a workflow automation expert. Your task is to generate workflow configurations based on user descriptions.
+const CATEGORIES = {
+  triggers: 'Triggers',
+  actions: 'Actions', 
+  logic: 'Logic & Flow',
+  data: 'Data Manipulation',
+  ai: 'AI & Machine Learning',
+  databases: 'Databases',
+  storage: 'Storage',
+};
 
-Available node types:
-${JSON.stringify(AVAILABLE_NODES, null, 2)}
+const SYSTEM_PROMPT = `Generate a workflow automation as JSON. Available nodes:
+${Object.entries(NODE_TYPES).map(([cat, types]) => `${cat}: ${types.join(', ')}`).join('\n')}
 
-When generating a workflow:
-1. Start with an appropriate trigger node
-2. Add necessary action/logic/data nodes
-3. Connect nodes logically
-4. Position nodes for readability (x: 100-1200, y: 100-600, horizontal layout)
+Output ONLY valid JSON:
+{"nodes":[{"id":"string","type":"workflowNode","position":{"x":number,"y":number},"data":{"label":"string","type":"nodeType","category":"${Object.values(CATEGORIES).join('|')}","config":{}}}],"edges":[{"id":"string","source":"string","target":"string","animated":true}]}
 
-IMPORTANT: Respond ONLY with valid JSON in this exact format:
-{
-  "nodes": [
-    {
-      "id": "unique-id-1",
-      "type": "workflowNode",
-      "position": { "x": number, "y": number },
-      "data": {
-        "label": "Node Label",
-        "type": "nodeType from available nodes",
-        "category": "Triggers|Actions|Logic & Flow|Data Manipulation|AI & Machine Learning|Databases|Storage",
-        "config": {}
-      }
-    }
-  ],
-  "edges": [
-    {
-      "id": "edge-1",
-      "source": "source-node-id",
-      "target": "target-node-id",
-      "animated": true
-    }
-  ],
-  "description": "Brief description of what this workflow does"
-}
-
-Rules:
-- First node must be a trigger
-- Node IDs should be descriptive like "trigger-webhook-1" or "action-slack-1"
-- Position nodes left to right, trigger at x:100
-- Space nodes 250px apart horizontally
-- For branching, offset y positions by 150px
-- Include appropriate default configs based on the workflow purpose`;
+Rules: Start with trigger. IDs like "trigger-webhook-1". Space 250px apart horizontally. Trigger at x:100,y:200.`;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -135,6 +57,7 @@ serve(async (req) => {
       });
     }
 
+    // Use faster model with lower temperature for consistency
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -142,32 +65,30 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'google/gemini-2.5-flash', // Faster model
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: `Create a workflow for: ${description}` },
+          { role: 'user', content: `Workflow: ${description}` },
         ],
-        max_tokens: 4000,
-        temperature: 0.7,
+        max_tokens: 2000, // Reduced for speed
+        temperature: 0.3, // Lower for consistency
       }),
     });
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }), {
+        return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again.' }), {
           status: 429,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'AI credits exhausted. Please add funds.' }), {
+        return new Response(JSON.stringify({ error: 'AI credits exhausted.' }), {
           status: 402,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
-      throw new Error(`AI gateway error: ${response.status}`);
+      throw new Error(`AI error: ${response.status}`);
     }
 
     const data = await response.json();
@@ -177,47 +98,47 @@ serve(async (req) => {
       throw new Error('No response from AI');
     }
 
-    // Extract JSON from the response (handle potential markdown code blocks)
+    // Extract JSON - handle code blocks
     let jsonStr = content;
     const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (jsonMatch) {
       jsonStr = jsonMatch[1];
     }
 
-    // Parse and validate the workflow
+    // Find JSON object in response
+    const objectMatch = jsonStr.match(/\{[\s\S]*\}/);
+    if (objectMatch) {
+      jsonStr = objectMatch[0];
+    }
+
     let workflow;
     try {
       workflow = JSON.parse(jsonStr.trim());
-    } catch (e) {
-      console.error('Failed to parse AI response:', content);
-      throw new Error('Failed to generate valid workflow. Please try a different description.');
+    } catch {
+      console.error('Parse error:', content.slice(0, 500));
+      throw new Error('Failed to generate workflow. Try a simpler description.');
     }
 
-    // Validate structure
-    if (!workflow.nodes || !Array.isArray(workflow.nodes) || workflow.nodes.length === 0) {
-      throw new Error('Generated workflow has no nodes');
+    if (!workflow.nodes?.length) {
+      throw new Error('No nodes generated');
     }
 
-    if (!workflow.edges || !Array.isArray(workflow.edges)) {
-      workflow.edges = [];
-    }
-
-    // Ensure all nodes have required fields
-    workflow.nodes = workflow.nodes.map((node: any, index: number) => ({
-      id: node.id || `node-${index + 1}`,
+    // Normalize nodes
+    workflow.nodes = workflow.nodes.map((node: any, i: number) => ({
+      id: node.id || `node-${i + 1}`,
       type: 'workflowNode',
-      position: node.position || { x: 100 + index * 250, y: 200 },
+      position: node.position || { x: 100 + i * 250, y: 200 },
       data: {
-        label: node.data?.label || `Node ${index + 1}`,
+        label: node.data?.label || `Node ${i + 1}`,
         type: node.data?.type || 'manual',
         category: node.data?.category || 'Actions',
         config: node.data?.config || {},
       },
     }));
 
-    // Ensure edges have proper structure
-    workflow.edges = workflow.edges.map((edge: any, index: number) => ({
-      id: edge.id || `edge-${index + 1}`,
+    // Normalize edges
+    workflow.edges = (workflow.edges || []).map((edge: any, i: number) => ({
+      id: edge.id || `edge-${i + 1}`,
       source: edge.source,
       target: edge.target,
       animated: true,
@@ -225,19 +146,16 @@ serve(async (req) => {
     }));
 
     return new Response(JSON.stringify({
-      workflow: {
-        nodes: workflow.nodes,
-        edges: workflow.edges,
-      },
-      description: workflow.description || 'AI-generated workflow',
+      workflow: { nodes: workflow.nodes, edges: workflow.edges },
+      description: workflow.description || 'Generated workflow',
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Workflow generation error:', error);
+    console.error('Error:', error);
     return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Failed to generate workflow' 
+      error: error instanceof Error ? error.message : 'Generation failed' 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

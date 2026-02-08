@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -10,86 +10,71 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Sparkles, Loader2, Wand2, Lightbulb } from 'lucide-react';
+import { Sparkles, Loader2, Wand2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useWorkflowStore, WorkflowNode, WorkflowEdge } from '@/stores/workflowStore';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-const EXAMPLE_PROMPTS = [
-  'When a new order is placed in Stripe, send a confirmation email and notify the team in Slack',
-  'Monitor GitHub for new pull requests and post updates to Discord',
-  'Schedule a daily report that fetches data from Supabase and emails it to the team',
-  'When someone fills out a form, save to database and send a welcome email',
-  'Process incoming webhooks, validate the data, and store in PostgreSQL',
-  'When a customer signs up, add them to Mailchimp and send a Slack notification',
+const EXAMPLES = [
+  'Stripe order → email confirmation + Slack notification',
+  'GitHub PR → Discord update',
+  'Daily Supabase report → email team',
+  'Form submission → database + welcome email',
+  'Webhook → validate data → PostgreSQL',
 ];
 
 export function AIWorkflowBuilder() {
   const [open, setOpen] = useState(false);
   const [description, setDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const { setNodes, setEdges, nodes } = useWorkflowStore();
+  const { setNodes, setEdges, nodes, edges } = useWorkflowStore();
 
-  const handleGenerate = async () => {
+  const handleGenerate = useCallback(async () => {
     if (!description.trim()) {
       toast.error('Please describe your workflow');
       return;
     }
 
     setIsGenerating(true);
+    const startTime = Date.now();
 
     try {
       const { data, error } = await supabase.functions.invoke('generate-workflow', {
         body: { description },
       });
 
-      if (error) {
-        console.error('Generation error:', error);
-        throw new Error(error.message || 'Failed to generate workflow');
-      }
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      if (error) throw new Error(error.message || 'Generation failed');
+      if (data.error) throw new Error(data.error);
 
       const generatedNodes: WorkflowNode[] = data.workflow.nodes;
       const generatedEdges: WorkflowEdge[] = data.workflow.edges;
 
-      // If there are existing nodes, offset new nodes to avoid overlap
+      // Offset new nodes if there are existing ones
       if (nodes.length > 0) {
         const maxX = Math.max(...nodes.map(n => n.position.x), 0);
         const offsetX = maxX + 300;
-        
         generatedNodes.forEach(node => {
           node.position.x += offsetX;
         });
-      }
-
-      // Merge with existing or replace
-      if (nodes.length > 0) {
         setNodes([...nodes, ...generatedNodes]);
-        setEdges([...useWorkflowStore.getState().edges, ...generatedEdges]);
-        toast.success('Workflow nodes added to canvas!');
+        setEdges([...edges, ...generatedEdges]);
       } else {
         setNodes(generatedNodes);
         setEdges(generatedEdges);
-        toast.success('Workflow generated successfully!');
       }
 
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      toast.success(`Generated ${generatedNodes.length} nodes in ${elapsed}s`);
       setOpen(false);
       setDescription('');
     } catch (error) {
-      console.error('Error generating workflow:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to generate workflow');
+      console.error('Generation error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to generate');
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  const handleExampleClick = (example: string) => {
-    setDescription(example);
-  };
+  }, [description, nodes, edges, setNodes, setEdges]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -103,59 +88,53 @@ export function AIWorkflowBuilder() {
           <span className="hidden sm:inline">AI Builder</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20">
-              <Sparkles className="h-5 w-5 text-primary" />
-            </div>
+            <Sparkles className="h-5 w-5 text-primary" />
             AI Workflow Builder
           </DialogTitle>
           <DialogDescription>
-            Describe what you want your workflow to do, and AI will create it for you.
+            Describe what you want to automate
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-2">
           <Textarea
-            placeholder="Example: When a new order comes in from Stripe, send a confirmation email to the customer and post a notification to our team's Slack channel..."
+            placeholder="e.g., When someone orders on Stripe, send confirmation email and notify Slack"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="min-h-[120px] resize-none"
+            className="min-h-[100px] resize-none"
             disabled={isGenerating}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.metaKey) {
+                e.preventDefault();
+                handleGenerate();
+              }
+            }}
           />
 
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Lightbulb className="h-4 w-4" />
-              <span>Try these examples:</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {EXAMPLE_PROMPTS.map((prompt, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleExampleClick(prompt)}
-                  disabled={isGenerating}
-                  className={cn(
-                    "text-xs px-3 py-1.5 rounded-full border transition-colors",
-                    "hover:bg-primary/10 hover:border-primary/40 hover:text-primary",
-                    "disabled:opacity-50 disabled:cursor-not-allowed",
-                    description === prompt && "bg-primary/10 border-primary/40 text-primary"
-                  )}
-                >
-                  {prompt.slice(0, 50)}...
-                </button>
-              ))}
-            </div>
+          <div className="flex flex-wrap gap-1.5">
+            {EXAMPLES.map((example, i) => (
+              <button
+                key={i}
+                onClick={() => setDescription(example)}
+                disabled={isGenerating}
+                className={cn(
+                  "text-xs px-2 py-1 rounded-full border transition-colors",
+                  "hover:bg-primary/10 hover:border-primary/40",
+                  "disabled:opacity-50",
+                  description === example && "bg-primary/10 border-primary/40"
+                )}
+              >
+                {example.length > 40 ? example.slice(0, 40) + '...' : example}
+              </button>
+            ))}
           </div>
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => setOpen(false)}
-            disabled={isGenerating}
-          >
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={isGenerating}>
             Cancel
           </Button>
           <Button
@@ -171,7 +150,7 @@ export function AIWorkflowBuilder() {
             ) : (
               <>
                 <Sparkles className="h-4 w-4" />
-                Generate Workflow
+                Generate
               </>
             )}
           </Button>
