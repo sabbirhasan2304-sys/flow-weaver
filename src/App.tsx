@@ -17,6 +17,7 @@ import Admin from "./pages/Admin";
 import Billing from "./pages/Billing";
 import Pricing from "./pages/Pricing";
 import Documentation from "./pages/Documentation";
+import SelectPlan from "./pages/SelectPlan";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,14 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/docs" element={<Documentation />} />
+          <Route
+            path="/select-plan"
+            element={
+              <ProtectedRoute>
+                <SelectPlan />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/dashboard"

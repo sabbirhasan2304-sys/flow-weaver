@@ -73,17 +73,23 @@ export default function Dashboard() {
 
   useEffect(() => {
     // Wait for auth to finish loading before checking user
-    if (authLoading) return;
+    if (authLoading || subscriptionLoading) return;
     
     if (!user) {
       navigate('/auth');
+      return;
+    }
+
+    // Redirect to plan selection if user doesn't have an active subscription (and is not admin)
+    if (!isAdmin && !hasActiveSubscription) {
+      navigate('/select-plan');
       return;
     }
     
     if (activeWorkspace) {
       fetchWorkflows();
     }
-  }, [user, activeWorkspace, navigate, authLoading]);
+  }, [user, activeWorkspace, navigate, authLoading, subscriptionLoading, isAdmin, hasActiveSubscription]);
 
   const fetchWorkflows = async () => {
     if (!activeWorkspace) return;
@@ -368,9 +374,9 @@ export default function Dashboard() {
             </Dialog>
           ) : (
             <Button asChild className="gap-2">
-              <Link to="/billing">
+              <Link to="/select-plan">
                 <Sparkles className="h-4 w-4" />
-                Subscribe to Create Workflows
+                Choose a Plan to Create Workflows
               </Link>
             </Button>
           )}

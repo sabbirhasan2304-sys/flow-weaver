@@ -51,8 +51,8 @@ export default function Auth() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Account created! Welcome to BiztoriBD.');
-      navigate('/dashboard');
+      toast.success('Account created! Choose a plan to get started.');
+      navigate('/select-plan');
     }
     
     setLoading(false);

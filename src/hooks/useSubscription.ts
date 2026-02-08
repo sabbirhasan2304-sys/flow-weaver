@@ -99,17 +99,55 @@ export function useSubscription() {
     // Wait for admin check to complete
     if (adminLoading) return;
 
-    // If admin, set unlimited subscription immediately
-    if (isAdmin) {
-      setSubscription(ADMIN_SUBSCRIPTION);
-      setLoading(false);
-      return;
-    }
-
     if (user) {
+      // Always fetch plans (for plan selection page)
+      fetchPlans();
+      
+      // If admin, set unlimited subscription immediately and skip subscription fetch
+      if (isAdmin) {
+        setSubscription(ADMIN_SUBSCRIPTION);
+        setLoading(false);
+        return;
+      }
+
       fetchSubscriptionData();
     }
   }, [user, isAdmin, adminLoading]);
+
+  const fetchPlans = async () => {
+    try {
+      const { data: plansData, error: plansError } = await supabase
+        .from('plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+      
+      if (plansError) throw plansError;
+      
+      // Transform plans data
+      const transformedPlans: Plan[] = (plansData || []).map((p) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        price_monthly: p.price_monthly,
+        price_yearly: p.price_yearly,
+        currency: p.currency,
+        features: (p.features as Record<string, boolean>) || {},
+        limits: (p.limits as Plan['limits']) || {
+          executions_per_month: 100,
+          workflows_limit: 5,
+          ai_credits: 0,
+          custom_nodes: false,
+          team_members: 1,
+        },
+        is_active: p.is_active,
+        sort_order: p.sort_order,
+      }));
+      setPlans(transformedPlans);
+    } catch (err) {
+      console.error('Failed to fetch plans:', err);
+    }
+  };
 
   const fetchSubscriptionData = async () => {
     try {
