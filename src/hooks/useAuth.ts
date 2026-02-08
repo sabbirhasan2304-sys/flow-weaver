@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 
@@ -24,32 +24,57 @@ export function useAuth() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Track initialization to prevent duplicate fetches
+  const initializedRef = useRef(false);
+  const fetchingRef = useRef(false);
 
-  useEffect(() => {
-    let isMounted = true;
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (data && !error) {
+        setProfile(data);
+      }
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+    }
+  };
 
-    // Listener for ONGOING auth changes (does NOT control isLoading)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!isMounted) return;
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        // Fire and forget - don't await, don't set loading
-        if (session?.user) {
-          fetchProfile(session.user.id);
-          fetchWorkspaces();
-        } else {
-          setProfile(null);
-          setWorkspaces([]);
-          setActiveWorkspace(null);
+  const fetchWorkspaces = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('workspaces')
+        .select('*')
+        .order('created_at', { ascending: true });
+      
+      if (data && !error) {
+        setWorkspaces(data);
+        if (data.length > 0) {
+          setActiveWorkspace((prev) => prev || data[0]);
         }
       }
-    );
+    } catch (err) {
+      console.error('Error fetching workspaces:', err);
+    }
+  };
 
-    // INITIAL load (controls isLoading)
+  useEffect(() => {
+    // Prevent double initialization in strict mode
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
+    let isMounted = true;
+
+    // INITIAL load (controls loading state)
     const initializeAuth = async () => {
+      if (fetchingRef.current) return;
+      fetchingRef.current = true;
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!isMounted) return;
@@ -57,49 +82,60 @@ export function useAuth() {
         setSession(session);
         setUser(session?.user ?? null);
 
-        // Fetch profile BEFORE setting loading false
+        // Fetch profile and workspaces BEFORE setting loading false
         if (session?.user) {
-          await fetchProfile(session.user.id);
-          await fetchWorkspaces();
+          await Promise.all([
+            fetchProfile(session.user.id),
+            fetchWorkspaces()
+          ]);
         }
+      } catch (err) {
+        console.error('Error initializing auth:', err);
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+          fetchingRef.current = false;
+        }
       }
     };
 
     initializeAuth();
+
+    // Listener for ONGOING auth changes (does NOT control loading)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!isMounted) return;
+        
+        // Only update if session actually changed
+        setSession((prevSession) => {
+          if (prevSession?.access_token === session?.access_token) {
+            return prevSession;
+          }
+          return session;
+        });
+        
+        setUser(session?.user ?? null);
+
+        // Handle auth events
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Use setTimeout to avoid blocking the auth callback
+          setTimeout(() => {
+            fetchProfile(session.user.id);
+            fetchWorkspaces();
+          }, 0);
+        } else if (event === 'SIGNED_OUT') {
+          setProfile(null);
+          setWorkspaces([]);
+          setActiveWorkspace(null);
+        }
+      }
+    );
 
     return () => {
       isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
-
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-    
-    if (data && !error) {
-      setProfile(data);
-    }
-  };
-
-  const fetchWorkspaces = async () => {
-    const { data, error } = await supabase
-      .from('workspaces')
-      .select('*')
-      .order('created_at', { ascending: true });
-    
-    if (data && !error) {
-      setWorkspaces(data);
-      if (data.length > 0 && !activeWorkspace) {
-        setActiveWorkspace(data[0]);
-      }
-    }
-  };
 
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
