@@ -260,9 +260,17 @@ export default function Credentials() {
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Add New Credential</DialogTitle>
+                <DialogTitle>
+                  {newCredType 
+                    ? `Connect ${getCredentialTypeConfig(newCredType)?.label || newCredType}` 
+                    : 'Add New Credential'
+                  }
+                </DialogTitle>
                 <DialogDescription>
-                  Securely store API keys and authentication tokens
+                  {newCredType
+                    ? `Enter your ${getCredentialTypeConfig(newCredType)?.label || newCredType} credentials`
+                    : 'Select a service below or choose from the list'
+                  }
                 </DialogDescription>
               </DialogHeader>
               <CredentialForm
@@ -272,9 +280,10 @@ export default function Credentials() {
                 onNameChange={setNewCredName}
                 onTypeChange={(type) => {
                   setNewCredType(type);
-                  setNewCredSettings({}); // Reset settings when type changes
+                  setNewCredSettings({});
                 }}
                 onSettingsChange={setNewCredSettings}
+                showTypeSelector={!newCredType}
               />
               <DialogFooter>
                 <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
@@ -382,31 +391,25 @@ export default function Credentials() {
           </div>
         )}
 
-        {/* Quick Connect Section */}
+        {/* Quick Connect Section - like n8n/Zapier */}
         <div className="mt-12">
-          <h2 className="text-xl font-bold mb-4">Quick Connect</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {[
-              { name: 'Google', type: 'google' },
-              { name: 'Slack', type: 'slack' },
-              { name: 'GitHub', type: 'github' },
-              { name: 'Stripe', type: 'stripe' },
-              { name: 'OpenAI', type: 'openai' },
-              { name: 'AWS', type: 'aws' },
-            ].map((service) => (
+          <h2 className="text-xl font-bold mb-2">Connect a Service</h2>
+          <p className="text-sm text-muted-foreground mb-4">Click on a service to add credentials</p>
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+            {credentialTypeConfigs.map((config) => (
               <Button
-                key={service.name}
+                key={config.value}
                 variant="outline"
-                className="h-auto py-4 flex-col gap-2 hover:border-primary/50 transition-all"
+                className="h-auto py-4 flex-col gap-2 hover:border-primary/50 hover:bg-primary/5 transition-all"
                 onClick={() => {
-                  setNewCredType(service.type);
-                  setNewCredName(`My ${service.name}`);
+                  setNewCredType(config.value);
+                  setNewCredName(`My ${config.label}`);
                   setNewCredSettings({});
                   setCreateDialogOpen(true);
                 }}
               >
-                {getCredentialIcon(service.type, 'md')}
-                <span className="text-xs">{service.name}</span>
+                {getCredentialIcon(config.value, 'md')}
+                <span className="text-xs text-center">{config.label}</span>
               </Button>
             ))}
           </div>
