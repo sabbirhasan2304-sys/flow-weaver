@@ -15,7 +15,7 @@ export const aiNodes: NodeDefinition[] = [
     outputs: [{ name: 'response', type: 'object' }],
     configSchema: [
       { name: 'credential', label: 'OpenAI API Key', type: 'credential', description: 'openai', required: false },
-      { name: 'usePlatformCredentials', label: 'Use Platform Credits', type: 'checkbox', defaultValue: true, description: 'Use Lovable AI credits instead of your own API key' },
+      { name: 'usePlatformCredentials', label: 'Use Platform Credits', type: 'checkbox', defaultValue: true, description: 'Use platform AI credits instead of your own API key' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Chat Completion', value: 'chat' },
         { label: 'Text Completion', value: 'completion' },
@@ -84,7 +84,7 @@ export const aiNodes: NodeDefinition[] = [
     outputs: [{ name: 'response', type: 'object' }],
     configSchema: [
       { name: 'credential', label: 'Google AI API Key', type: 'credential', description: 'googleai', required: false },
-      { name: 'usePlatformCredentials', label: 'Use Platform Credits', type: 'checkbox', defaultValue: true, description: 'Use Lovable AI credits instead of your own API key' },
+      { name: 'usePlatformCredentials', label: 'Use Platform Credits', type: 'checkbox', defaultValue: true, description: 'Use platform AI credits instead of your own API key' },
       { name: 'model', label: 'Model', type: 'select', options: [
         { label: 'Gemini 3 Pro Preview', value: 'google/gemini-3-pro-preview' },
         { label: 'Gemini 3 Flash Preview', value: 'google/gemini-3-flash-preview' },
