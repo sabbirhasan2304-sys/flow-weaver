@@ -18,7 +18,7 @@ import {
   Workflow, Zap, AlertTriangle, ArrowUpRight, ArrowDownRight,
   RefreshCw, Download, Filter, Crown,
   Sparkles, Globe, ChevronRight, CheckCircle2, XCircle, Clock,
-  Database, Server, Cpu, HardDrive, Eye, Mail, Ban, UserCog
+  Database, Server, Cpu, HardDrive, Eye, Mail, UserCog, Cloud
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -38,7 +38,18 @@ interface Stats {
   activeSubscriptions: number;
   totalWorkflows: number;
   executionsToday: number;
+  totalExecutions: number;
   revenue: number;
+  totalAiTokens: number;
+  totalStorage: number;
+}
+
+interface UsageStats {
+  aiTokensUsed: number;
+  executionsCount: number;
+  storageUsed: number;
+  estimatedAiCost: number;
+  estimatedCloudCost: number;
 }
 
 const container = {
@@ -68,7 +79,17 @@ export default function Admin() {
     activeSubscriptions: 0,
     totalWorkflows: 0,
     executionsToday: 0,
+    totalExecutions: 0,
     revenue: 0,
+    totalAiTokens: 0,
+    totalStorage: 0,
+  });
+  const [usageStats, setUsageStats] = useState<UsageStats>({
+    aiTokensUsed: 0,
+    executionsCount: 0,
+    storageUsed: 0,
+    estimatedAiCost: 0,
+    estimatedCloudCost: 0,
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [dataLoading, setDataLoading] = useState(false);
@@ -131,13 +152,59 @@ export default function Admin() {
         .from('executions')
         .select('*', { count: 'exact', head: true })
         .gte('started_at', today.toISOString());
+
+      const { count: totalExecutionsCount } = await supabase
+        .from('executions')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch usage tracking data
+      const { data: usageData } = await supabase
+        .from('usage_tracking')
+        .select('ai_tokens_used, executions_count, storage_bytes_used');
+
+      let totalAiTokens = 0;
+      let totalStorage = 0;
+      let totalExecs = 0;
+
+      if (usageData) {
+        usageData.forEach((u) => {
+          totalAiTokens += u.ai_tokens_used || 0;
+          totalStorage += u.storage_bytes_used || 0;
+          totalExecs += u.executions_count || 0;
+        });
+      }
+
+      // Fetch payment transactions for revenue
+      const { data: paymentsData } = await supabase
+        .from('payment_transactions')
+        .select('amount, status')
+        .eq('status', 'completed');
+
+      const totalRevenue = paymentsData?.reduce((acc, p) => acc + p.amount, 0) || 0;
+
+      // Calculate estimated costs (pricing model)
+      // AI: $0.002 per 1K tokens, Cloud: $0.001 per execution + $0.0001 per MB storage
+      const estimatedAiCost = (totalAiTokens / 1000) * 0.002;
+      const storageMB = totalStorage / (1024 * 1024);
+      const estimatedCloudCost = (totalExecs * 0.001) + (storageMB * 0.0001);
       
       setStats({
         totalUsers: userCount || 0,
         activeSubscriptions: activeSubCount || 0,
         totalWorkflows: workflowCount || 0,
         executionsToday: executionsCount || 0,
-        revenue: 0,
+        totalExecutions: totalExecutionsCount || 0,
+        revenue: totalRevenue,
+        totalAiTokens,
+        totalStorage,
+      });
+
+      setUsageStats({
+        aiTokensUsed: totalAiTokens,
+        executionsCount: totalExecs,
+        storageUsed: totalStorage,
+        estimatedAiCost,
+        estimatedCloudCost,
       });
       
     } catch (error) {
@@ -145,6 +212,20 @@ export default function Admin() {
     } finally {
       setDataLoading(false);
     }
+  };
+
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
   };
 
   const filteredUsers = users.filter(
@@ -263,11 +344,13 @@ export default function Admin() {
     rose: { bg: 'from-rose-500/10 via-rose-500/5 to-transparent', iconBg: 'bg-rose-500/10', icon: 'text-rose-500', border: 'border-rose-500/20' },
   };
 
+  // Calculate actual system stats based on real data
+  const storagePercentage = stats.totalStorage > 0 ? Math.min(100, (stats.totalStorage / (1024 * 1024 * 1024)) * 100) : 0; // Assuming 1GB limit
   const systemStats = [
-    { label: 'API Health', value: 99.9, icon: Server, status: 'healthy' },
-    { label: 'Database Load', value: 45, icon: Database, status: 'normal' },
-    { label: 'CPU Usage', value: 32, icon: Cpu, status: 'low' },
-    { label: 'Storage Used', value: 68, icon: HardDrive, status: 'normal' },
+    { label: 'Total Executions', value: stats.totalExecutions, icon: Zap, displayValue: formatNumber(stats.totalExecutions), isCount: true },
+    { label: 'AI Tokens Used', value: usageStats.aiTokensUsed, icon: Sparkles, displayValue: formatNumber(usageStats.aiTokensUsed), isCount: true },
+    { label: 'Storage Used', value: storagePercentage, icon: HardDrive, displayValue: formatBytes(stats.totalStorage), isCount: false },
+    { label: 'Active Workflows', value: stats.totalWorkflows, icon: Workflow, displayValue: stats.totalWorkflows.toString(), isCount: true },
   ];
 
   return (
@@ -351,25 +434,115 @@ export default function Admin() {
           })}
         </motion.div>
 
-        {/* System Health Bar */}
+        {/* AI & Cloud Usage Cards */}
+        <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* AI Usage Card */}
+          <Card className="border border-violet-500/20 bg-gradient-to-br from-violet-500/10 via-violet-500/5 to-transparent shadow-sm">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-violet-500/10 ring-1 ring-violet-500/20">
+                    <Sparkles className="h-5 w-5 text-violet-500" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">AI Usage (Lovable AI)</CardTitle>
+                    <CardDescription>Token usage and estimated costs</CardDescription>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl bg-background/50 border border-border/50">
+                  <div className="text-2xl font-bold text-violet-600 dark:text-violet-400">
+                    {formatNumber(usageStats.aiTokensUsed)}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Total Tokens Used</div>
+                </div>
+                <div className="p-4 rounded-xl bg-background/50 border border-border/50">
+                  <div className="text-2xl font-bold text-violet-600 dark:text-violet-400">
+                    ${usageStats.estimatedAiCost.toFixed(4)}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Estimated Cost</div>
+                </div>
+              </div>
+              <div className="mt-4 p-3 rounded-lg bg-violet-500/5 border border-violet-500/10">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Rate: $0.002 / 1K tokens</span>
+                  <Badge variant="outline" className="bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20">
+                    Lovable AI
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Cloud Usage Card */}
+          <Card className="border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-cyan-500/5 to-transparent shadow-sm">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-cyan-500/10 ring-1 ring-cyan-500/20">
+                    <Cloud className="h-5 w-5 text-cyan-500" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Cloud Usage</CardTitle>
+                    <CardDescription>Executions, storage, and costs</CardDescription>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="p-3 rounded-xl bg-background/50 border border-border/50">
+                  <div className="text-xl font-bold text-cyan-600 dark:text-cyan-400">
+                    {formatNumber(stats.totalExecutions)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Executions</div>
+                </div>
+                <div className="p-3 rounded-xl bg-background/50 border border-border/50">
+                  <div className="text-xl font-bold text-cyan-600 dark:text-cyan-400">
+                    {formatBytes(stats.totalStorage)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Storage</div>
+                </div>
+                <div className="p-3 rounded-xl bg-background/50 border border-border/50">
+                  <div className="text-xl font-bold text-cyan-600 dark:text-cyan-400">
+                    ${usageStats.estimatedCloudCost.toFixed(4)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Est. Cost</div>
+                </div>
+              </div>
+              <div className="mt-4 p-3 rounded-lg bg-cyan-500/5 border border-cyan-500/10">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Rate: $0.001/exec + $0.0001/MB</span>
+                  <Badge variant="outline" className="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20">
+                    Lovable Cloud
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* System Stats Bar */}
         <motion.div variants={item}>
           <Card className="border-0 shadow-sm bg-gradient-to-r from-card via-card to-primary/5">
             <CardContent className="py-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {systemStats.map((sys) => (
                   <div key={sys.label} className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${sys.value > 80 ? 'bg-rose-500/10' : sys.value > 60 ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}>
-                      <sys.icon className={`h-4 w-4 ${sys.value > 80 ? 'text-rose-500' : sys.value > 60 ? 'text-amber-500' : 'text-emerald-500'}`} />
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <sys.icon className="h-4 w-4 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium truncate">{sys.label}</span>
-                        <span className="text-xs text-muted-foreground">{sys.value}%</span>
+                        <span className="text-xs font-bold text-primary">{sys.displayValue}</span>
                       </div>
-                      <Progress 
-                        value={sys.value} 
-                        className="h-1.5"
-                      />
+                      {!sys.isCount && (
+                        <Progress value={sys.value} className="h-1.5" />
+                      )}
                     </div>
                   </div>
                 ))}
