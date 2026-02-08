@@ -26,42 +26,53 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener BEFORE checking session
+    let isMounted = true;
+
+    // Listener for ONGOING auth changes (does NOT control isLoading)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        if (!isMounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
-        
+
+        // Fire and forget - don't await, don't set loading
         if (session?.user) {
-          // Defer profile fetch to avoid blocking
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-            fetchWorkspaces();
-          }, 0);
+          fetchProfile(session.user.id);
+          fetchWorkspaces();
         } else {
           setProfile(null);
           setWorkspaces([]);
           setActiveWorkspace(null);
         }
-        
-        setLoading(false);
       }
     );
 
-    // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id);
-        fetchWorkspaces();
-      }
-      
-      setLoading(false);
-    });
+    // INITIAL load (controls isLoading)
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!isMounted) return;
 
-    return () => subscription.unsubscribe();
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        // Fetch profile BEFORE setting loading false
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+          await fetchWorkspaces();
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchProfile = async (userId: string) => {
