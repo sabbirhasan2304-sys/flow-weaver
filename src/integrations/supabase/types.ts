@@ -62,6 +62,47 @@ export type Database = {
           },
         ]
       }
+      credit_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          created_at: string
+          description: string | null
+          id: string
+          profile_id: string
+          reference_id: string | null
+          type: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          profile_id: string
+          reference_id?: string | null
+          type: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          profile_id?: string
+          reference_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       executions: {
         Row: {
           created_at: string
@@ -430,6 +471,44 @@ export type Database = {
           },
         ]
       }
+      user_credits: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          profile_id: string
+          total_purchased: number
+          total_used: number
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          profile_id: string
+          total_purchased?: number
+          total_used?: number
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          profile_id?: string
+          total_purchased?: number
+          total_used?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_credits_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -672,9 +751,50 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_credits: {
+        Args: {
+          p_amount: number
+          p_description?: string
+          p_profile_id: string
+          p_type?: string
+        }
+        Returns: {
+          balance: number
+          created_at: string
+          id: string
+          profile_id: string
+          total_purchased: number
+          total_used: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_credits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       can_edit_workflow: {
         Args: { p_profile_id: string; p_workflow_id: string }
         Returns: boolean
+      }
+      deduct_credits: {
+        Args: { p_amount: number; p_description?: string; p_profile_id: string }
+        Returns: {
+          balance: number
+          created_at: string
+          id: string
+          profile_id: string
+          total_purchased: number
+          total_used: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_credits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       get_profile_id: { Args: never; Returns: string }
       get_workspace_role: {

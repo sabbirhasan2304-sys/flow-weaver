@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,6 +31,8 @@ Respond with: BUILD_NOW: [workflow description]
 
 Keep responses under 200 words unless explaining complex logic.`;
 
+const CREDIT_COST_PER_MESSAGE = 0.1; // Cost per AI message
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -44,7 +47,69 @@ serve(async (req) => {
       });
     }
 
-    const { message, context, conversationHistory } = await req.json();
+    // Get authorization header for user identification
+    const authHeader = req.headers.get('authorization');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { message, context, conversationHistory, skipCredits } = await req.json();
+
+    // Check user credits if auth header present and not skipping credits
+    if (authHeader && !skipCredits) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      
+      if (user) {
+        // Get profile ID
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile) {
+          // Check credits balance
+          const { data: credits } = await supabase
+            .from('user_credits')
+            .select('balance')
+            .eq('profile_id', profile.id)
+            .single();
+
+          const balance = credits?.balance ? Number(credits.balance) : 0;
+          
+          if (balance < CREDIT_COST_PER_MESSAGE) {
+            return new Response(JSON.stringify({ 
+              error: 'Insufficient credits',
+              message: 'You need to add credits to use AI features. Visit Billing to purchase credits.',
+              creditsRequired: CREDIT_COST_PER_MESSAGE,
+              currentBalance: balance,
+            }), {
+              status: 402,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+
+          // Deduct credits
+          try {
+            await supabase.rpc('deduct_credits', {
+              p_profile_id: profile.id,
+              p_amount: CREDIT_COST_PER_MESSAGE,
+              p_description: 'AI Assistant message',
+            });
+          } catch (deductError) {
+            console.error('Failed to deduct credits:', deductError);
+            return new Response(JSON.stringify({ 
+              error: 'Failed to process credits',
+              message: 'Unable to deduct credits. Please try again.',
+            }), {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+        }
+      }
+    }
 
     // Build compact context
     let contextInfo = '';
@@ -118,6 +183,7 @@ serve(async (req) => {
       reply: cleanReply,
       workflowSuggestion: suggestionMatch?.[1]?.trim() || null,
       buildNow: buildMatch?.[1]?.trim() || null,
+      creditsUsed: CREDIT_COST_PER_MESSAGE,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
