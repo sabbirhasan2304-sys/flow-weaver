@@ -183,17 +183,23 @@ export function useSubscription() {
       }));
       setPlans(transformedPlans);
 
-      // Fetch user's subscription
+      // Fetch user's subscription (scoped to current user)
+      const { data: profileId, error: profileIdError } = await supabase.rpc('get_profile_id');
+      if (profileIdError) throw profileIdError;
+
       const { data: subData, error: subError } = await supabase
         .from('subscriptions')
-        .select(`
+        .select(
+          `
           *,
           plan:plans(*)
-        `)
-        .single();
-      
-      if (subError && subError.code !== 'PGRST116') throw subError;
-      
+        `
+        )
+        .eq('profile_id', profileId)
+        .maybeSingle();
+
+      if (subError) throw subError;
+
       if (subData) {
         const planData = subData.plan as Record<string, unknown> | null;
         const transformedSub: Subscription = {
@@ -207,40 +213,49 @@ export function useSubscription() {
           current_period_end: subData.current_period_end,
           trial_ends_at: subData.trial_ends_at,
           canceled_at: subData.canceled_at,
-          plan: planData ? {
-            id: planData.id as string,
-            name: planData.name as string,
-            description: planData.description as string | null,
-            price_monthly: planData.price_monthly as number,
-            price_yearly: planData.price_yearly as number,
-            currency: planData.currency as string,
-            features: (planData.features as Record<string, boolean>) || {},
-            limits: (planData.limits as Plan['limits']) || {
-              executions_per_month: 100,
-              workflows_limit: 5,
-              ai_credits: 0,
-              custom_nodes: false,
-              team_members: 1,
-            },
-            is_active: planData.is_active as boolean,
-            sort_order: planData.sort_order as number,
-          } : undefined,
+          plan: planData
+            ? {
+                id: planData.id as string,
+                name: planData.name as string,
+                description: planData.description as string | null,
+                price_monthly: planData.price_monthly as number,
+                price_yearly: planData.price_yearly as number,
+                currency: planData.currency as string,
+                features: (planData.features as Record<string, boolean>) || {},
+                limits: (planData.limits as Plan['limits']) || {
+                  executions_per_month: 100,
+                  workflows_limit: 5,
+                  ai_credits: 0,
+                  custom_nodes: false,
+                  team_members: 1,
+                },
+                is_active: planData.is_active as boolean,
+                sort_order: planData.sort_order as number,
+              }
+            : undefined,
         };
         setSubscription(transformedSub);
+      } else {
+        setSubscription(null);
       }
 
-      // Fetch current usage
+      // Fetch current usage (scoped to current user)
       const now = new Date();
       const periodStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      
-      const { data: usageData } = await supabase
+
+      const { data: usageData, error: usageError } = await supabase
         .from('usage_tracking')
         .select('*')
+        .eq('profile_id', profileId)
         .gte('period_start', periodStart)
-        .single();
-      
+        .maybeSingle();
+
+      if (usageError && usageError.code !== 'PGRST116') throw usageError;
+
       if (usageData) {
         setUsage(usageData as UsageData);
+      } else {
+        setUsage(null);
       }
 
     } catch (err: unknown) {
