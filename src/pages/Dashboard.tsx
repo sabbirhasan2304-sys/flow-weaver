@@ -64,12 +64,12 @@ export default function Dashboard() {
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
 
-  // Check if user has active subscription
-  const hasActiveSubscription = subscription && 
-    (subscription.status === 'active' || subscription.status === 'trial');
+  // Check if user has active subscription (admins bypass)
+  const hasActiveSubscription = isAdmin || (subscription && 
+    (subscription.status === 'active' || subscription.status === 'trial'));
   
-  // Check workflow limits
-  const canCreateWorkflow = hasActiveSubscription && isWithinLimits('workflows', workflows.length);
+  // Check workflow limits (admins bypass)
+  const canCreateWorkflow = isAdmin || (hasActiveSubscription && isWithinLimits('workflows', workflows.length));
 
   useEffect(() => {
     // Wait for auth to finish loading before checking user
