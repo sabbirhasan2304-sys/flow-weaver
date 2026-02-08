@@ -121,6 +121,24 @@ const defaultGateways: GatewayConfig[] = [
     ],
     docs: 'https://stripe.com/docs',
   },
+  {
+    id: 'paystation',
+    name: 'PayStation',
+    description: 'Comprehensive payment gateway for Bangladesh',
+    logo: 'https://www.paystation.com.bd/assets/images/logo.png',
+    color: 'from-teal-500/15 to-teal-500/5',
+    borderColor: 'border-teal-500/30',
+    enabled: false,
+    configured: false,
+    testMode: true,
+    fields: [
+      { name: 'merchant_id', label: 'Merchant ID', type: 'text', placeholder: 'Enter PayStation Merchant ID', required: true, value: '' },
+      { name: 'api_key', label: 'API Key', type: 'password', placeholder: 'Enter PayStation API Key', required: true, value: '' },
+      { name: 'api_secret', label: 'API Secret', type: 'password', placeholder: 'Enter PayStation API Secret', required: true, value: '' },
+      { name: 'ipn_secret', label: 'IPN Secret', type: 'password', placeholder: 'Enter IPN Verification Secret', required: false, value: '' },
+    ],
+    docs: 'https://www.paystation.com.bd/documentation',
+  },
 ];
 
 export function PaymentGatewaySettings() {
