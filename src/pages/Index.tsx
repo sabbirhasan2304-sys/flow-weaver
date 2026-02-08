@@ -2,10 +2,13 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
   Zap, ArrowRight, Play, Users, Shield, 
-  Workflow, Bot, Database, Globe, CheckCircle2 
+  Workflow, Bot, Database, Globe, CheckCircle2,
+  LayoutDashboard, Settings
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 
 const features = [
   {
@@ -48,6 +51,9 @@ const stats = [
 ];
 
 export default function Index() {
+  const { user, loading } = useAuth();
+  const { isAdmin } = useAdmin();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -74,15 +80,38 @@ export default function Index() {
           
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Button variant="ghost" asChild>
-              <Link to="/auth">Sign In</Link>
-            </Button>
-            <Button asChild className="shadow-lg shadow-primary/25">
-              <Link to="/auth">
-                Get Started
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Link>
-            </Button>
+            {loading ? (
+              <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            ) : user ? (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/dashboard">
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </Link>
+                </Button>
+                {isAdmin && (
+                  <Button variant="outline" asChild>
+                    <Link to="/admin">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Admin
+                    </Link>
+                  </Button>
+                )}
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/auth">Sign In</Link>
+                </Button>
+                <Button asChild className="shadow-lg shadow-primary/25">
+                  <Link to="/auth">
+                    Get Started
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
