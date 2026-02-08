@@ -277,14 +277,32 @@ export function NodeConfigPanel() {
         );
         
       case 'credential':
+        // Auto-detect credential type from the field's description (set in node definitions)
+        const credentialType = field.description || '';
+        const filteredCredentials = credentialType 
+          ? credentials.filter(c => c.type === credentialType)
+          : credentials;
         const selectedCred = credentials.find(c => c.id === value);
+        const typeConfig = getCredentialTypeConfig(credentialType);
+        
         return (
           <div className="space-y-2">
+            {credentialType && typeConfig && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Key className="h-3 w-3" />
+                {typeConfig.label} credentials
+              </p>
+            )}
             <Select
               value={String(value) || undefined}
               onValueChange={(v) => {
                 if (v === '__add_new__') {
                   setAddingCredentialForField(field.name);
+                  // Auto-set the credential type based on the node's requirement
+                  if (credentialType) {
+                    setNewCredType(credentialType);
+                    setNewCredName(`My ${typeConfig?.label || credentialType}`);
+                  }
                   setShowAddCredential(true);
                 } else {
                   handleConfigChange(field.name, v);
@@ -293,20 +311,19 @@ export function NodeConfigPanel() {
               disabled={credentialsLoading}
             >
               <SelectTrigger>
-                <SelectValue placeholder={credentialsLoading ? "Loading..." : "Select credential"} />
+                <SelectValue placeholder={credentialsLoading ? "Loading..." : `Select ${typeConfig?.label || 'credential'}`} />
               </SelectTrigger>
               <SelectContent>
-                {credentials.length === 0 && !credentialsLoading && (
+                {filteredCredentials.length === 0 && !credentialsLoading && (
                   <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                    No credentials yet
+                    No {typeConfig?.label || ''} credentials yet
                   </div>
                 )}
-                {credentials.map((cred) => (
+                {filteredCredentials.map((cred) => (
                   <SelectItem key={cred.id} value={cred.id}>
                     <div className="flex items-center gap-2">
                       <Key className="h-3 w-3" />
                       <span>{cred.name}</span>
-                      <span className="text-xs text-muted-foreground">({cred.type})</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -314,27 +331,16 @@ export function NodeConfigPanel() {
                 <SelectItem value="__add_new__">
                   <div className="flex items-center gap-2 text-primary">
                     <Plus className="h-3 w-3" />
-                    <span>Add new credential</span>
+                    <span>Create new {typeConfig?.label || 'credential'}</span>
                   </div>
                 </SelectItem>
               </SelectContent>
             </Select>
             {selectedCred && (
               <p className="text-xs text-muted-foreground">
-                Using: {selectedCred.name} ({selectedCred.type})
+                Connected: {selectedCred.name}
               </p>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-xs"
-              asChild
-            >
-              <Link to="/credentials">
-                <ExternalLink className="h-3 w-3 mr-1" />
-                Manage all credentials
-              </Link>
-            </Button>
           </div>
         );
         
@@ -469,7 +475,7 @@ export function NodeConfigPanel() {
         </Button>
       </div>
       
-      {/* Add Credential Dialog */}
+      {/* Add Credential Dialog - Type is auto-detected from node */}
       <Dialog open={showAddCredential} onOpenChange={(open) => {
         setShowAddCredential(open);
         if (!open) {
@@ -481,9 +487,14 @@ export function NodeConfigPanel() {
       }}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Credential</DialogTitle>
+            <DialogTitle>
+              {newCredType ? `Connect ${getCredentialTypeConfig(newCredType)?.label || newCredType}` : 'Add Credential'}
+            </DialogTitle>
             <DialogDescription>
-              Create a credential to connect this node to external services
+              {newCredType 
+                ? `Enter your ${getCredentialTypeConfig(newCredType)?.label || newCredType} credentials to connect this node`
+                : 'Create a credential to connect this node to external services'
+              }
             </DialogDescription>
           </DialogHeader>
           <CredentialForm
@@ -493,9 +504,10 @@ export function NodeConfigPanel() {
             onNameChange={setNewCredName}
             onTypeChange={(type) => {
               setNewCredType(type);
-              setNewCredSettings({}); // Reset settings when type changes
+              setNewCredSettings({});
             }}
             onSettingsChange={setNewCredSettings}
+            showTypeSelector={!newCredType} // Hide type selector when auto-detected
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddCredential(false)}>
