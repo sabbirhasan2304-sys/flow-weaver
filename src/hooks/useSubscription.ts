@@ -1,6 +1,49 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useAdmin } from './useAdmin';
+
+// Admin gets unlimited premium plan
+const ADMIN_PLAN: Plan = {
+  id: 'admin-unlimited',
+  name: 'Admin Unlimited',
+  description: 'Unlimited access for administrators',
+  price_monthly: 0,
+  price_yearly: 0,
+  currency: 'BDT',
+  features: {
+    ai_assistant: true,
+    custom_nodes: true,
+    priority_support: true,
+    team_collaboration: true,
+    advanced_analytics: true,
+    api_access: true,
+    white_label: true,
+  },
+  limits: {
+    executions_per_month: -1, // Unlimited
+    workflows_limit: -1, // Unlimited
+    ai_credits: -1, // Unlimited
+    custom_nodes: true,
+    team_members: -1, // Unlimited
+  },
+  is_active: true,
+  sort_order: 0,
+};
+
+const ADMIN_SUBSCRIPTION: Subscription = {
+  id: 'admin-subscription',
+  profile_id: 'admin',
+  plan_id: 'admin-unlimited',
+  status: 'active',
+  payment_gateway: null,
+  billing_cycle: 'lifetime',
+  current_period_start: new Date().toISOString(),
+  current_period_end: new Date(2099, 11, 31).toISOString(),
+  trial_ends_at: null,
+  canceled_at: null,
+  plan: ADMIN_PLAN,
+};
 
 export interface Plan {
   id: string;
@@ -45,6 +88,7 @@ export interface UsageData {
 
 export function useSubscription() {
   const { user } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [usage, setUsage] = useState<UsageData | null>(null);
@@ -52,10 +96,20 @@ export function useSubscription() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Wait for admin check to complete
+    if (adminLoading) return;
+
+    // If admin, set unlimited subscription immediately
+    if (isAdmin) {
+      setSubscription(ADMIN_SUBSCRIPTION);
+      setLoading(false);
+      return;
+    }
+
     if (user) {
       fetchSubscriptionData();
     }
-  }, [user]);
+  }, [user, isAdmin, adminLoading]);
 
   const fetchSubscriptionData = async () => {
     try {
@@ -188,11 +242,15 @@ export function useSubscription() {
   };
 
   const canUseFeature = (feature: string): boolean => {
+    // Admins can use all features
+    if (isAdmin) return true;
     if (!subscription?.plan) return false;
     return subscription.plan.features[feature] === true;
   };
 
   const isWithinLimits = (type: 'executions' | 'workflows' | 'team_members', currentCount: number): boolean => {
+    // Admins have no limits
+    if (isAdmin) return true;
     if (!subscription?.plan) return false;
     const limits = subscription.plan.limits;
     

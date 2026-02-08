@@ -1,6 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useAdmin } from './useAdmin';
+
+// Admin gets unlimited credits
+const ADMIN_CREDITS: UserCredits = {
+  id: 'admin-credits',
+  profile_id: 'admin',
+  balance: Infinity,
+  total_purchased: 0,
+  total_used: 0,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
 
 export interface UserCredits {
   id: string;
@@ -40,12 +52,25 @@ export const AI_CREDIT_COSTS = {
 
 export function useCredits() {
   const { profile } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
   const [credits, setCredits] = useState<UserCredits | null>(null);
   const [transactions, setTransactions] = useState<CreditTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Admins get unlimited credits
+  useEffect(() => {
+    if (adminLoading) return;
+    if (isAdmin) {
+      setCredits(ADMIN_CREDITS);
+      setLoading(false);
+    }
+  }, [isAdmin, adminLoading]);
+
   const fetchCredits = useCallback(async () => {
+    // Skip fetching for admins - they have unlimited
+    if (isAdmin) return;
+    
     if (!profile?.id) {
       setLoading(false);
       return;
@@ -100,15 +125,19 @@ export function useCredits() {
     } finally {
       setLoading(false);
     }
-  }, [profile?.id]);
+  }, [profile?.id, isAdmin]);
 
   useEffect(() => {
-    fetchCredits();
-  }, [fetchCredits]);
+    if (!isAdmin) {
+      fetchCredits();
+    }
+  }, [fetchCredits, isAdmin]);
 
   const hasEnoughCredits = useCallback((amount: number): boolean => {
+    // Admins always have enough credits
+    if (isAdmin) return true;
     return (credits?.balance || 0) >= amount;
-  }, [credits?.balance]);
+  }, [credits?.balance, isAdmin]);
 
   const addCredits = useCallback(async (amount: number, description?: string): Promise<boolean> => {
     if (!profile?.id) return false;
@@ -132,6 +161,9 @@ export function useCredits() {
   }, [profile?.id, fetchCredits]);
 
   const deductCredits = useCallback(async (amount: number, description?: string): Promise<boolean> => {
+    // Admins don't get credits deducted
+    if (isAdmin) return true;
+    
     if (!profile?.id) return false;
     if (!hasEnoughCredits(amount)) return false;
 
@@ -150,7 +182,7 @@ export function useCredits() {
       console.error('Failed to deduct credits:', err);
       return false;
     }
-  }, [profile?.id, hasEnoughCredits, fetchCredits]);
+  }, [profile?.id, hasEnoughCredits, fetchCredits, isAdmin]);
 
   return {
     credits,
