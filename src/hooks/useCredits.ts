@@ -22,12 +22,12 @@ export interface CreditTransaction {
   created_at: string;
 }
 
-// Credit packages available for purchase (priced above Lovable AI costs, below direct API pricing)
+// Credit packages available for purchase (BDT pricing)
 export const CREDIT_PACKAGES = [
-  { id: 'starter', name: 'Starter', credits: 10, price: 12, currency: 'USD', popular: false },
-  { id: 'basic', name: 'Basic', credits: 50, price: 45, currency: 'USD', popular: false },
-  { id: 'pro', name: 'Pro', credits: 150, price: 120, currency: 'USD', popular: true },
-  { id: 'enterprise', name: 'Enterprise', credits: 500, price: 350, currency: 'USD', popular: false },
+  { id: 'starter', name: 'Starter', credits: 10, price: 1200, currency: 'BDT', popular: false },
+  { id: 'basic', name: 'Basic', credits: 50, price: 4500, currency: 'BDT', popular: false },
+  { id: 'pro', name: 'Pro', credits: 150, price: 12000, currency: 'BDT', popular: true },
+  { id: 'enterprise', name: 'Enterprise', credits: 500, price: 35000, currency: 'BDT', popular: false },
 ];
 
 // Cost per AI operation (in credits) - balanced for value

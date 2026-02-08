@@ -19,10 +19,10 @@ import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
-// AI pricing per 1K tokens
-const AI_PRICE_PER_1K_TOKENS = 0.002; // $0.002 per 1K tokens
-const EXECUTION_PRICE = 0.001; // $0.001 per execution
-const STORAGE_PRICE_PER_MB = 0.0001; // $0.0001 per MB
+// AI pricing per 1K tokens (in BDT)
+const AI_PRICE_PER_1K_TOKENS = 0.25; // ৳0.25 per 1K tokens
+const EXECUTION_PRICE = 0.12; // ৳0.12 per execution
+const STORAGE_PRICE_PER_MB = 0.012; // ৳0.012 per MB
 
 interface UsageBilling {
   aiTokensUsed: number;
@@ -262,11 +262,11 @@ export default function Billing() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="text-3xl font-bold">
-                    ${pkg.price}
-                    <span className="text-sm font-normal text-muted-foreground ml-1">USD</span>
+                    ৳{pkg.price.toLocaleString()}
+                    <span className="text-sm font-normal text-muted-foreground ml-1">BDT</span>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    ${(pkg.price / pkg.credits).toFixed(2)} per credit
+                    ৳{(pkg.price / pkg.credits).toFixed(0)} per credit
                   </div>
                   <ul className="text-sm space-y-1">
                     <li className="flex items-center gap-2">
@@ -351,12 +351,12 @@ export default function Billing() {
                     <div className="text-xs text-muted-foreground">tokens used</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xl font-semibold">${usageBilling.aiCost.toFixed(4)}</div>
+                    <div className="text-xl font-semibold">৳{usageBilling.aiCost.toFixed(2)}</div>
                     <div className="text-xs text-muted-foreground">cost</div>
                   </div>
                 </div>
                 <div className="p-2 rounded-lg bg-violet-500/5 border border-violet-500/10">
-                  <div className="text-xs text-muted-foreground">Rate: ${AI_PRICE_PER_1K_TOKENS} / 1K tokens</div>
+                  <div className="text-xs text-muted-foreground">Rate: ৳{AI_PRICE_PER_1K_TOKENS} / 1K tokens</div>
                 </div>
               </div>
             </CardContent>
@@ -385,12 +385,12 @@ export default function Billing() {
                     <div className="text-xs text-muted-foreground">executions</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xl font-semibold">${usageBilling.executionsCost.toFixed(4)}</div>
+                    <div className="text-xl font-semibold">৳{usageBilling.executionsCost.toFixed(2)}</div>
                     <div className="text-xs text-muted-foreground">cost</div>
                   </div>
                 </div>
                 <div className="p-2 rounded-lg bg-cyan-500/5 border border-cyan-500/10">
-                  <div className="text-xs text-muted-foreground">Rate: ${EXECUTION_PRICE} / execution</div>
+                  <div className="text-xs text-muted-foreground">Rate: ৳{EXECUTION_PRICE} / execution</div>
                 </div>
               </div>
             </CardContent>
@@ -419,12 +419,12 @@ export default function Billing() {
                     <div className="text-xs text-muted-foreground">used</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xl font-semibold">${usageBilling.storageCost.toFixed(4)}</div>
+                    <div className="text-xl font-semibold">৳{usageBilling.storageCost.toFixed(2)}</div>
                     <div className="text-xs text-muted-foreground">cost</div>
                   </div>
                 </div>
                 <div className="p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
-                  <div className="text-xs text-muted-foreground">Rate: ${STORAGE_PRICE_PER_MB} / MB</div>
+                  <div className="text-xs text-muted-foreground">Rate: ৳{STORAGE_PRICE_PER_MB} / MB</div>
                 </div>
               </div>
             </CardContent>
@@ -450,7 +450,7 @@ export default function Billing() {
                   </div>
                 </div>
                 <div className="text-center md:text-right">
-                  <div className="text-4xl font-bold text-primary">${usageBilling.totalCost.toFixed(2)}</div>
+                  <div className="text-4xl font-bold text-primary">৳{usageBilling.totalCost.toFixed(2)}</div>
                   <p className="text-sm text-muted-foreground">This billing period</p>
                 </div>
                 <Button size="lg" className="gap-2">
@@ -464,15 +464,15 @@ export default function Billing() {
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
                     <span className="text-muted-foreground">AI Tokens</span>
-                    <span className="font-medium">${usageBilling.aiCost.toFixed(4)}</span>
+                    <span className="font-medium">৳{usageBilling.aiCost.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
                     <span className="text-muted-foreground">Executions</span>
-                    <span className="font-medium">${usageBilling.executionsCost.toFixed(4)}</span>
+                    <span className="font-medium">৳{usageBilling.executionsCost.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
                     <span className="text-muted-foreground">Storage</span>
-                    <span className="font-medium">${usageBilling.storageCost.toFixed(4)}</span>
+                    <span className="font-medium">৳{usageBilling.storageCost.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
