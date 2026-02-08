@@ -6,6 +6,7 @@ import { AIAssistant } from './AIAssistant';
 import { AIWorkflowBuilder } from './AIWorkflowBuilder';
 import { ExecutionPanel } from './ExecutionPanel';
 import { WorkflowImportExport } from './WorkflowImportExport';
+import { ApiTestPanel } from './ApiTestPanel';
 import { useWorkflowStore } from '@/stores/workflowStore';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import {
@@ -36,6 +37,7 @@ export function WorkflowEditor({ workflowId, workflowName, onSave }: WorkflowEdi
           <AIWorkflowBuilder />
           <WorkflowImportExport workflowName={workflowName} />
           {workflowId && <ExecutionPanel workflowId={workflowId} />}
+          <ApiTestPanel />
           <div className="h-8 w-px bg-border" />
           <ThemeToggle />
         </div>

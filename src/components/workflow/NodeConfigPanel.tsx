@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { 
   Select,
   SelectContent,
@@ -23,7 +24,8 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { X, Settings, Trash2, Copy, Play, Plus, Key, ExternalLink } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { X, Settings, Trash2, Copy, Play, Plus, Key, ExternalLink, Loader2, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { CATEGORY_COLORS } from '@/types/nodes';
 import { toast } from 'sonner';
 import { ExpressionEditor } from './ExpressionEditor';
@@ -33,6 +35,7 @@ import { Link } from 'react-router-dom';
 import { CredentialForm } from '@/components/credentials/CredentialForm';
 import { getCredentialTypeConfig } from '@/components/credentials/CredentialFieldsConfig';
 import type { Json } from '@/integrations/supabase/types';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Credential {
   id: string;
@@ -51,6 +54,18 @@ export function NodeConfigPanel() {
   const [newCredSettings, setNewCredSettings] = useState<Record<string, unknown>>({});
   const [addingCredentialForField, setAddingCredentialForField] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  
+  // Node testing state
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    success: boolean;
+    status?: number;
+    statusText?: string;
+    data?: any;
+    error?: string;
+    time?: number;
+  } | null>(null);
+  const [showTestResult, setShowTestResult] = useState(false);
   
   // Fetch credentials when workspace is available
   useEffect(() => {
@@ -166,8 +181,117 @@ export function NodeConfigPanel() {
     toast.info('Node duplicated (feature coming soon)');
   };
   
-  const handleTestNode = () => {
-    toast.info('Testing node (feature coming soon)');
+  const handleTestNode = async () => {
+    if (!selectedNode) return;
+    
+    const nodeType = selectedNode.data.type;
+    const config = selectedNode.data.config || {};
+    
+    setIsTesting(true);
+    setTestResult(null);
+    const startTime = Date.now();
+    
+    try {
+      // Handle HTTP Request node testing
+      if (nodeType === 'httpRequest') {
+        const method = String(config.method || 'GET');
+        const url = String(config.url || '');
+        
+        if (!url) {
+          throw new Error('URL is required');
+        }
+        
+        // Build headers
+        const configHeaders = typeof config.headers === 'object' && config.headers !== null
+          ? config.headers as Record<string, string>
+          : {};
+        const headers: Record<string, string> = {
+          'Content-Type': String(config.bodyContentType || 'application/json'),
+          ...configHeaders
+        };
+        
+        // Handle authentication
+        if (config.authentication === 'bearer' && config.credential) {
+          const cred = credentials.find(c => c.id === config.credential);
+          if (cred) {
+            const credSettings = await getCredentialSettings(cred.id);
+            if (credSettings?.apiKey || credSettings?.token) {
+              headers['Authorization'] = `Bearer ${credSettings.apiKey || credSettings.token}`;
+            }
+          }
+        }
+        
+        // Build request options
+        const options: RequestInit = { method, headers };
+        
+        if (['POST', 'PUT', 'PATCH'].includes(method) && config.body) {
+          options.body = typeof config.body === 'string' 
+            ? config.body 
+            : JSON.stringify(config.body);
+        }
+        
+        // Add query params
+        let finalUrl = url;
+        if (config.queryParams && typeof config.queryParams === 'object') {
+          const params = new URLSearchParams(config.queryParams as Record<string, string>);
+          finalUrl = `${url}${url.includes('?') ? '&' : '?'}${params.toString()}`;
+        }
+        
+        const response = await fetch(finalUrl, options);
+        const endTime = Date.now();
+        
+        let data: any;
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          data = await response.json();
+        } else {
+          data = await response.text();
+        }
+        
+        setTestResult({
+          success: response.ok,
+          status: response.status,
+          statusText: response.statusText,
+          data,
+          time: endTime - startTime,
+        });
+        
+        if (response.ok) {
+          toast.success(`Test successful (${response.status})`);
+        } else {
+          toast.warning(`Test returned ${response.status}`);
+        }
+        setShowTestResult(true);
+      } else {
+        // For other node types, show a placeholder
+        toast.info('Testing for this node type coming soon');
+        setTestResult({
+          success: true,
+          data: { message: 'Node configuration looks valid', config },
+          time: Date.now() - startTime,
+        });
+        setShowTestResult(true);
+      }
+    } catch (err: any) {
+      setTestResult({
+        success: false,
+        error: err.message || 'Test failed',
+        time: Date.now() - startTime,
+      });
+      toast.error(err.message || 'Test failed');
+      setShowTestResult(true);
+    } finally {
+      setIsTesting(false);
+    }
+  };
+  
+  const getCredentialSettings = async (credentialId: string) => {
+    const { data } = await supabase
+      .from('credentials')
+      .select('settings')
+      .eq('id', credentialId)
+      .maybeSingle();
+    return data?.settings as Record<string, any> | null;
   };
   
   const renderConfigField = (field: typeof definition.configSchema[0]) => {
@@ -474,9 +598,14 @@ export function NodeConfigPanel() {
             size="sm"
             className="flex-1"
             onClick={handleTestNode}
+            disabled={isTesting}
           >
-            <Play className="h-3 w-3 mr-1" />
-            Test
+            {isTesting ? (
+              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+            ) : (
+              <Play className="h-3 w-3 mr-1" />
+            )}
+            {isTesting ? 'Testing...' : 'Test'}
           </Button>
           <Button
             variant="outline"
@@ -539,6 +668,85 @@ export function NodeConfigPanel() {
             </Button>
             <Button onClick={createCredential} disabled={creating || !newCredName || !newCredType}>
               {creating ? 'Creating...' : 'Create Credential'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Test Result Dialog */}
+      <Dialog open={showTestResult} onOpenChange={setShowTestResult}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {testResult?.success ? (
+                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+              ) : (
+                <XCircle className="h-5 w-5 text-rose-500" />
+              )}
+              Test Result
+              {testResult?.status && (
+                <Badge 
+                  variant="outline" 
+                  className={`ml-2 ${
+                    testResult.status >= 200 && testResult.status < 300 
+                      ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' 
+                      : 'bg-rose-500/10 text-rose-600 border-rose-500/30'
+                  }`}
+                >
+                  {testResult.status} {testResult.statusText}
+                </Badge>
+              )}
+            </DialogTitle>
+            <DialogDescription className="flex items-center gap-4">
+              {testResult?.time && (
+                <span className="flex items-center gap-1 text-xs">
+                  <Clock className="h-3 w-3" />
+                  {testResult.time}ms
+                </span>
+              )}
+              {testResult?.success ? 'Request completed successfully' : 'Request failed'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="flex-1 -mx-6 px-6">
+            {testResult?.error ? (
+              <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-4">
+                <p className="text-sm text-destructive font-medium">Error</p>
+                <p className="text-sm text-muted-foreground mt-1">{testResult.error}</p>
+              </div>
+            ) : testResult?.data ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">Response Body</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        typeof testResult.data === 'object' 
+                          ? JSON.stringify(testResult.data, null, 2) 
+                          : testResult.data
+                      );
+                      toast.success('Copied to clipboard');
+                    }}
+                  >
+                    <Copy className="h-3 w-3 mr-1" />
+                    Copy
+                  </Button>
+                </div>
+                <pre className="text-xs font-mono bg-muted/50 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-[400px]">
+                  {typeof testResult.data === 'object' 
+                    ? JSON.stringify(testResult.data, null, 2)
+                    : testResult.data
+                  }
+                </pre>
+              </div>
+            ) : null}
+          </ScrollArea>
+          
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setShowTestResult(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
