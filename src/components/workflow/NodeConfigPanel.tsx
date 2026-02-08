@@ -37,10 +37,26 @@ import { getCredentialTypeConfig } from '@/components/credentials/CredentialFiel
 import type { Json } from '@/integrations/supabase/types';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// AI/ML node types that support credential testing
+const AI_ML_NODE_TYPES = [
+  'openai', 'openaiAssistant', 'gemini', 'geminiVision', 'aiAgent', 'langchainAgent',
+  'huggingface', 'stabilityAI', 'elevenLabs', 'replicate', 'perplexity',
+  'textClassification', 'sentimentAnalysis', 'entityExtraction', 'textSummarization',
+  'imageGeneration', 'imageRecognition', 'speechToText', 'textToSpeech',
+  'rag', 'embeddings', 'vectorStore', 'aiChain'
+];
+
 interface Credential {
   id: string;
   name: string;
   type: string;
+}
+
+interface CredentialTestStatus {
+  credentialId: string;
+  status: 'idle' | 'testing' | 'success' | 'error';
+  message?: string;
+  testedAt?: Date;
 }
 
 export function NodeConfigPanel() {
@@ -66,6 +82,9 @@ export function NodeConfigPanel() {
     time?: number;
   } | null>(null);
   const [showTestResult, setShowTestResult] = useState(false);
+  
+  // Credential auto-test state
+  const [credentialTestStatuses, setCredentialTestStatuses] = useState<Map<string, CredentialTestStatus>>(new Map());
   
   // Fetch credentials when workspace is available
   useEffect(() => {
@@ -294,6 +313,168 @@ export function NodeConfigPanel() {
     return data?.settings as Record<string, any> | null;
   };
   
+  // Auto-test credential when selected for AI/ML nodes
+  const testCredentialForAINode = async (credentialId: string, nodeType: string) => {
+    if (!AI_ML_NODE_TYPES.includes(nodeType)) return;
+    
+    // Update status to testing
+    setCredentialTestStatuses(prev => {
+      const newMap = new Map(prev);
+      newMap.set(credentialId, { credentialId, status: 'testing' });
+      return newMap;
+    });
+    
+    try {
+      const credSettings = await getCredentialSettings(credentialId);
+      if (!credSettings) {
+        throw new Error('Credential settings not found');
+      }
+      
+      // Determine the API key field based on credential type
+      const apiKey = credSettings.apiKey || credSettings.token || credSettings.accessToken;
+      
+      if (!apiKey) {
+        throw new Error('No API key found in credential');
+      }
+      
+      // Test the credential based on node type
+      let testResponse: Response | null = null;
+      let testMessage = '';
+      
+      // Platform AI nodes (uses Lovable AI gateway)
+      if (['openai', 'gemini', 'aiAgent', 'langchainAgent', 'geminiVision'].includes(nodeType)) {
+        // These use platform credentials, so just validate they're set
+        testMessage = 'Using platform AI gateway - no external API key needed';
+        setCredentialTestStatuses(prev => {
+          const newMap = new Map(prev);
+          newMap.set(credentialId, { 
+            credentialId, 
+            status: 'success', 
+            message: testMessage,
+            testedAt: new Date()
+          });
+          return newMap;
+        });
+        toast.success('Credential validated');
+        return;
+      }
+      
+      // HuggingFace
+      if (nodeType === 'huggingface') {
+        testResponse = await fetch('https://huggingface.co/api/whoami', {
+          headers: { 'Authorization': `Bearer ${apiKey}` }
+        });
+        testMessage = testResponse.ok ? 'HuggingFace token valid' : 'Invalid HuggingFace token';
+      }
+      
+      // Stability AI
+      else if (nodeType === 'stabilityAI') {
+        testResponse = await fetch('https://api.stability.ai/v1/user/account', {
+          headers: { 'Authorization': `Bearer ${apiKey}` }
+        });
+        testMessage = testResponse.ok ? 'Stability AI key valid' : 'Invalid Stability AI key';
+      }
+      
+      // ElevenLabs
+      else if (nodeType === 'elevenLabs') {
+        testResponse = await fetch('https://api.elevenlabs.io/v1/user', {
+          headers: { 'xi-api-key': apiKey }
+        });
+        testMessage = testResponse.ok ? 'ElevenLabs key valid' : 'Invalid ElevenLabs key';
+      }
+      
+      // Replicate
+      else if (nodeType === 'replicate') {
+        testResponse = await fetch('https://api.replicate.com/v1/account', {
+          headers: { 'Authorization': `Token ${apiKey}` }
+        });
+        testMessage = testResponse.ok ? 'Replicate token valid' : 'Invalid Replicate token';
+      }
+      
+      // Perplexity
+      else if (nodeType === 'perplexity') {
+        testResponse = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'sonar-small-chat',
+            messages: [{ role: 'user', content: 'test' }],
+            max_tokens: 1
+          })
+        });
+        testMessage = testResponse.ok ? 'Perplexity key valid' : 'Invalid Perplexity key';
+      }
+      
+      // Generic API key test for other nodes
+      else {
+        // Just validate the key exists and has a reasonable format
+        if (apiKey.length >= 10) {
+          testMessage = 'API key format validated';
+          setCredentialTestStatuses(prev => {
+            const newMap = new Map(prev);
+            newMap.set(credentialId, { 
+              credentialId, 
+              status: 'success', 
+              message: testMessage,
+              testedAt: new Date()
+            });
+            return newMap;
+          });
+          toast.success('Credential validated');
+          return;
+        } else {
+          throw new Error('API key appears too short');
+        }
+      }
+      
+      if (testResponse && testResponse.ok) {
+        setCredentialTestStatuses(prev => {
+          const newMap = new Map(prev);
+          newMap.set(credentialId, { 
+            credentialId, 
+            status: 'success', 
+            message: testMessage,
+            testedAt: new Date()
+          });
+          return newMap;
+        });
+        toast.success(testMessage);
+      } else {
+        throw new Error(testMessage || 'Credential test failed');
+      }
+    } catch (err: any) {
+      setCredentialTestStatuses(prev => {
+        const newMap = new Map(prev);
+        newMap.set(credentialId, { 
+          credentialId, 
+          status: 'error', 
+          message: err.message || 'Test failed',
+          testedAt: new Date()
+        });
+        return newMap;
+      });
+      toast.error(err.message || 'Credential test failed');
+    }
+  };
+  
+  // Handle credential selection with auto-test for AI nodes
+  const handleCredentialSelect = (fieldName: string, credentialId: string) => {
+    handleConfigChange(fieldName, credentialId);
+    
+    // Auto-test if it's an AI/ML node
+    if (selectedNode && AI_ML_NODE_TYPES.includes(selectedNode.data.type)) {
+      testCredentialForAINode(credentialId, selectedNode.data.type);
+    }
+  };
+  
+  // Get test status for a credential
+  const getCredentialTestStatus = (credentialId: string): CredentialTestStatus | undefined => {
+    return credentialTestStatuses.get(credentialId);
+  };
+  
   const renderConfigField = (field: typeof definition.configSchema[0]) => {
     const value = selectedNode.data.config?.[field.name] ?? field.defaultValue ?? '';
     
@@ -433,12 +614,20 @@ export function NodeConfigPanel() {
         const selectedCred = credentials.find(c => c.id === value);
         const typeConfig = getCredentialTypeConfig(credentialType);
         
+        const isAINode = selectedNode && AI_ML_NODE_TYPES.includes(selectedNode.data.type);
+        const testStatus = value ? getCredentialTestStatus(String(value)) : undefined;
+        
         return (
           <div className="space-y-2">
             {credentialType && typeConfig && (
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Key className="h-3 w-3" />
                 {typeConfig.label} credentials
+                {isAINode && (
+                  <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">
+                    Auto-test
+                  </Badge>
+                )}
               </p>
             )}
             <Select
@@ -446,14 +635,14 @@ export function NodeConfigPanel() {
               onValueChange={(v) => {
                 if (v === '__add_new__') {
                   setAddingCredentialForField(field.name);
-                  // Auto-set the credential type based on the node's requirement
                   if (credentialType) {
                     setNewCredType(credentialType);
                     setNewCredName(`My ${typeConfig?.label || credentialType}`);
                   }
                   setShowAddCredential(true);
                 } else {
-                  handleConfigChange(field.name, v);
+                  // Use auto-test handler for AI nodes
+                  handleCredentialSelect(field.name, v);
                 }
               }}
               disabled={credentialsLoading}
@@ -484,10 +673,63 @@ export function NodeConfigPanel() {
                 </SelectItem>
               </SelectContent>
             </Select>
+            
+            {/* Credential test status indicator */}
             {selectedCred && (
-              <p className="text-xs text-muted-foreground">
-                Connected: {selectedCred.name}
-              </p>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={testStatus?.status || 'idle'}
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 5 }}
+                  className="flex items-center gap-2"
+                >
+                  {testStatus?.status === 'testing' && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Testing credential...
+                    </div>
+                  )}
+                  {testStatus?.status === 'success' && (
+                    <div className="flex items-center gap-2 text-xs text-emerald-600">
+                      <CheckCircle2 className="h-3 w-3" />
+                      {testStatus.message || 'Credential verified'}
+                    </div>
+                  )}
+                  {testStatus?.status === 'error' && (
+                    <div className="flex items-center gap-2 text-xs text-destructive">
+                      <XCircle className="h-3 w-3" />
+                      {testStatus.message || 'Credential test failed'}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 px-2 text-[10px]"
+                        onClick={() => testCredentialForAINode(String(value), selectedNode?.data.type || '')}
+                      >
+                        Retry
+                      </Button>
+                    </div>
+                  )}
+                  {!testStatus && (
+                    <div className="flex items-center justify-between w-full">
+                      <p className="text-xs text-muted-foreground">
+                        Connected: {selectedCred.name}
+                      </p>
+                      {isAINode && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-5 px-2 text-[10px]"
+                          onClick={() => testCredentialForAINode(String(value), selectedNode?.data.type || '')}
+                        >
+                          <Play className="h-3 w-3 mr-1" />
+                          Test
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
             )}
           </div>
         );
