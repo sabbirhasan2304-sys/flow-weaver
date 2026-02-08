@@ -24,6 +24,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PlanManagement } from '@/components/admin/PlanManagement';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { ActiveAnalytics } from '@/components/admin/ActiveAnalytics';
+import { PaymentGatewaySettings } from '@/components/admin/PaymentGatewaySettings';
 
 interface UserData {
   id: string;
@@ -717,60 +718,7 @@ export default function Admin() {
                   transition={{ duration: 0.2 }}
                   className="space-y-6"
                 >
-                  <Card className="border shadow-sm overflow-hidden">
-                    <CardHeader className="bg-muted/30 border-b">
-                      <CardTitle className="flex items-center gap-2">
-                        <CreditCard className="h-5 w-5 text-primary" />
-                        Payment Gateway Integrations
-                      </CardTitle>
-                      <CardDescription>Configure payment providers for your platform</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {[
-                          { name: 'bKash', description: 'Mobile financial service', color: 'from-pink-500/15 to-pink-500/5', borderColor: 'border-pink-500/20', configured: false },
-                          { name: 'Nagad', description: 'Digital payment platform', color: 'from-orange-500/15 to-orange-500/5', borderColor: 'border-orange-500/20', configured: false },
-                          { name: 'SSLCommerz', description: 'Payment gateway', color: 'from-blue-500/15 to-blue-500/5', borderColor: 'border-blue-500/20', configured: false },
-                          { name: 'Stripe', description: 'International payments', color: 'from-violet-500/15 to-violet-500/5', borderColor: 'border-violet-500/20', configured: false },
-                        ].map((gateway) => (
-                          <motion.div
-                            key={gateway.name}
-                            variants={cardHover}
-                            initial="rest"
-                            whileHover="hover"
-                          >
-                            <Card className={`border ${gateway.borderColor} bg-gradient-to-br ${gateway.color} hover:shadow-lg transition-all cursor-pointer`}>
-                              <CardContent className="p-5">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-4">
-                                    <div className="p-3 rounded-xl bg-background/80 shadow-sm">
-                                      <Activity className="h-6 w-6 text-foreground" />
-                                    </div>
-                                    <div>
-                                      <h4 className="font-semibold text-lg">{gateway.name}</h4>
-                                      <p className="text-sm text-muted-foreground">{gateway.description}</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-3">
-                                    <Badge 
-                                      variant="outline" 
-                                      className={gateway.configured ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-muted text-muted-foreground'}
-                                    >
-                                      {gateway.configured ? 'Connected' : 'Not Configured'}
-                                    </Badge>
-                                    <Button variant="outline" size="sm" className="gap-1">
-                                      Configure
-                                      <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <PaymentGatewaySettings />
 
                   <Card className="border shadow-sm">
                     <CardHeader className="bg-muted/30 border-b">
