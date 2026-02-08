@@ -11,7 +11,7 @@ export const developmentNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'GitHub Account', type: 'credential', required: true },
+      { name: 'credential', label: 'GitHub Account', type: 'credential', required: true, description: 'github' },
       { name: 'resource', label: 'Resource', type: 'select', options: [
         { label: 'Repository', value: 'repository' },
         { label: 'Issue', value: 'issue' },
@@ -45,7 +45,7 @@ export const developmentNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'GitLab Account', type: 'credential', required: true },
+      { name: 'credential', label: 'GitLab Account', type: 'credential', required: true, description: 'gitlab' },
       { name: 'resource', label: 'Resource', type: 'select', options: [
         { label: 'Project', value: 'project' },
         { label: 'Issue', value: 'issue' },
@@ -73,7 +73,7 @@ export const developmentNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'SSH Credential', type: 'credential', required: true },
+      { name: 'credential', label: 'SSH Credential', type: 'credential', required: true, description: 'ssh' },
       { name: 'host', label: 'Host', type: 'text', required: true },
       { name: 'port', label: 'Port', type: 'number', defaultValue: 22 },
       { name: 'command', label: 'Command', type: 'textarea', required: true },
@@ -112,7 +112,7 @@ export const developmentNodes: NodeDefinition[] = [
         { label: 'CircleCI', value: 'circleci' },
         { label: 'Travis CI', value: 'travis' },
       ], defaultValue: 'github' },
-      { name: 'credential', label: 'Credential', type: 'credential', required: true },
+      { name: 'credential', label: 'Credential', type: 'credential', required: true, description: 'apikey' },
       { name: 'workflowId', label: 'Workflow/Pipeline ID', type: 'text' },
       { name: 'branch', label: 'Branch', type: 'text', defaultValue: 'main' },
       { name: 'inputs', label: 'Inputs', type: 'json', defaultValue: {} },
@@ -128,7 +128,7 @@ export const developmentNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Docker Host', type: 'credential', required: true },
+      { name: 'credential', label: 'Docker Host', type: 'credential', required: true, description: 'docker' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'List Containers', value: 'listContainers' },
         { label: 'Start Container', value: 'start' },
@@ -154,7 +154,7 @@ export const developmentNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Kubernetes Cluster', type: 'credential', required: true },
+      { name: 'credential', label: 'Kubernetes Cluster', type: 'credential', required: true, description: 'kubernetes' },
       { name: 'resource', label: 'Resource', type: 'select', options: [
         { label: 'Pod', value: 'pod' },
         { label: 'Deployment', value: 'deployment' },
@@ -185,7 +185,7 @@ export const developmentNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Vercel Token', type: 'credential', required: true },
+      { name: 'credential', label: 'Vercel Token', type: 'credential', required: true, description: 'vercel' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'List Deployments', value: 'listDeployments' },
         { label: 'Get Deployment', value: 'getDeployment' },

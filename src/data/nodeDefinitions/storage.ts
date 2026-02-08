@@ -11,7 +11,7 @@ export const storageNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [
-      { name: 'credential', label: 'Google Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Google Account', type: 'credential', required: true, description: 'google' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Upload File', value: 'upload' },
         { label: 'Download File', value: 'download' },
@@ -39,7 +39,7 @@ export const storageNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [
-      { name: 'credential', label: 'Dropbox Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Dropbox Account', type: 'credential', required: true, description: 'dropbox' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Upload File', value: 'upload' },
         { label: 'Download File', value: 'download' },
@@ -64,7 +64,7 @@ export const storageNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [
-      { name: 'credential', label: 'AWS Credentials', type: 'credential', required: true },
+      { name: 'credential', label: 'AWS Credentials', type: 'credential', required: true, description: 'aws' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Upload File', value: 'upload' },
         { label: 'Download File', value: 'download' },
@@ -95,7 +95,7 @@ export const storageNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [
-      { name: 'credential', label: 'Supabase Project', type: 'credential', required: true },
+      { name: 'credential', label: 'Supabase Project', type: 'credential', required: true, description: 'supabase' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Upload File', value: 'upload' },
         { label: 'Download File', value: 'download' },
@@ -120,7 +120,7 @@ export const storageNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [
-      { name: 'credential', label: 'Microsoft Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Microsoft Account', type: 'credential', required: true, description: 'onedrive' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Upload File', value: 'upload' },
         { label: 'Download File', value: 'download' },
@@ -148,7 +148,7 @@ export const storageNodes: NodeDefinition[] = [
     configSchema: [
       { name: 'host', label: 'Host', type: 'text', required: true },
       { name: 'port', label: 'Port', type: 'number', defaultValue: 21 },
-      { name: 'credential', label: 'FTP Credential', type: 'credential', required: true },
+      { name: 'credential', label: 'FTP Credential', type: 'credential', required: true, description: 'http' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Upload File', value: 'upload' },
         { label: 'Download File', value: 'download' },
@@ -173,7 +173,7 @@ export const storageNodes: NodeDefinition[] = [
     configSchema: [
       { name: 'host', label: 'Host', type: 'text', required: true },
       { name: 'port', label: 'Port', type: 'number', defaultValue: 22 },
-      { name: 'credential', label: 'SFTP Credential', type: 'credential', required: true },
+      { name: 'credential', label: 'SFTP Credential', type: 'credential', required: true, description: 'ssh' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Upload File', value: 'upload' },
         { label: 'Download File', value: 'download' },

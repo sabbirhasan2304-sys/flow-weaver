@@ -11,7 +11,7 @@ export const analyticsNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Google Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Google Account', type: 'credential', required: true, description: 'google' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Run Report', value: 'runReport' },
         { label: 'Run Realtime Report', value: 'runRealtimeReport' },
@@ -33,7 +33,7 @@ export const analyticsNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Mixpanel Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Mixpanel Account', type: 'credential', required: true, description: 'mixpanel' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Track Event', value: 'track' },
         { label: 'Create Profile', value: 'createProfile' },
@@ -56,7 +56,7 @@ export const analyticsNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Segment Write Key', type: 'credential', required: true },
+      { name: 'credential', label: 'Segment Write Key', type: 'credential', required: true, description: 'segment' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Identify', value: 'identify' },
         { label: 'Track', value: 'track' },
@@ -80,7 +80,7 @@ export const analyticsNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'array' }],
     configSchema: [
-      { name: 'credential', label: 'Google Cloud', type: 'credential', required: true },
+      { name: 'credential', label: 'Google Cloud', type: 'credential', required: true, description: 'googleCloud' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Execute Query', value: 'query' },
         { label: 'Insert Rows', value: 'insert' },
@@ -103,7 +103,7 @@ export const analyticsNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Amplitude API Key', type: 'credential', required: true },
+      { name: 'credential', label: 'Amplitude API Key', type: 'credential', required: true, description: 'amplitude' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Track Event', value: 'track' },
         { label: 'Identify User', value: 'identify' },
@@ -125,7 +125,7 @@ export const analyticsNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Looker Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Looker Account', type: 'credential', required: true, description: 'looker' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Run Look', value: 'runLook' },
         { label: 'Run Query', value: 'runQuery' },

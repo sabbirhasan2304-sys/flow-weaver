@@ -12,7 +12,7 @@ export const productivityNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Notion Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Notion Account', type: 'credential', required: true, description: 'notion' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Create Page', value: 'createPage' },
         { label: 'Get Page', value: 'getPage' },
@@ -40,7 +40,7 @@ export const productivityNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'any' }],
     configSchema: [
-      { name: 'credential', label: 'Airtable Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Airtable Account', type: 'credential', required: true, description: 'airtable' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'List Records', value: 'list' },
         { label: 'Get Record', value: 'get' },
@@ -67,7 +67,7 @@ export const productivityNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Trello Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Trello Account', type: 'credential', required: true, description: 'trello' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Create Card', value: 'createCard' },
         { label: 'Get Card', value: 'getCard' },
@@ -95,7 +95,7 @@ export const productivityNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Jira Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Jira Account', type: 'credential', required: true, description: 'jira' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Create Issue', value: 'createIssue' },
         { label: 'Get Issue', value: 'getIssue' },
@@ -124,7 +124,7 @@ export const productivityNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Asana Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Asana Account', type: 'credential', required: true, description: 'asana' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Create Task', value: 'createTask' },
         { label: 'Get Task', value: 'getTask' },
@@ -151,7 +151,7 @@ export const productivityNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'ClickUp Account', type: 'credential', required: true },
+      { name: 'credential', label: 'ClickUp Account', type: 'credential', required: true, description: 'clickup' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Create Task', value: 'createTask' },
         { label: 'Get Task', value: 'getTask' },
@@ -178,7 +178,7 @@ export const productivityNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Google Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Google Account', type: 'credential', required: true, description: 'google' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Create Event', value: 'create' },
         { label: 'Get Event', value: 'get' },
@@ -206,7 +206,7 @@ export const productivityNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'HubSpot Account', type: 'credential', required: true },
+      { name: 'credential', label: 'HubSpot Account', type: 'credential', required: true, description: 'hubspot' },
       { name: 'resource', label: 'Resource', type: 'select', options: [
         { label: 'Contact', value: 'contact' },
         { label: 'Company', value: 'company' },
@@ -235,7 +235,7 @@ export const productivityNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Salesforce Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Salesforce Account', type: 'credential', required: true, description: 'salesforce' },
       { name: 'resource', label: 'Resource', type: 'select', options: [
         { label: 'Account', value: 'account' },
         { label: 'Contact', value: 'contact' },
@@ -267,7 +267,7 @@ export const productivityNodes: NodeDefinition[] = [
     inputs: [{ name: 'data', type: 'any' }],
     outputs: [{ name: 'result', type: 'object' }],
     configSchema: [
-      { name: 'credential', label: 'Todoist Account', type: 'credential', required: true },
+      { name: 'credential', label: 'Todoist Account', type: 'credential', required: true, description: 'todoist' },
       { name: 'operation', label: 'Operation', type: 'select', options: [
         { label: 'Create Task', value: 'create' },
         { label: 'Get Task', value: 'get' },
