@@ -69,6 +69,7 @@ interface Plan {
 
 export function UserManagement() {
   const [users, setUsers] = useState<UserData[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState<'all' | 'admin' | 'user'>('all');
@@ -100,37 +101,47 @@ export function UserManagement() {
   };
 
   const fetchEnhancedUsers = async () => {
+    setIsRefreshing(true);
     try {
       // Fetch profiles with subscriptions
-      const { data: profilesData } = await supabase
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, user_id, email, full_name, created_at')
         .order('created_at', { ascending: false });
 
-      if (!profilesData) return;
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        toast.error('Failed to fetch users');
+        return;
+      }
+
+      if (!profilesData) {
+        setUsers([]);
+        return;
+      }
 
       const enhancedUsers = await Promise.all(
         profilesData.map(async (profile) => {
-          // Get subscription
+          // Get subscription - use maybeSingle() to avoid 406 errors
           const { data: subData } = await supabase
             .from('subscriptions')
             .select('id, plan_id, status, plan:plans(name)')
             .eq('profile_id', profile.id)
-            .single();
+            .maybeSingle();
 
-          // Get credits
+          // Get credits - use maybeSingle() to avoid 406 errors
           const { data: creditsData } = await supabase
             .from('user_credits')
             .select('balance, total_purchased, total_used')
             .eq('profile_id', profile.id)
-            .single();
+            .maybeSingle();
 
-          // Get role
+          // Get role - use maybeSingle() to avoid 406 errors
           const { data: roleData } = await supabase
             .from('user_roles')
             .select('role')
             .eq('user_id', profile.user_id)
-            .single();
+            .maybeSingle();
 
           return {
             ...profile,
@@ -153,6 +164,9 @@ export function UserManagement() {
       setUsers(enhancedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
+      toast.error('Failed to load user data');
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -479,8 +493,8 @@ export function UserManagement() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="icon" onClick={fetchEnhancedUsers}>
-                <RefreshCw className="h-4 w-4" />
+              <Button variant="outline" size="icon" onClick={fetchEnhancedUsers} disabled={isRefreshing}>
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               </Button>
             </div>
           </div>
