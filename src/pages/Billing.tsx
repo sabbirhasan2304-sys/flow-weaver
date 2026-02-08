@@ -36,10 +36,11 @@ interface UsageBilling {
 
 export default function Billing() {
   const { profile } = useAuth();
-  const { subscription, plans, usage, loading, getDaysRemaining, getUsagePercentage } = useSubscription();
+  const { subscription, plans, usage, loading, getDaysRemaining, getUsagePercentage, refetch } = useSubscription();
   const { credits, loading: creditsLoading, addCredits, refetch: refetchCredits } = useCredits();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [purchasingPackage, setPurchasingPackage] = useState<string | null>(null);
+  const [changingPlan, setChangingPlan] = useState<string | null>(null);
   const [usageBilling, setUsageBilling] = useState<UsageBilling>({
     aiTokensUsed: 0,
     aiCost: 0,
@@ -49,6 +50,63 @@ export default function Billing() {
     storageCost: 0,
     totalCost: 0,
   });
+
+  const handleChangePlan = async (plan: Plan) => {
+    if (!profile?.id) {
+      toast.error('Please log in first');
+      return;
+    }
+
+    setChangingPlan(plan.id);
+
+    try {
+      // Check if user already has a subscription in the database
+      const { data: existingSub } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('profile_id', profile.id)
+        .maybeSingle();
+
+      if (existingSub) {
+        // Update existing subscription
+        const { error } = await supabase
+          .from('subscriptions')
+          .update({
+            plan_id: plan.id,
+            status: 'active',
+            billing_cycle: billingCycle,
+            current_period_start: new Date().toISOString(),
+            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            trial_ends_at: null,
+          })
+          .eq('id', existingSub.id);
+
+        if (error) throw error;
+      } else {
+        // Create new subscription
+        const { error } = await supabase
+          .from('subscriptions')
+          .insert({
+            profile_id: profile.id,
+            plan_id: plan.id,
+            status: 'active',
+            billing_cycle: billingCycle,
+            current_period_start: new Date().toISOString(),
+            current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          });
+
+        if (error) throw error;
+      }
+
+      toast.success(`Successfully changed to ${plan.name} plan!`);
+      await refetch();
+    } catch (error: any) {
+      console.error('Error changing plan:', error);
+      toast.error(error.message || 'Failed to change plan. Please try again.');
+    } finally {
+      setChangingPlan(null);
+    }
+  };
 
   useEffect(() => {
     if (profile?.id) {
@@ -687,9 +745,20 @@ export default function Billing() {
                         <Button 
                           className="w-full" 
                           variant={plan.name === 'Pro' ? 'default' : 'outline'}
+                          onClick={() => handleChangePlan(plan)}
+                          disabled={changingPlan !== null}
                         >
-                          {price === 0 ? 'Downgrade' : 'Upgrade'}
-                          <ArrowRight className="ml-2 h-4 w-4" />
+                          {changingPlan === plan.id ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-background border-t-transparent mr-2" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              {price === 0 ? 'Downgrade' : 'Upgrade'}
+                              <ArrowRight className="ml-2 h-4 w-4" />
+                            </>
+                          )}
                         </Button>
                       )}
                     </CardFooter>

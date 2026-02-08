@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ interface SubscriptionGateProps {
 export function SubscriptionGate({ children, feature = 'this feature', fallback }: SubscriptionGateProps) {
   const { subscription, loading } = useSubscription();
   const { isAdmin, loading: adminLoading } = useAdmin();
+  const navigate = useNavigate();
 
   if (loading || adminLoading) {
     return (
@@ -45,7 +46,21 @@ export function SubscriptionGate({ children, feature = 'this feature', fallback 
     return <>{children}</>;
   }
 
-  // Show upgrade prompt
+  // Redirect to plan selection if no subscription at all
+  if (!subscription) {
+    // Use effect-like redirect
+    setTimeout(() => navigate('/select-plan'), 0);
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Redirecting to plan selection...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show upgrade prompt for expired/canceled subscriptions
   if (fallback) {
     return <>{fallback}</>;
   }
@@ -120,9 +135,9 @@ function UpgradePrompt({ feature }: { feature: string }) {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button asChild size="lg" className="flex-1 gap-2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90">
-                <Link to="/billing">
+                <Link to="/select-plan">
                   <Rocket className="h-4 w-4" />
-                  View Plans & Subscribe
+                  Choose a Plan
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
