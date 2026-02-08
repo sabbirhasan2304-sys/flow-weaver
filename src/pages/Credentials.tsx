@@ -248,53 +248,44 @@ export default function Credentials() {
             </div>
           </div>
           
-          <Dialog open={createDialogOpen} onOpenChange={(open) => {
-            setCreateDialogOpen(open);
-            if (!open) resetCreateForm();
-          }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Credential
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {newCredType 
-                    ? `Connect ${getCredentialTypeConfig(newCredType)?.label || newCredType}` 
-                    : 'Add New Credential'
-                  }
-                </DialogTitle>
-                <DialogDescription>
-                  {newCredType
-                    ? `Enter your ${getCredentialTypeConfig(newCredType)?.label || newCredType} credentials`
-                    : 'Select a service below or choose from the list'
-                  }
-                </DialogDescription>
-              </DialogHeader>
-              <CredentialForm
-                name={newCredName}
-                type={newCredType}
-                settings={newCredSettings}
-                onNameChange={setNewCredName}
-                onTypeChange={(type) => {
-                  setNewCredType(type);
-                  setNewCredSettings({});
-                }}
-                onSettingsChange={setNewCredSettings}
-                showTypeSelector={!newCredType}
-              />
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={createCredential} disabled={creating || !newCredName || !newCredType}>
-                  {creating ? 'Creating...' : 'Create Credential'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          {/* Only show Add Credential button if type is pre-selected via service icons */}
+          {newCredType ? (
+            <Dialog open={createDialogOpen} onOpenChange={(open) => {
+              setCreateDialogOpen(open);
+              if (!open) resetCreateForm();
+            }}>
+              <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>
+                    Connect {getCredentialTypeConfig(newCredType)?.label || newCredType}
+                  </DialogTitle>
+                  <DialogDescription>
+                    Enter your {getCredentialTypeConfig(newCredType)?.label || newCredType} credentials
+                  </DialogDescription>
+                </DialogHeader>
+                <CredentialForm
+                  name={newCredName}
+                  type={newCredType}
+                  settings={newCredSettings}
+                  onNameChange={setNewCredName}
+                  onTypeChange={() => {}}
+                  onSettingsChange={setNewCredSettings}
+                  showTypeSelector={false}
+                />
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => {
+                    setCreateDialogOpen(false);
+                    resetCreateForm();
+                  }}>
+                    Cancel
+                  </Button>
+                  <Button onClick={createCredential} disabled={creating || !newCredName}>
+                    {creating ? 'Connecting...' : 'Connect'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          ) : null}
         </div>
       </header>
 
