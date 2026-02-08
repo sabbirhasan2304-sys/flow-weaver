@@ -265,6 +265,7 @@ export default function WorkflowPage() {
           <WorkflowEditor
             workflowId={workflow.id}
             workflowName={workflow.name}
+            initialData={workflow.data as { nodes?: any[]; edges?: any[] }}
             onSave={handleSave}
           />
         </div>

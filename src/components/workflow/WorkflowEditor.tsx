@@ -18,10 +18,11 @@ import {
 interface WorkflowEditorProps {
   workflowId?: string;
   workflowName?: string;
+  initialData?: { nodes?: any[]; edges?: any[] };
   onSave?: (data: any) => void;
 }
 
-export function WorkflowEditor({ workflowId, workflowName, onSave }: WorkflowEditorProps) {
+export function WorkflowEditor({ workflowId, workflowName, initialData, onSave }: WorkflowEditorProps) {
   const { selectedNode } = useWorkflowStore();
   
   const handleDragStart = (event: React.DragEvent, nodeType: string) => {
@@ -52,7 +53,8 @@ export function WorkflowEditor({ workflowId, workflowName, onSave }: WorkflowEdi
           
           {/* Center Panel - Canvas */}
           <ResizablePanel defaultSize={selectedNode ? 55 : 80}>
-            <WorkflowCanvas workflowId={workflowId} onSave={onSave} />
+            <WorkflowCanvas workflowId={workflowId} initialData={initialData} onSave={onSave} />
+            
           </ResizablePanel>
           
           {/* Right Panel - Node Config (conditional) */}
