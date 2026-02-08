@@ -1,238 +1,177 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { motion } from 'framer-motion';
 import { 
   Zap, Search, ArrowLeft, Download, Star, Check, ExternalLink,
   Bot, Database, Cloud, Shield, BarChart, Coins, 
-  MessageSquare, Mail, ShoppingCart, Code, Cpu, Radio
+  MessageSquare, Mail, ShoppingCart, Code, Cpu, Radio,
+  Sparkles, Lock, CreditCard, Globe, FileText, Send,
+  Activity, Loader2, Package
 } from 'lucide-react';
 
 interface Plugin {
   id: string;
   name: string;
-  description: string;
-  author: string;
+  display_name: string;
+  description: string | null;
   category: string;
-  icon: React.ReactNode;
-  downloads: number;
-  rating: number;
-  verified: boolean;
-  installed: boolean;
+  icon: string | null;
   version: string;
-  tags: string[];
+  is_active: boolean;
+  is_system: boolean;
 }
 
-const plugins: Plugin[] = [
-  {
-    id: '1',
-    name: 'OpenAI Advanced',
-    description: 'Extended OpenAI integration with function calling, vision, and fine-tuning support',
-    author: 'FlowForge Team',
-    category: 'AI',
-    icon: <Bot className="h-6 w-6" />,
-    downloads: 45000,
-    rating: 4.9,
-    verified: true,
-    installed: true,
-    version: '2.3.0',
-    tags: ['GPT-4', 'Vision', 'Embeddings'],
-  },
-  {
-    id: '2',
-    name: 'Supabase Extended',
-    description: 'Full Supabase integration including Realtime, Storage, and Edge Functions',
-    author: 'FlowForge Team',
-    category: 'Database',
-    icon: <Database className="h-6 w-6" />,
-    downloads: 32000,
-    rating: 4.8,
-    verified: true,
-    installed: true,
-    version: '1.8.0',
-    tags: ['PostgreSQL', 'Realtime', 'Auth'],
-  },
-  {
-    id: '3',
-    name: 'AWS Suite',
-    description: 'Complete AWS integration: S3, Lambda, SQS, SNS, DynamoDB, and more',
-    author: 'CloudOps Ltd',
-    category: 'Cloud',
-    icon: <Cloud className="h-6 w-6" />,
-    downloads: 28000,
-    rating: 4.7,
-    verified: true,
-    installed: false,
-    version: '3.1.0',
-    tags: ['S3', 'Lambda', 'DynamoDB'],
-  },
-  {
-    id: '4',
-    name: 'Ethereum Smart Contracts',
-    description: 'Deploy, interact with, and monitor Ethereum smart contracts',
-    author: 'Web3 Labs',
-    category: 'Blockchain',
-    icon: <Coins className="h-6 w-6" />,
-    downloads: 18500,
-    rating: 4.6,
-    verified: true,
-    installed: false,
-    version: '2.0.0',
-    tags: ['Solidity', 'NFT', 'DeFi'],
-  },
-  {
-    id: '5',
-    name: 'Advanced Analytics',
-    description: 'Deep analytics with BigQuery, Mixpanel, Amplitude, and custom dashboards',
-    author: 'DataFlow Inc',
-    category: 'Analytics',
-    icon: <BarChart className="h-6 w-6" />,
-    downloads: 15200,
-    rating: 4.5,
-    verified: true,
-    installed: false,
-    version: '1.5.0',
-    tags: ['BigQuery', 'Dashboards', 'Reports'],
-  },
-  {
-    id: '6',
-    name: 'Security Toolkit',
-    description: 'JWT validation, encryption, rate limiting, and security scanning nodes',
-    author: 'SecureFlow',
-    category: 'Security',
-    icon: <Shield className="h-6 w-6" />,
-    downloads: 12800,
-    rating: 4.8,
-    verified: true,
-    installed: false,
-    version: '1.2.0',
-    tags: ['JWT', 'Encryption', 'Auth'],
-  },
-  {
-    id: '7',
-    name: 'Slack Pro',
-    description: 'Advanced Slack integration with Block Kit, modals, and app home',
-    author: 'FlowForge Team',
-    category: 'Communication',
-    icon: <MessageSquare className="h-6 w-6" />,
-    downloads: 21000,
-    rating: 4.7,
-    verified: true,
-    installed: false,
-    version: '2.1.0',
-    tags: ['Block Kit', 'Modals', 'Webhooks'],
-  },
-  {
-    id: '8',
-    name: 'Email Marketing Suite',
-    description: 'SendGrid, Mailchimp, and custom SMTP with templates and analytics',
-    author: 'MarketingOps',
-    category: 'Marketing',
-    icon: <Mail className="h-6 w-6" />,
-    downloads: 19500,
-    rating: 4.6,
-    verified: true,
-    installed: false,
-    version: '1.9.0',
-    tags: ['SendGrid', 'Templates', 'Analytics'],
-  },
-  {
-    id: '9',
-    name: 'E-commerce Bundle',
-    description: 'Stripe, Shopify, WooCommerce with inventory and order management',
-    author: 'CommerceFlow',
-    category: 'E-Commerce',
-    icon: <ShoppingCart className="h-6 w-6" />,
-    downloads: 16800,
-    rating: 4.5,
-    verified: true,
-    installed: false,
-    version: '2.2.0',
-    tags: ['Stripe', 'Inventory', 'Orders'],
-  },
-  {
-    id: '10',
-    name: 'DevOps Toolkit',
-    description: 'GitHub Actions, GitLab CI, Docker, and Kubernetes integrations',
-    author: 'DevOps Pro',
-    category: 'Development',
-    icon: <Code className="h-6 w-6" />,
-    downloads: 14200,
-    rating: 4.7,
-    verified: true,
-    installed: false,
-    version: '1.6.0',
-    tags: ['CI/CD', 'Docker', 'K8s'],
-  },
-  {
-    id: '11',
-    name: 'IoT Gateway',
-    description: 'MQTT, AWS IoT, and Google Cloud IoT with device management',
-    author: 'IoT Systems',
-    category: 'IoT',
-    icon: <Cpu className="h-6 w-6" />,
-    downloads: 8900,
-    rating: 4.4,
-    verified: true,
-    installed: false,
-    version: '1.3.0',
-    tags: ['MQTT', 'Sensors', 'Devices'],
-  },
-  {
-    id: '12',
-    name: 'Real-time Streaming',
-    description: 'WebSockets, Server-Sent Events, and Kafka integration',
-    author: 'StreamTech',
-    category: 'Real-time',
-    icon: <Radio className="h-6 w-6" />,
-    downloads: 7600,
-    rating: 4.5,
-    verified: true,
-    installed: false,
-    version: '1.1.0',
-    tags: ['WebSocket', 'Kafka', 'SSE'],
-  },
-];
+const iconMap: Record<string, React.ReactNode> = {
+  Bot: <Bot className="h-6 w-6" />,
+  Database: <Database className="h-6 w-6" />,
+  Cloud: <Cloud className="h-6 w-6" />,
+  Shield: <Shield className="h-6 w-6" />,
+  BarChart: <BarChart className="h-6 w-6" />,
+  Coins: <Coins className="h-6 w-6" />,
+  MessageSquare: <MessageSquare className="h-6 w-6" />,
+  Mail: <Mail className="h-6 w-6" />,
+  ShoppingCart: <ShoppingCart className="h-6 w-6" />,
+  Code: <Code className="h-6 w-6" />,
+  Cpu: <Cpu className="h-6 w-6" />,
+  Radio: <Radio className="h-6 w-6" />,
+  Sparkles: <Sparkles className="h-6 w-6" />,
+  Lock: <Lock className="h-6 w-6" />,
+  CreditCard: <CreditCard className="h-6 w-6" />,
+  Globe: <Globe className="h-6 w-6" />,
+  FileText: <FileText className="h-6 w-6" />,
+  Send: <Send className="h-6 w-6" />,
+  Activity: <Activity className="h-6 w-6" />,
+  Zap: <Zap className="h-6 w-6" />,
+  Search: <Search className="h-6 w-6" />,
+  Brain: <Bot className="h-6 w-6" />,
+  Mic: <MessageSquare className="h-6 w-6" />,
+  Phone: <MessageSquare className="h-6 w-6" />,
+  MessageCircle: <MessageSquare className="h-6 w-6" />,
+  TrendingUp: <BarChart className="h-6 w-6" />,
+  Key: <Lock className="h-6 w-6" />,
+  GitBranch: <Code className="h-6 w-6" />,
+  GitMerge: <Code className="h-6 w-6" />,
+  Box: <Package className="h-6 w-6" />,
+  Server: <Database className="h-6 w-6" />,
+  Table: <Database className="h-6 w-6" />,
+  Sheet: <FileText className="h-6 w-6" />,
+  CheckSquare: <Check className="h-6 w-6" />,
+  Smartphone: <MessageSquare className="h-6 w-6" />,
+  Wallet: <CreditCard className="h-6 w-6" />,
+  ShoppingBag: <ShoppingCart className="h-6 w-6" />,
+  Hexagon: <Coins className="h-6 w-6" />,
+};
 
-const categories = [
-  'All',
-  'AI',
-  'Database',
-  'Cloud',
-  'Blockchain',
-  'Analytics',
-  'Security',
-  'Communication',
-  'E-Commerce',
-  'Development',
-  'IoT',
-];
+const container = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.05 } }
+};
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 }
+};
 
 export default function Marketplace() {
+  const { user } = useAuth();
+  const [plugins, setPlugins] = useState<Plugin[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [installedPlugins, setInstalledPlugins] = useState<string[]>(['1', '2']);
+  const [installedPlugins, setInstalledPlugins] = useState<Set<string>>(new Set());
+  const [installingId, setInstallingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchPlugins();
+  }, []);
+
+  const fetchPlugins = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('node_plugins')
+      .select('*')
+      .eq('is_active', true)
+      .order('category', { ascending: true });
+    
+    if (error) {
+      toast.error('Failed to load plugins');
+    } else {
+      setPlugins(data || []);
+      // Mark system plugins as installed by default
+      const systemPlugins = new Set((data || []).filter(p => p.is_system).map(p => p.id));
+      setInstalledPlugins(systemPlugins);
+    }
+    setLoading(false);
+  };
+
+  const categories = ['All', ...new Set(plugins.map(p => p.category))];
 
   const filteredPlugins = plugins.filter(plugin => {
-    const matchesSearch = plugin.name.toLowerCase().includes(search.toLowerCase()) ||
-      plugin.description.toLowerCase().includes(search.toLowerCase()) ||
-      plugin.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()));
+    const matchesSearch = 
+      plugin.display_name.toLowerCase().includes(search.toLowerCase()) ||
+      plugin.description?.toLowerCase().includes(search.toLowerCase()) ||
+      plugin.name.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || plugin.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const handleInstall = (plugin: Plugin) => {
-    if (installedPlugins.includes(plugin.id)) {
-      setInstalledPlugins(prev => prev.filter(id => id !== plugin.id));
-      toast.success(`Uninstalled ${plugin.name}`);
-    } else {
-      setInstalledPlugins(prev => [...prev, plugin.id]);
-      toast.success(`Installed ${plugin.name}`);
+  const handleInstall = async (plugin: Plugin) => {
+    if (!user) {
+      toast.error('Please sign in to install plugins');
+      return;
     }
+
+    setInstallingId(plugin.id);
+    
+    // Simulate installation delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    if (installedPlugins.has(plugin.id)) {
+      setInstalledPlugins(prev => {
+        const next = new Set(prev);
+        next.delete(plugin.id);
+        return next;
+      });
+      toast.success(`Uninstalled ${plugin.display_name}`);
+    } else {
+      setInstalledPlugins(prev => new Set([...prev, plugin.id]));
+      toast.success(`Installed ${plugin.display_name}! It's now available in the node palette.`);
+    }
+    
+    setInstallingId(null);
+  };
+
+  const getIcon = (iconName: string | null) => {
+    if (!iconName) return <Package className="h-6 w-6" />;
+    return iconMap[iconName] || <Package className="h-6 w-6" />;
+  };
+
+  const getCategoryColor = (category: string): string => {
+    const colors: Record<string, string> = {
+      'AI': 'from-violet-500/20 to-purple-500/10 border-violet-500/30',
+      'Database': 'from-blue-500/20 to-cyan-500/10 border-blue-500/30',
+      'Cloud': 'from-sky-500/20 to-blue-500/10 border-sky-500/30',
+      'Blockchain': 'from-amber-500/20 to-orange-500/10 border-amber-500/30',
+      'Analytics': 'from-emerald-500/20 to-green-500/10 border-emerald-500/30',
+      'Security': 'from-rose-500/20 to-red-500/10 border-rose-500/30',
+      'Communication': 'from-pink-500/20 to-rose-500/10 border-pink-500/30',
+      'E-Commerce': 'from-teal-500/20 to-cyan-500/10 border-teal-500/30',
+      'Email': 'from-indigo-500/20 to-blue-500/10 border-indigo-500/30',
+      'Development': 'from-slate-500/20 to-gray-500/10 border-slate-500/30',
+      'IoT': 'from-lime-500/20 to-green-500/10 border-lime-500/30',
+      'Real-time': 'from-fuchsia-500/20 to-pink-500/10 border-fuchsia-500/30',
+      'Productivity': 'from-yellow-500/20 to-amber-500/10 border-yellow-500/30',
+      'Payments': 'from-emerald-500/20 to-teal-500/10 border-emerald-500/30',
+    };
+    return colors[category] || 'from-gray-500/20 to-gray-500/10 border-gray-500/30';
   };
 
   return (
@@ -247,15 +186,15 @@ export default function Marketplace() {
               </Link>
             </Button>
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-lg shadow-primary/25">
                 <Zap className="h-5 w-5 text-primary-foreground" />
               </div>
               <span className="text-xl font-bold text-foreground">Plugin Marketplace</span>
             </div>
           </div>
           
-          <Button variant="outline" size="sm">
-            <ExternalLink className="h-4 w-4 mr-2" />
+          <Button variant="outline" size="sm" className="gap-2">
+            <ExternalLink className="h-4 w-4" />
             Submit Plugin
           </Button>
         </div>
@@ -263,46 +202,55 @@ export default function Marketplace() {
 
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
+        <motion.div 
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
             Plugin Marketplace
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Extend FlowForge with powerful plugins. Install community-created integrations or build your own.
+            Extend FlowForge with powerful integrations. Install plugins to unlock new nodes and capabilities.
           </p>
-        </div>
+        </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card>
+        <motion.div 
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className="border-0 bg-gradient-to-br from-primary/10 to-primary/5">
             <CardContent className="p-4 text-center">
               <div className="text-3xl font-bold text-primary">{plugins.length}</div>
               <div className="text-sm text-muted-foreground">Available Plugins</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-0 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5">
             <CardContent className="p-4 text-center">
-              <div className="text-3xl font-bold text-primary">{installedPlugins.length}</div>
+              <div className="text-3xl font-bold text-emerald-500">{installedPlugins.size}</div>
               <div className="text-sm text-muted-foreground">Installed</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-0 bg-gradient-to-br from-violet-500/10 to-violet-500/5">
             <CardContent className="p-4 text-center">
-              <div className="text-3xl font-bold text-primary">
-                {(plugins.reduce((acc, p) => acc + p.downloads, 0) / 1000).toFixed(0)}K+
-              </div>
-              <div className="text-sm text-muted-foreground">Total Downloads</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-3xl font-bold text-primary">{categories.length - 1}</div>
+              <div className="text-3xl font-bold text-violet-500">{categories.length - 1}</div>
               <div className="text-sm text-muted-foreground">Categories</div>
             </CardContent>
           </Card>
-        </div>
+          <Card className="border-0 bg-gradient-to-br from-amber-500/10 to-amber-500/5">
+            <CardContent className="p-4 text-center">
+              <div className="text-3xl font-bold text-amber-500">
+                {plugins.filter(p => p.is_system).length}
+              </div>
+              <div className="text-sm text-muted-foreground">Official Plugins</div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        {/* Search and Filters */}
+        {/* Search */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -317,95 +265,110 @@ export default function Marketplace() {
 
         {/* Category Tabs */}
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="mb-8">
-          <TabsList className="flex-wrap h-auto gap-2 bg-transparent">
+          <TabsList className="flex-wrap h-auto gap-2 bg-transparent p-0">
             {categories.map((category) => (
               <TabsTrigger
                 key={category}
                 value={category}
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4"
               >
                 {category}
+                {category !== 'All' && (
+                  <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-[10px]">
+                    {plugins.filter(p => p.category === category).length}
+                  </Badge>
+                )}
               </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
 
         {/* Plugins Grid */}
-        {filteredPlugins.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : filteredPlugins.length === 0 ? (
           <div className="text-center py-20">
+            <Package className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
             <p className="text-muted-foreground">No plugins found matching your criteria.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+            variants={container}
+            initial="hidden"
+            animate="show"
+          >
             {filteredPlugins.map((plugin) => {
-              const isInstalled = installedPlugins.includes(plugin.id);
+              const isInstalled = installedPlugins.has(plugin.id);
+              const isInstalling = installingId === plugin.id;
               
               return (
-                <Card key={plugin.id} className="group hover:border-primary/50 transition-colors">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                        {plugin.icon}
+                <motion.div key={plugin.id} variants={item}>
+                  <Card className={`group hover:shadow-lg transition-all duration-300 bg-gradient-to-br ${getCategoryColor(plugin.category)} border hover:-translate-y-1`}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="h-12 w-12 rounded-xl bg-background/80 flex items-center justify-center text-foreground shadow-sm">
+                          {getIcon(plugin.icon)}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {plugin.is_system && (
+                            <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                              <Check className="h-3 w-3 mr-1" />
+                              Official
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {plugin.verified && (
-                          <Badge variant="secondary" className="bg-success/20 text-success">
-                            <Check className="h-3 w-3 mr-1" />
-                            Verified
+                      <div className="mt-4">
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          {plugin.display_name}
+                        </CardTitle>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-[10px] h-5">
+                            v{plugin.version}
                           </Badge>
-                        )}
+                          <Badge variant="outline" className="text-[10px] h-5">
+                            {plugin.category}
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                    <div className="mt-4">
-                      <CardTitle className="flex items-center gap-2">
-                        {plugin.name}
-                        <span className="text-xs font-normal text-muted-foreground">v{plugin.version}</span>
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground mt-1">by {plugin.author}</p>
-                    </div>
-                    <CardDescription className="mt-2">{plugin.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {plugin.tags.map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                    <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                      <span className="flex items-center gap-1">
-                        <Download className="h-3 w-3" />
-                        {plugin.downloads.toLocaleString()}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-warning text-warning" />
-                        {plugin.rating}
-                      </span>
-                    </div>
-                    <Button
-                      variant={isInstalled ? 'outline' : 'default'}
-                      size="sm"
-                      className="w-full"
-                      onClick={() => handleInstall(plugin)}
-                    >
-                      {isInstalled ? (
-                        <>
-                          <Check className="h-4 w-4 mr-1" />
-                          Installed
-                        </>
-                      ) : (
-                        <>
-                          <Download className="h-4 w-4 mr-1" />
-                          Install
-                        </>
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
+                      <CardDescription className="mt-2 line-clamp-2">
+                        {plugin.description || 'No description available'}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <Button
+                        variant={isInstalled ? 'outline' : 'default'}
+                        size="sm"
+                        className="w-full gap-2"
+                        onClick={() => handleInstall(plugin)}
+                        disabled={isInstalling}
+                      >
+                        {isInstalling ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            {isInstalled ? 'Uninstalling...' : 'Installing...'}
+                          </>
+                        ) : isInstalled ? (
+                          <>
+                            <Check className="h-4 w-4" />
+                            Installed
+                          </>
+                        ) : (
+                          <>
+                            <Download className="h-4 w-4" />
+                            Install
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </main>
     </div>
