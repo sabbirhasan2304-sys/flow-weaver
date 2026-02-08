@@ -24,7 +24,12 @@ import {
   OpenAIIcon, AnthropicIcon, GoogleIcon, SlackIcon, DiscordIcon,
   TelegramIcon, GitHubIcon, StripeIcon, AWSIcon, SupabaseIcon,
   PostgresIcon, MongoDBIcon, SMTPIcon, SendGridIcon, TwilioIcon,
-  HTTPIcon, BearerIcon, APIKeyIcon, OAuth2Icon
+  HTTPIcon, BearerIcon, APIKeyIcon, OAuth2Icon,
+  ShopifyIcon, NotionIcon, AirtableIcon, TrelloIcon, JiraIcon, AsanaIcon,
+  ClickUpIcon, LinearIcon, ZoomIcon, TeamsIcon, WhatsAppIcon,
+  PayPalIcon, DropboxIcon, OneDriveIcon, HubSpotIcon, SalesforceIcon,
+  GmailIcon, MailchimpIcon, WooCommerceIcon, GitLabIcon, RedisIcon,
+  MySQLIcon, BkashIcon, NagadIcon, OutlookIcon, SquareIcon,
 } from '@/components/icons/ServiceIcons';
 
 interface Credential {
@@ -39,26 +44,76 @@ interface Credential {
 const getCredentialIcon = (type: string, size: 'sm' | 'md' = 'sm') => {
   const sizeClass = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
   const iconMap: Record<string, React.ReactNode> = {
+    // Core / AI
     openai: <OpenAIIcon className={sizeClass} />,
     anthropic: <AnthropicIcon className={sizeClass} />,
+
+    // Google ecosystem
     google: <GoogleIcon className={sizeClass} />,
+    gmail: <GmailIcon className={sizeClass} />,
+    outlook: <OutlookIcon className={sizeClass} />,
+
+    // Messaging
     slack: <SlackIcon className={sizeClass} />,
     discord: <DiscordIcon className={sizeClass} />,
     telegram: <TelegramIcon className={sizeClass} />,
+    whatsapp: <WhatsAppIcon className={sizeClass} />,
+
+    // Dev tools
     github: <GitHubIcon className={sizeClass} />,
+    gitlab: <GitLabIcon className={sizeClass} />,
+
+    // Payments / Commerce
     stripe: <StripeIcon className={sizeClass} />,
+    paypal: <PayPalIcon className={sizeClass} />,
+    square: <SquareIcon className={sizeClass} />,
+    shopify: <ShopifyIcon className={sizeClass} />,
+    woocommerce: <WooCommerceIcon className={sizeClass} />,
+    bkash: <BkashIcon className={sizeClass} />,
+    nagad: <NagadIcon className={sizeClass} />,
+
+    // Cloud / DB
     aws: <AWSIcon className={sizeClass} />,
     supabase: <SupabaseIcon className={sizeClass} />,
     postgres: <PostgresIcon className={sizeClass} />,
     mongodb: <MongoDBIcon className={sizeClass} />,
+    mysql: <MySQLIcon className={sizeClass} />,
+    redis: <RedisIcon className={sizeClass} />,
+
+    // Email providers
     smtp: <SMTPIcon className={sizeClass} />,
     sendgrid: <SendGridIcon className={sizeClass} />,
     twilio: <TwilioIcon className={sizeClass} />,
+    mailchimp: <MailchimpIcon className={sizeClass} />,
+
+    // Productivity
+    notion: <NotionIcon className={sizeClass} />,
+    airtable: <AirtableIcon className={sizeClass} />,
+    trello: <TrelloIcon className={sizeClass} />,
+    jira: <JiraIcon className={sizeClass} />,
+    asana: <AsanaIcon className={sizeClass} />,
+    clickup: <ClickUpIcon className={sizeClass} />,
+    linear: <LinearIcon className={sizeClass} />,
+
+    // Sales
+    hubspot: <HubSpotIcon className={sizeClass} />,
+    salesforce: <SalesforceIcon className={sizeClass} />,
+
+    // Files
+    dropbox: <DropboxIcon className={sizeClass} />,
+    onedrive: <OneDriveIcon className={sizeClass} />,
+
+    // Meetings
+    zoom: <ZoomIcon className={sizeClass} />,
+    teams: <TeamsIcon className={sizeClass} />,
+
+    // Generic auth types
     http: <HTTPIcon className={sizeClass} />,
     bearer: <BearerIcon className={sizeClass} />,
     apikey: <APIKeyIcon className={sizeClass} />,
     oauth2: <OAuth2Icon className={sizeClass} />,
   };
+
   return iconMap[type] || <Key className={sizeClass} />;
 };
 
