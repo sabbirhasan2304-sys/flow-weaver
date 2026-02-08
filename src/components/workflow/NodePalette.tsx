@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
@@ -86,7 +86,47 @@ interface NodePaletteProps {
   onDragStart: (event: React.DragEvent, nodeType: string) => void;
 }
 
-export function NodePalette({ onDragStart }: NodePaletteProps) {
+// Memoized node item for performance
+const NodeItem = memo(({ node, onDragStart }: { 
+  node: typeof nodeDefinitions[0]; 
+  onDragStart: (event: React.DragEvent, nodeType: string) => void;
+}) => {
+  const IconComponent = iconMap[node.icon] || Puzzle;
+  
+  return (
+    <div
+      draggable
+      onDragStart={(e) => onDragStart(e, node.type)}
+      className={cn(
+        'flex items-center gap-2 p-2 rounded-md cursor-grab',
+        'hover:bg-muted/50 transition-colors',
+        'active:cursor-grabbing group'
+      )}
+    >
+      <GripVertical className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div
+        className="flex h-7 w-7 items-center justify-center rounded-md flex-shrink-0"
+        style={{ backgroundColor: `${node.color}20` }}
+      >
+        <IconComponent 
+          className="h-3.5 w-3.5" 
+          style={{ color: node.color }}
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium truncate">
+          {node.displayName}
+        </div>
+        <div className="text-xs text-muted-foreground truncate">
+          {node.description}
+        </div>
+      </div>
+    </div>
+  );
+});
+NodeItem.displayName = 'NodeItem';
+
+function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
   const [search, setSearch] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(['Triggers', 'Actions'])
@@ -116,7 +156,7 @@ export function NodePalette({ onDragStart }: NodePaletteProps) {
     return filtered;
   }, [categorizedNodes, search]);
   
-  const toggleCategory = (category: string) => {
+  const toggleCategory = useCallback((category: string) => {
     setExpandedCategories(prev => {
       const next = new Set(prev);
       if (next.has(category)) {
@@ -126,10 +166,10 @@ export function NodePalette({ onDragStart }: NodePaletteProps) {
       }
       return next;
     });
-  };
+  }, []);
   
   return (
-    <div className="flex flex-col h-full border-r border-border bg-card">
+    <div className="flex flex-col h-full border-r border-border bg-card/50 backdrop-blur-sm">
       {/* Search */}
       <div className="p-3 border-b border-border">
         <div className="relative">
@@ -138,7 +178,7 @@ export function NodePalette({ onDragStart }: NodePaletteProps) {
             placeholder="Search nodes..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 bg-background"
           />
         </div>
       </div>
@@ -155,7 +195,7 @@ export function NodePalette({ onDragStart }: NodePaletteProps) {
               <CollapsibleTrigger className="flex items-center gap-2 w-full p-2 rounded-md hover:bg-muted/50 transition-colors">
                 <ChevronRight 
                   className={cn(
-                    'h-4 w-4 transition-transform',
+                    'h-4 w-4 transition-transform duration-200',
                     expandedCategories.has(category) && 'rotate-90'
                   )} 
                 />
@@ -164,48 +204,16 @@ export function NodePalette({ onDragStart }: NodePaletteProps) {
                   style={{ backgroundColor: CATEGORY_COLORS[category] || '#6366f1' }}
                 />
                 <span className="text-sm font-medium">{category}</span>
-                <span className="ml-auto text-xs text-muted-foreground">
+                <span className="ml-auto text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                   {nodes.length}
                 </span>
               </CollapsibleTrigger>
               
               <CollapsibleContent>
-                <div className="ml-4 space-y-1 pb-2">
-                  {nodes.map((node) => {
-                    const IconComponent = iconMap[node.icon] || Puzzle;
-                    
-                    return (
-                      <div
-                        key={node.type}
-                        draggable
-                        onDragStart={(e) => onDragStart(e, node.type)}
-                        className={cn(
-                          'flex items-center gap-2 p-2 rounded-md cursor-grab',
-                          'hover:bg-muted/50 transition-colors',
-                          'active:cursor-grabbing'
-                        )}
-                      >
-                        <GripVertical className="h-3 w-3 text-muted-foreground" />
-                        <div
-                          className="flex h-7 w-7 items-center justify-center rounded-md flex-shrink-0"
-                          style={{ backgroundColor: `${node.color}20` }}
-                        >
-                          <IconComponent 
-                            className="h-3.5 w-3.5" 
-                            style={{ color: node.color }}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium truncate">
-                            {node.displayName}
-                          </div>
-                          <div className="text-xs text-muted-foreground truncate">
-                            {node.description}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div className="ml-4 space-y-0.5 pb-2">
+                  {nodes.map((node) => (
+                    <NodeItem key={node.type} node={node} onDragStart={onDragStart} />
+                  ))}
                 </div>
               </CollapsibleContent>
             </Collapsible>
@@ -214,7 +222,7 @@ export function NodePalette({ onDragStart }: NodePaletteProps) {
       </ScrollArea>
       
       {/* Footer with node count */}
-      <div className="p-3 border-t border-border">
+      <div className="p-3 border-t border-border bg-muted/30">
         <div className="text-xs text-muted-foreground text-center">
           {nodeDefinitions.length} nodes available
         </div>
@@ -222,3 +230,5 @@ export function NodePalette({ onDragStart }: NodePaletteProps) {
     </div>
   );
 }
+
+export const NodePalette = memo(NodePaletteComponent);

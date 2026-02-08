@@ -7,6 +7,7 @@ import { AIWorkflowBuilder } from './AIWorkflowBuilder';
 import { ExecutionPanel } from './ExecutionPanel';
 import { WorkflowImportExport } from './WorkflowImportExport';
 import { useWorkflowStore } from '@/stores/workflowStore';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -29,12 +30,14 @@ export function WorkflowEditor({ workflowId, workflowName, onSave }: WorkflowEdi
 
   return (
     <ReactFlowProvider>
-      <div className="h-full w-full relative">
+      <div className="h-full w-full relative bg-canvas-background">
         {/* Top toolbar for import/export and execution */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
           <AIWorkflowBuilder />
           <WorkflowImportExport workflowName={workflowName} />
           {workflowId && <ExecutionPanel workflowId={workflowId} />}
+          <div className="h-8 w-px bg-border" />
+          <ThemeToggle />
         </div>
 
         <ResizablePanelGroup direction="horizontal">

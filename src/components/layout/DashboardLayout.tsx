@@ -16,6 +16,7 @@ import {
   LogOut, Settings, User, ChevronDown, CreditCard, Shield
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -80,6 +81,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
           
           <div className="flex items-center gap-2">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+            
             {/* Billing Button */}
             <Button
               variant="ghost"

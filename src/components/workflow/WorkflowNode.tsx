@@ -51,8 +51,9 @@ function WorkflowNodeComponent({ data, selected }: WorkflowNodeProps) {
   return (
     <div
       className={cn(
-        'relative rounded-lg border bg-card shadow-sm transition-all duration-200 min-w-[180px]',
-        selected && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+        'relative rounded-lg border bg-card shadow-md transition-all duration-200 min-w-[180px]',
+        'hover:shadow-lg hover:border-primary/30',
+        selected && 'ring-2 ring-primary ring-offset-2 ring-offset-background shadow-xl',
         data.isExecuting && 'node-executing'
       )}
       style={{
