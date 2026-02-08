@@ -469,7 +469,7 @@ export default function Admin() {
               </div>
               <div className="mt-4 p-3 rounded-lg bg-violet-500/5 border border-violet-500/10">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Rate: ৳0.25 / 1K tokens</span>
+                  <span className="text-muted-foreground">Credit-based: 1 credit/message</span>
                   <Badge variant="outline" className="bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20">
                     Platform AI
                   </Badge>

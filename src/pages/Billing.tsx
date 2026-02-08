@@ -585,13 +585,13 @@ export default function Billing() {
               </Button>
             </div>
 
-            {/* Usage-Based Pricing Note */}
+            {/* Credit-Based Pricing Note */}
             <div className="flex items-center gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
               <TrendingUp className="h-5 w-5 text-primary shrink-0" />
               <div>
-                <p className="font-medium">Usage-Based Pricing</p>
+                <p className="font-medium">Credit-Based AI Pricing</p>
                 <p className="text-sm text-muted-foreground">
-                  Plans include base features + AI credits. Additional AI usage is billed at ${AI_PRICE_PER_1K_TOKENS}/1K tokens.
+                  Plans include base features + AI credits. Need more? Purchase credit packages above. 1 credit = 1 AI message.
                 </p>
               </div>
             </div>
