@@ -22,19 +22,19 @@ export interface CreditTransaction {
   created_at: string;
 }
 
-// Credit packages available for purchase (BDT pricing @ 127 BDT/USD)
+// Credit packages available for purchase (BDT pricing - competitive with n8n)
 export const CREDIT_PACKAGES = [
-  { id: 'starter', name: 'Starter', credits: 10, price: 1500, currency: 'BDT', popular: false },
-  { id: 'basic', name: 'Basic', credits: 50, price: 5700, currency: 'BDT', popular: false },
-  { id: 'pro', name: 'Pro', credits: 150, price: 15000, currency: 'BDT', popular: true },
-  { id: 'enterprise', name: 'Enterprise', credits: 500, price: 44500, currency: 'BDT', popular: false },
+  { id: 'starter', name: 'Starter', credits: 100, price: 199, currency: 'BDT', popular: false },
+  { id: 'basic', name: 'Basic', credits: 500, price: 799, currency: 'BDT', popular: false },
+  { id: 'pro', name: 'Pro', credits: 2000, price: 2499, currency: 'BDT', popular: true },
+  { id: 'enterprise', name: 'Enterprise', credits: 10000, price: 9999, currency: 'BDT', popular: false },
 ];
 
-// Cost per AI operation (in credits) - balanced for value
+// Cost per AI operation (in credits) - affordable pricing
 export const AI_CREDIT_COSTS = {
-  chat: 0.15, // Per message (~$0.18-0.27 per message)
-  workflow_generation: 2, // Per workflow generated (~$2.40-3.50 per workflow)
-  analysis: 0.75, // Per analysis (~$0.90-1.30 per analysis)
+  chat: 1, // 1 credit per AI chat message
+  workflow_generation: 10, // 10 credits per AI-generated workflow
+  analysis: 5, // 5 credits per AI analysis/debugging
 };
 
 export function useCredits() {
