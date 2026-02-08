@@ -22,12 +22,12 @@ export interface CreditTransaction {
   created_at: string;
 }
 
-// Credit packages available for purchase (BDT pricing)
+// Credit packages available for purchase (BDT pricing @ 127 BDT/USD)
 export const CREDIT_PACKAGES = [
-  { id: 'starter', name: 'Starter', credits: 10, price: 1200, currency: 'BDT', popular: false },
-  { id: 'basic', name: 'Basic', credits: 50, price: 4500, currency: 'BDT', popular: false },
-  { id: 'pro', name: 'Pro', credits: 150, price: 12000, currency: 'BDT', popular: true },
-  { id: 'enterprise', name: 'Enterprise', credits: 500, price: 35000, currency: 'BDT', popular: false },
+  { id: 'starter', name: 'Starter', credits: 10, price: 1500, currency: 'BDT', popular: false },
+  { id: 'basic', name: 'Basic', credits: 50, price: 5700, currency: 'BDT', popular: false },
+  { id: 'pro', name: 'Pro', credits: 150, price: 15000, currency: 'BDT', popular: true },
+  { id: 'enterprise', name: 'Enterprise', credits: 500, price: 44500, currency: 'BDT', popular: false },
 ];
 
 // Cost per AI operation (in credits) - balanced for value
