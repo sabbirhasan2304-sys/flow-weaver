@@ -22,9 +22,11 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlanManagement } from '@/components/admin/PlanManagement';
+import { UserManagement } from '@/components/admin/UserManagement';
 
 interface UserData {
   id: string;
+  user_id: string;
   email: string;
   full_name: string | null;
   created_at: string;
@@ -108,7 +110,7 @@ export default function Admin() {
       
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('id, email, full_name, created_at')
+        .select('id, user_id, email, full_name, created_at')
         .order('created_at', { ascending: false })
         .limit(100);
       
@@ -130,7 +132,7 @@ export default function Admin() {
             };
           })
         );
-        setUsers(usersWithSubs);
+        setUsers(usersWithSubs as UserData[]);
       }
 
       const { count: userCount } = await supabase
@@ -596,119 +598,14 @@ export default function Admin() {
 
             <AnimatePresence mode="wait">
               {/* Users Tab */}
-              <TabsContent value="users" className="space-y-4 mt-0">
+              <TabsContent value="users" className="mt-0">
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card className="border shadow-sm overflow-hidden">
-                    <CardHeader className="bg-muted/30 border-b">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                          <CardTitle className="text-xl flex items-center gap-2">
-                            <Users className="h-5 w-5 text-primary" />
-                            User Management
-                          </CardTitle>
-                          <CardDescription>View and manage all registered users</CardDescription>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              placeholder="Search users..."
-                              value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
-                              className="pl-9 w-64 bg-background border-border/50 focus:border-primary/50"
-                            />
-                          </div>
-                          <Button variant="outline" size="icon" className="shrink-0 border-border/50">
-                            <Filter className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <ScrollArea className="h-[500px]">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="hover:bg-transparent bg-muted/20">
-                              <TableHead className="w-[300px] font-semibold">User</TableHead>
-                              <TableHead className="font-semibold">Plan</TableHead>
-                              <TableHead className="font-semibold">Status</TableHead>
-                              <TableHead className="font-semibold">Joined</TableHead>
-                              <TableHead className="text-right font-semibold">Actions</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {filteredUsers.length === 0 ? (
-                              <TableRow>
-                                <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
-                                  <div className="flex flex-col items-center gap-2">
-                                    <Users className="h-8 w-8 opacity-50" />
-                                    <span>No users found</span>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ) : (
-                              filteredUsers.map((u, index) => (
-                                <motion.tr
-                                  key={u.id}
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: index * 0.03 }}
-                                  className="group hover:bg-muted/50 border-b border-border/50 cursor-pointer transition-colors"
-                                >
-                                  <TableCell>
-                                    <div className="flex items-center gap-3">
-                                      <Avatar className="h-10 w-10 border-2 border-background shadow-sm ring-2 ring-primary/10">
-                                        <AvatarFallback className="bg-gradient-to-br from-primary/20 via-primary/10 to-violet-500/20 text-primary font-semibold">
-                                          {(u.full_name || u.email).charAt(0).toUpperCase()}
-                                        </AvatarFallback>
-                                      </Avatar>
-                                      <div>
-                                        <div className="font-medium">{u.full_name || 'No name'}</div>
-                                        <div className="text-sm text-muted-foreground">{u.email}</div>
-                                      </div>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    {getPlanBadge(u.subscription?.plan_name)}
-                                  </TableCell>
-                                  <TableCell>
-                                    {u.subscription ? getStatusBadge(u.subscription.status) : (
-                                      <Badge variant="outline" className="text-muted-foreground">—</Badge>
-                                    )}
-                                  </TableCell>
-                                  <TableCell className="text-muted-foreground">
-                                    {new Date(u.created_at).toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric',
-                                      year: 'numeric'
-                                    })}
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                                        <Eye className="h-4 w-4" />
-                                      </Button>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                                        <Mail className="h-4 w-4" />
-                                      </Button>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                                        <UserCog className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  </TableCell>
-                                </motion.tr>
-                              ))
-                            )}
-                          </TableBody>
-                        </Table>
-                      </ScrollArea>
-                    </CardContent>
-                  </Card>
+                  <UserManagement />
                 </motion.div>
               </TabsContent>
 
