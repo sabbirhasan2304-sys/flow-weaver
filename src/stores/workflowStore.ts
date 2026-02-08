@@ -24,6 +24,10 @@ export interface NodeData extends Record<string, unknown> {
     data?: unknown;
     error?: string;
   };
+  credentialStatus?: {
+    status: 'idle' | 'testing' | 'success' | 'error';
+    message?: string;
+  };
 }
 
 export type WorkflowNode = Node<NodeData>;
