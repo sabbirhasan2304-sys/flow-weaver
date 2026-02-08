@@ -337,7 +337,7 @@ export default function Billing() {
                 </div>
                 <div>
                   <CardTitle className="text-base">AI Usage</CardTitle>
-                  <CardDescription className="text-xs">Lovable AI tokens</CardDescription>
+                  <CardDescription className="text-xs">Platform AI tokens</CardDescription>
                 </div>
               </div>
             </CardHeader>

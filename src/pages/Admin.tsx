@@ -445,7 +445,7 @@ export default function Admin() {
                     <Sparkles className="h-5 w-5 text-violet-500" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg">AI Usage (Lovable AI)</CardTitle>
+                    <CardTitle className="text-lg">AI Usage</CardTitle>
                     <CardDescription>Token usage and estimated costs</CardDescription>
                   </div>
                 </div>
@@ -470,7 +470,7 @@ export default function Admin() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Rate: $0.002 / 1K tokens</span>
                   <Badge variant="outline" className="bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20">
-                    Lovable AI
+                    Platform AI
                   </Badge>
                 </div>
               </div>
@@ -517,7 +517,7 @@ export default function Admin() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Rate: $0.001/exec + $0.0001/MB</span>
                   <Badge variant="outline" className="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20">
-                    Lovable Cloud
+                    Cloud
                   </Badge>
                 </div>
               </div>
