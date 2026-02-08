@@ -315,13 +315,18 @@ export function NodeConfigPanel() {
   
   // Auto-test credential when selected for AI/ML nodes
   const testCredentialForAINode = async (credentialId: string, nodeType: string) => {
-    if (!AI_ML_NODE_TYPES.includes(nodeType)) return;
+    if (!AI_ML_NODE_TYPES.includes(nodeType) || !selectedNode) return;
     
-    // Update status to testing
+    // Update status to testing (both local state and node data)
     setCredentialTestStatuses(prev => {
       const newMap = new Map(prev);
       newMap.set(credentialId, { credentialId, status: 'testing' });
       return newMap;
+    });
+    
+    // Update node data to show testing status on canvas
+    updateNode(selectedNode.id, {
+      credentialStatus: { status: 'testing', message: 'Testing credential...' }
     });
     
     try {
@@ -343,8 +348,7 @@ export function NodeConfigPanel() {
       
       // Platform AI nodes (uses Lovable AI gateway)
       if (['openai', 'gemini', 'aiAgent', 'langchainAgent', 'geminiVision'].includes(nodeType)) {
-        // These use platform credentials, so just validate they're set
-        testMessage = 'Using platform AI gateway - no external API key needed';
+        testMessage = 'Using platform AI gateway';
         setCredentialTestStatuses(prev => {
           const newMap = new Map(prev);
           newMap.set(credentialId, { 
@@ -354,6 +358,9 @@ export function NodeConfigPanel() {
             testedAt: new Date()
           });
           return newMap;
+        });
+        updateNode(selectedNode.id, {
+          credentialStatus: { status: 'success', message: testMessage }
         });
         toast.success('Credential validated');
         return;
@@ -410,7 +417,6 @@ export function NodeConfigPanel() {
       
       // Generic API key test for other nodes
       else {
-        // Just validate the key exists and has a reasonable format
         if (apiKey.length >= 10) {
           testMessage = 'API key format validated';
           setCredentialTestStatuses(prev => {
@@ -422,6 +428,9 @@ export function NodeConfigPanel() {
               testedAt: new Date()
             });
             return newMap;
+          });
+          updateNode(selectedNode.id, {
+            credentialStatus: { status: 'success', message: testMessage }
           });
           toast.success('Credential validated');
           return;
@@ -441,22 +450,29 @@ export function NodeConfigPanel() {
           });
           return newMap;
         });
+        updateNode(selectedNode.id, {
+          credentialStatus: { status: 'success', message: testMessage }
+        });
         toast.success(testMessage);
       } else {
         throw new Error(testMessage || 'Credential test failed');
       }
     } catch (err: any) {
+      const errorMessage = err.message || 'Test failed';
       setCredentialTestStatuses(prev => {
         const newMap = new Map(prev);
         newMap.set(credentialId, { 
           credentialId, 
           status: 'error', 
-          message: err.message || 'Test failed',
+          message: errorMessage,
           testedAt: new Date()
         });
         return newMap;
       });
-      toast.error(err.message || 'Credential test failed');
+      updateNode(selectedNode.id, {
+        credentialStatus: { status: 'error', message: errorMessage }
+      });
+      toast.error(errorMessage);
     }
   };
   

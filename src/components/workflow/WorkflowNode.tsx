@@ -11,8 +11,9 @@ import {
   Globe, FileJson, Zap, Bell, Upload, Download,
   Cloud, Server, Lock, Shield, Coins, BarChart,
   Image, Video, Mic, Settings, Puzzle,
-  CheckCircle2, XCircle, Loader2
+  CheckCircle2, XCircle, Loader2, AlertTriangle, Key
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Webhook, Clock, Play, Mail, MessageSquare, Send,
@@ -47,6 +48,62 @@ function WorkflowNodeComponent({ data, selected }: WorkflowNodeProps) {
         return null;
     }
   };
+  
+  const getCredentialStatusIcon = () => {
+    if (!data.credentialStatus) return null;
+    
+    switch (data.credentialStatus.status) {
+      case 'testing':
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="absolute -top-1 -right-1 flex items-center justify-center h-5 w-5 rounded-full bg-warning/20 border border-warning">
+                  <Loader2 className="h-3 w-3 text-warning animate-spin" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
+                Testing credential...
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      case 'success':
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="absolute -top-1 -right-1 flex items-center justify-center h-5 w-5 rounded-full bg-success/20 border border-success">
+                  <Key className="h-3 w-3 text-success" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">
+                {data.credentialStatus.message || 'Credential verified'}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      case 'error':
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="absolute -top-1 -right-1 flex items-center justify-center h-5 w-5 rounded-full bg-destructive/20 border border-destructive animate-pulse">
+                  <AlertTriangle className="h-3 w-3 text-destructive" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs max-w-[200px]">
+                <span className="font-medium text-destructive">Credential Error:</span>
+                <br />
+                {data.credentialStatus.message || 'Invalid or expired credential'}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div
@@ -54,7 +111,8 @@ function WorkflowNodeComponent({ data, selected }: WorkflowNodeProps) {
         'relative rounded-lg border bg-card shadow-md transition-all duration-200 min-w-[180px]',
         'hover:shadow-lg hover:border-primary/30',
         selected && 'ring-2 ring-primary ring-offset-2 ring-offset-background shadow-xl',
-        data.isExecuting && 'node-executing'
+        data.isExecuting && 'node-executing',
+        data.credentialStatus?.status === 'error' && 'ring-1 ring-destructive/50'
       )}
       style={{
         borderColor: selected ? categoryColor : undefined,
@@ -62,6 +120,9 @@ function WorkflowNodeComponent({ data, selected }: WorkflowNodeProps) {
         borderLeftColor: categoryColor,
       }}
     >
+      {/* Credential status badge */}
+      {getCredentialStatusIcon()}
+      
       {/* Input handles */}
       {definition?.inputs.map((input, index) => (
         <Handle
