@@ -1,4 +1,4 @@
-import { useCallback, useRef, DragEvent, useState, memo } from 'react';
+import { useCallback, useRef, DragEvent, useState, memo, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -33,10 +33,11 @@ const nodeTypes = {
 
 interface WorkflowCanvasProps {
   workflowId?: string;
+  initialData?: { nodes?: any[]; edges?: any[] };
   onSave?: (data: { nodes: WorkflowNodeType[]; edges: any[] }) => void;
 }
 
-export function WorkflowCanvas({ workflowId, onSave }: WorkflowCanvasProps) {
+export function WorkflowCanvas({ workflowId, initialData, onSave }: WorkflowCanvasProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const { screenToFlowPosition, fitView, zoomIn, zoomOut } = useReactFlow();
   
@@ -52,10 +53,54 @@ export function WorkflowCanvas({ workflowId, onSave }: WorkflowCanvasProps) {
     deleteNode,
     isExecuting,
     setExecuting,
+    loadWorkflow,
   } = useWorkflowStore();
   
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  // Load initial workflow data when component mounts
+  useEffect(() => {
+    if (initialData && !hasLoaded) {
+      const nodesToLoad = initialData.nodes || [];
+      const edgesToLoad = initialData.edges || [];
+      
+      // Transform nodes to ensure they have the correct format
+      const formattedNodes: WorkflowNodeType[] = nodesToLoad.map((node: any) => ({
+        id: node.id,
+        type: node.type || 'workflowNode',
+        position: node.position || { x: 0, y: 0 },
+        data: {
+          label: node.data?.label || 'Node',
+          type: node.data?.type || 'unknown',
+          category: node.data?.category || '',
+          icon: node.data?.icon,
+          config: node.data?.config || {},
+          service: node.data?.service,
+        },
+      }));
+      
+      // Format edges with proper styling
+      const formattedEdges = edgesToLoad.map((edge: any) => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        animated: true,
+        style: { stroke: 'hsl(var(--primary))' },
+      }));
+      
+      if (formattedNodes.length > 0 || formattedEdges.length > 0) {
+        loadWorkflow({ nodes: formattedNodes, edges: formattedEdges });
+        setHasLoaded(true);
+        
+        // Fit view after loading with a small delay to ensure React Flow is ready
+        setTimeout(() => {
+          fitView({ padding: 0.2 });
+        }, 100);
+      }
+    }
+  }, [initialData, hasLoaded, loadWorkflow, fitView]);
 
   const onDragOver = useCallback((event: DragEvent) => {
     event.preventDefault();
