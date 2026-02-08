@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Zap, ArrowLeft, Plus, Search, Key, Trash2, Edit, Shield } from 'lucide-react';
+import { Zap, ArrowLeft, Plus, Search, Key, Trash2, Edit, Shield, Sparkles, Info, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { CredentialForm } from '@/components/credentials/CredentialForm';
 import { credentialTypeConfigs, getCredentialTypeConfig } from '@/components/credentials/CredentialFieldsConfig';
@@ -31,6 +31,8 @@ import {
   GmailIcon, MailchimpIcon, WooCommerceIcon, GitLabIcon, RedisIcon,
   MySQLIcon, BkashIcon, NagadIcon, OutlookIcon, SquareIcon,
 } from '@/components/icons/ServiceIcons';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Credential {
   id: string;
@@ -40,6 +42,12 @@ interface Credential {
   created_at: string;
   updated_at: string;
 }
+
+// Services that have platform-provided credentials available as fallback
+const PLATFORM_PROVIDED_SERVICES = [
+  'openai', 'anthropic', 'google', 'slack', 'discord', 'telegram',
+  'sendgrid', 'twilio', 'stripe', 'github'
+];
 
 const getCredentialIcon = (type: string, size: 'sm' | 'md' = 'sm') => {
   const sizeClass = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
@@ -344,14 +352,55 @@ export default function Credentials() {
 
       <main className="container mx-auto px-4 py-8">
         {/* Info Banner */}
-        <Card className="mb-8 border-primary/20 bg-primary/5">
-          <CardContent className="p-4 flex items-center gap-4">
-            <Shield className="h-8 w-8 text-primary" />
-            <div>
-              <h3 className="font-medium">Secure Credential Storage</h3>
-              <p className="text-sm text-muted-foreground">
-                All credentials are encrypted at rest. API keys and tokens are never exposed in logs or workflows.
+        <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
+          <CardContent className="p-4 flex items-start gap-4">
+            <div className="p-2.5 rounded-xl bg-primary/10">
+              <Shield className="h-6 w-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold mb-1">Your Credentials, Your Control</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Add your own API keys to use your account limits and billing. All credentials are encrypted at rest and never exposed in logs.
               </p>
+              <div className="flex items-center gap-2 text-xs">
+                <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 gap-1">
+                  <Sparkles className="h-3 w-3" />
+                  Platform Fallback
+                </Badge>
+                <span className="text-muted-foreground">
+                  Services with this badge can use our shared credentials if you don't have your own
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* How it Works */}
+        <Card className="mb-8 border-muted">
+          <CardContent className="p-4">
+            <h4 className="font-medium mb-3 flex items-center gap-2">
+              <Info className="h-4 w-4 text-muted-foreground" />
+              How Credentials Work
+            </h4>
+            <div className="grid md:grid-cols-2 gap-4 text-sm">
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-xs font-bold text-primary">1</span>
+                </div>
+                <div>
+                  <p className="font-medium">Use Your Own Keys</p>
+                  <p className="text-muted-foreground text-xs">Add your API keys to use your own account limits, billing, and have full control over usage.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                <div className="h-6 w-6 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-xs font-bold text-amber-600 dark:text-amber-400">2</span>
+                </div>
+                <div>
+                  <p className="font-medium">Or Use Platform Credits</p>
+                  <p className="text-muted-foreground text-xs">Don't have keys? Some services can use our shared credentials, charged via AI credits from your balance.</p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -375,15 +424,21 @@ export default function Credentials() {
             <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filteredCredentials.length === 0 ? (
-          <div className="text-center py-20">
-            <Key className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No credentials yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Add credentials to connect your workflows to external services
+          <div className="text-center py-16 px-4">
+            <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+              <Key className="h-8 w-8 text-muted-foreground/50" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">No custom credentials yet</h3>
+            <p className="text-muted-foreground mb-2 max-w-md mx-auto">
+              Add your own API keys to use your account limits, or use platform credentials charged via AI credits.
+            </p>
+            <p className="text-sm text-amber-600 dark:text-amber-400 mb-6">
+              <Sparkles className="h-4 w-4 inline mr-1" />
+              Services with platform fallback will work automatically using your AI credits
             </p>
             <Button onClick={() => setCreateDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Credential
+              Add Your Own Credentials
             </Button>
           </div>
         ) : (
@@ -435,29 +490,108 @@ export default function Credentials() {
           </div>
         )}
 
-        {/* Quick Connect Section - like n8n/Zapier */}
+        {/* Quick Connect Section */}
         <div className="mt-12">
-          <h2 className="text-xl font-bold mb-2">Connect a Service</h2>
-          <p className="text-sm text-muted-foreground mb-4">Click on a service to add credentials</p>
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-            {credentialTypeConfigs.map((config) => (
-              <Button
-                key={config.value}
-                variant="outline"
-                className="h-auto py-4 flex-col gap-2 hover:border-primary/50 hover:bg-primary/5 transition-all"
-                onClick={() => {
-                  setNewCredType(config.value);
-                  setNewCredName(`My ${config.label}`);
-                  setNewCredSettings({});
-                  setCreateDialogOpen(true);
-                }}
-              >
-                {getCredentialIcon(config.value, 'md')}
-                <span className="text-xs text-center">{config.label}</span>
-              </Button>
-            ))}
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-bold">Connect a Service</h2>
+              <p className="text-sm text-muted-foreground">Click on a service to add your own credentials</p>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 gap-1">
+                <Sparkles className="h-3 w-3" />
+                Platform Available
+              </Badge>
+              <span>= Can use our shared credentials</span>
+            </div>
           </div>
+          <TooltipProvider>
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+              {credentialTypeConfigs.map((config) => {
+                const hasPlatformFallback = PLATFORM_PROVIDED_SERVICES.includes(config.value);
+                const userHasCredential = credentials.some(c => c.type === config.value);
+                
+                return (
+                  <Tooltip key={config.value}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={`h-auto py-4 flex-col gap-2 hover:border-primary/50 hover:bg-primary/5 transition-all relative ${
+                          userHasCredential ? 'border-emerald-500/50 bg-emerald-500/5' : ''
+                        }`}
+                        onClick={() => {
+                          setNewCredType(config.value);
+                          setNewCredName(`My ${config.label}`);
+                          setNewCredSettings({});
+                          setCreateDialogOpen(true);
+                        }}
+                      >
+                        {/* Platform fallback badge */}
+                        {hasPlatformFallback && !userHasCredential && (
+                          <div className="absolute -top-1.5 -right-1.5">
+                            <Badge className="h-5 w-5 p-0 flex items-center justify-center bg-amber-500 text-white border-0">
+                              <Sparkles className="h-3 w-3" />
+                            </Badge>
+                          </div>
+                        )}
+                        {/* User has credential badge */}
+                        {userHasCredential && (
+                          <div className="absolute -top-1.5 -right-1.5">
+                            <Badge className="h-5 w-5 p-0 flex items-center justify-center bg-emerald-500 text-white border-0">
+                              <Check className="h-3 w-3" />
+                            </Badge>
+                          </div>
+                        )}
+                        {getCredentialIcon(config.value, 'md')}
+                        <span className="text-xs text-center">{config.label}</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <p className="font-medium">{config.label}</p>
+                      <p className="text-xs text-muted-foreground">{config.description}</p>
+                      {hasPlatformFallback && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                          ✨ Platform fallback available - uses your AI credits
+                        </p>
+                      )}
+                      {userHasCredential && (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                          ✓ You have credentials configured
+                        </p>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          </TooltipProvider>
         </div>
+
+        {/* Platform Credits Info */}
+        <Card className="mt-8 border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-4">
+              <div className="p-2.5 rounded-xl bg-amber-500/10">
+                <Sparkles className="h-5 w-5 text-amber-500" />
+              </div>
+              <div>
+                <h4 className="font-medium mb-1">Using Platform Credentials</h4>
+                <p className="text-sm text-muted-foreground mb-2">
+                  For services marked with <Sparkles className="h-3 w-3 inline text-amber-500" />, if you don't add your own credentials, 
+                  workflows will use our shared API keys. Usage is charged from your AI credits balance:
+                </p>
+                <ul className="text-xs text-muted-foreground space-y-1">
+                  <li>• <strong>OpenAI/Anthropic:</strong> 1 credit per 1K tokens</li>
+                  <li>• <strong>Email/SMS:</strong> 0.5 credits per message</li>
+                  <li>• <strong>Other APIs:</strong> 0.1 credits per request</li>
+                </ul>
+                <Button variant="link" size="sm" className="p-0 h-auto mt-2 text-amber-600 dark:text-amber-400" asChild>
+                  <a href="/billing">Manage AI Credits →</a>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </main>
 
       {/* Edit Dialog */}
