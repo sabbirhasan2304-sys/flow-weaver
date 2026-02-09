@@ -172,11 +172,42 @@ interface NodePaletteProps {
 }
 
 // Memoized node item for performance
-const NodeItem = memo(({ node, onDragStart }: { 
+const NodeItem = memo(({ node, onDragStart, locked }: { 
   node: typeof nodeDefinitions[0]; 
   onDragStart: (event: React.DragEvent, nodeType: string) => void;
+  locked?: boolean;
 }) => {
   const IconComponent = iconMap[node.icon] || Puzzle;
+  
+  if (locked) {
+    return (
+      <div
+        className={cn(
+          'flex items-center gap-2 p-2 rounded-md opacity-40 cursor-not-allowed'
+        )}
+        title="Install the required plugin from Marketplace to unlock"
+      >
+        <Lock className="h-3 w-3 text-muted-foreground" />
+        <div
+          className="flex h-7 w-7 items-center justify-center rounded-md flex-shrink-0"
+          style={{ backgroundColor: `${node.color}10` }}
+        >
+          <IconComponent 
+            className="h-3.5 w-3.5" 
+            style={{ color: node.color }}
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium truncate text-muted-foreground">
+            {node.displayName}
+          </div>
+          <div className="text-xs text-muted-foreground/60 truncate">
+            🔒 Plugin required
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div
@@ -216,19 +247,18 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(['Triggers', 'Actions'])
   );
-  const { isNodeCategoryAllowed, isCoreCategory, loading: pluginsLoading } = useInstalledPlugins();
+  const { isNodeAllowed, requiresPlugin } = useInstalledPlugins();
   
   const categorizedNodes = useMemo(() => getNodesByCategory(), []);
   
-  const filteredNodes = useMemo(() => {
-    const result: Record<string, typeof nodeDefinitions> = {};
+  // Split nodes into allowed and locked per category
+  const { filteredNodes, lockedNodes } = useMemo(() => {
+    const allowed: Record<string, typeof nodeDefinitions> = {};
+    const locked: Record<string, typeof nodeDefinitions> = {};
     const searchLower = search.toLowerCase();
     
     Object.entries(categorizedNodes).forEach(([category, nodes]) => {
-      // Only include nodes from allowed categories
-      if (!isNodeCategoryAllowed(category)) return;
-      
-      const matchingNodes = search 
+      const searchMatch = search 
         ? nodes.filter(
             node => 
               node.displayName.toLowerCase().includes(searchLower) ||
@@ -237,18 +267,23 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
           )
         : nodes;
       
-      if (matchingNodes.length > 0) {
-        result[category] = matchingNodes;
-      }
+      const categoryAllowed: typeof nodeDefinitions = [];
+      const categoryLocked: typeof nodeDefinitions = [];
+      
+      searchMatch.forEach(node => {
+        if (isNodeAllowed(node.type)) {
+          categoryAllowed.push(node);
+        } else {
+          categoryLocked.push(node);
+        }
+      });
+      
+      if (categoryAllowed.length > 0) allowed[category] = categoryAllowed;
+      if (categoryLocked.length > 0) locked[category] = categoryLocked;
     });
     
-    return result;
-  }, [categorizedNodes, search, isNodeCategoryAllowed]);
-
-  // Locked categories (not installed)
-  const lockedCategories = useMemo(() => {
-    return Object.keys(categorizedNodes).filter(c => !isCoreCategory(c) && !isNodeCategoryAllowed(c));
-  }, [categorizedNodes, isCoreCategory, isNodeCategoryAllowed]);
+    return { filteredNodes: allowed, lockedNodes: locked };
+  }, [categorizedNodes, search, isNodeAllowed]);
   
   const toggleCategory = useCallback((category: string) => {
     setExpandedCategories(prev => {
@@ -265,6 +300,12 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
   const availableNodeCount = useMemo(() => {
     return Object.values(filteredNodes).reduce((sum, nodes) => sum + nodes.length, 0);
   }, [filteredNodes]);
+
+  // Merge categories: show allowed nodes first, then locked nodes per category
+  const allCategories = useMemo(() => {
+    const cats = new Set([...Object.keys(filteredNodes), ...Object.keys(lockedNodes)]);
+    return Array.from(cats);
+  }, [filteredNodes, lockedNodes]);
   
   return (
     <div className="flex flex-col h-full border-r border-border bg-card/50 backdrop-blur-sm">
@@ -284,63 +325,52 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
       {/* Node list */}
       <ScrollArea className="flex-1">
         <div className="p-2">
-          {Object.entries(filteredNodes).map(([category, nodes]) => (
-            <Collapsible
-              key={category}
-              open={expandedCategories.has(category) || !!search}
-              onOpenChange={() => toggleCategory(category)}
-            >
-              <CollapsibleTrigger className="flex items-center gap-2 w-full p-2 rounded-md hover:bg-muted/50 transition-colors">
-                <ChevronRight 
-                  className={cn(
-                    'h-4 w-4 transition-transform duration-200',
-                    expandedCategories.has(category) && 'rotate-90'
-                  )} 
-                />
-                <div
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: CATEGORY_COLORS[category] || '#6366f1' }}
-                />
-                <span className="text-sm font-medium">{category}</span>
-                <span className="ml-auto text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                  {nodes.length}
-                </span>
-              </CollapsibleTrigger>
-              
-              <CollapsibleContent>
-                <div className="ml-4 space-y-0.5 pb-2">
-                  {nodes.map((node) => (
-                    <NodeItem key={node.type} node={node} onDragStart={onDragStart} />
-                  ))}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          ))}
-
-          {/* Show locked categories */}
-          {!search && lockedCategories.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-border">
-              <p className="text-xs text-muted-foreground px-2 mb-2">
-                Install plugins to unlock:
-              </p>
-              {lockedCategories.map(category => (
-                <div
-                  key={category}
-                  className="flex items-center gap-2 w-full p-2 rounded-md opacity-50"
-                >
-                  <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+          {allCategories.map((category) => {
+            const allowedInCat = filteredNodes[category] || [];
+            const lockedInCat = lockedNodes[category] || [];
+            const totalInCat = allowedInCat.length + lockedInCat.length;
+            
+            return (
+              <Collapsible
+                key={category}
+                open={expandedCategories.has(category) || !!search}
+                onOpenChange={() => toggleCategory(category)}
+              >
+                <CollapsibleTrigger className="flex items-center gap-2 w-full p-2 rounded-md hover:bg-muted/50 transition-colors">
+                  <ChevronRight 
+                    className={cn(
+                      'h-4 w-4 transition-transform duration-200',
+                      expandedCategories.has(category) && 'rotate-90'
+                    )} 
+                  />
                   <div
                     className="h-2 w-2 rounded-full"
                     style={{ backgroundColor: CATEGORY_COLORS[category] || '#6366f1' }}
                   />
-                  <span className="text-sm text-muted-foreground">{category}</span>
+                  <span className="text-sm font-medium">{category}</span>
+                  {lockedInCat.length > 0 && (
+                    <Lock className="h-3 w-3 text-muted-foreground" />
+                  )}
                   <span className="ml-auto text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                    {categorizedNodes[category]?.length || 0}
+                    {allowedInCat.length}/{totalInCat}
                   </span>
-                </div>
-              ))}
-            </div>
-          )}
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent>
+                  <div className="ml-4 space-y-0.5 pb-2">
+                    {/* Unlocked nodes */}
+                    {allowedInCat.map((node) => (
+                      <NodeItem key={node.type} node={node} onDragStart={onDragStart} />
+                    ))}
+                    {/* Locked nodes */}
+                    {lockedInCat.map((node) => (
+                      <NodeItem key={node.type} node={node} onDragStart={onDragStart} locked />
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            );
+          })}
         </div>
       </ScrollArea>
       
