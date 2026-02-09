@@ -9,7 +9,7 @@ import {
 import { cn } from '@/lib/utils';
 import { nodeDefinitions, getNodesByCategory } from '@/data/nodeDefinitions';
 import { CATEGORY_COLORS } from '@/types/nodes';
-import { Search, ChevronRight, GripVertical } from 'lucide-react';
+import { useInstalledPlugins } from '@/hooks/useInstalledPlugins';
 import { 
   Webhook, Clock, Play, Mail, MessageSquare, Send, 
   FileSpreadsheet, Database, Code, GitBranch, Repeat, 
@@ -28,7 +28,8 @@ import {
   Camera, Music, Film, Volume2, Headphones, Monitor,
   Share2, MessageCircle, AtSign, Hash as HashIcon, Users,
   Folder, FolderOpen, Archive, CloudUpload, CloudDownload,
-  Fingerprint, KeyRound, ShieldCheck, UserCheck, Scan
+  Fingerprint, KeyRound, ShieldCheck, UserCheck, Scan,
+  Search, ChevronRight, GripVertical
 } from 'lucide-react';
 import {
   OpenAIIcon, AnthropicIcon, GoogleIcon, SlackIcon, DiscordIcon,
@@ -215,30 +216,39 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(['Triggers', 'Actions'])
   );
+  const { isNodeCategoryAllowed, isCoreCategory, loading: pluginsLoading } = useInstalledPlugins();
   
   const categorizedNodes = useMemo(() => getNodesByCategory(), []);
   
   const filteredNodes = useMemo(() => {
-    if (!search) return categorizedNodes;
-    
-    const filtered: Record<string, typeof nodeDefinitions> = {};
+    const result: Record<string, typeof nodeDefinitions> = {};
     const searchLower = search.toLowerCase();
     
     Object.entries(categorizedNodes).forEach(([category, nodes]) => {
-      const matchingNodes = nodes.filter(
-        node => 
-          node.displayName.toLowerCase().includes(searchLower) ||
-          node.description.toLowerCase().includes(searchLower) ||
-          node.type.toLowerCase().includes(searchLower)
-      );
+      // Only include nodes from allowed categories
+      if (!isNodeCategoryAllowed(category)) return;
+      
+      const matchingNodes = search 
+        ? nodes.filter(
+            node => 
+              node.displayName.toLowerCase().includes(searchLower) ||
+              node.description.toLowerCase().includes(searchLower) ||
+              node.type.toLowerCase().includes(searchLower)
+          )
+        : nodes;
       
       if (matchingNodes.length > 0) {
-        filtered[category] = matchingNodes;
+        result[category] = matchingNodes;
       }
     });
     
-    return filtered;
-  }, [categorizedNodes, search]);
+    return result;
+  }, [categorizedNodes, search, isNodeCategoryAllowed]);
+
+  // Locked categories (not installed)
+  const lockedCategories = useMemo(() => {
+    return Object.keys(categorizedNodes).filter(c => !isCoreCategory(c) && !isNodeCategoryAllowed(c));
+  }, [categorizedNodes, isCoreCategory, isNodeCategoryAllowed]);
   
   const toggleCategory = useCallback((category: string) => {
     setExpandedCategories(prev => {
@@ -251,6 +261,10 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
       return next;
     });
   }, []);
+
+  const availableNodeCount = useMemo(() => {
+    return Object.values(filteredNodes).reduce((sum, nodes) => sum + nodes.length, 0);
+  }, [filteredNodes]);
   
   return (
     <div className="flex flex-col h-full border-r border-border bg-card/50 backdrop-blur-sm">
@@ -302,13 +316,38 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
               </CollapsibleContent>
             </Collapsible>
           ))}
+
+          {/* Show locked categories */}
+          {!search && lockedCategories.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-border">
+              <p className="text-xs text-muted-foreground px-2 mb-2">
+                Install plugins to unlock:
+              </p>
+              {lockedCategories.map(category => (
+                <div
+                  key={category}
+                  className="flex items-center gap-2 w-full p-2 rounded-md opacity-50"
+                >
+                  <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                  <div
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: CATEGORY_COLORS[category] || '#6366f1' }}
+                  />
+                  <span className="text-sm text-muted-foreground">{category}</span>
+                  <span className="ml-auto text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                    {categorizedNodes[category]?.length || 0}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </ScrollArea>
       
       {/* Footer with node count */}
       <div className="p-3 border-t border-border bg-muted/30">
         <div className="text-xs text-muted-foreground text-center">
-          {nodeDefinitions.length} nodes available
+          {availableNodeCount} of {nodeDefinitions.length} nodes available
         </div>
       </div>
     </div>
