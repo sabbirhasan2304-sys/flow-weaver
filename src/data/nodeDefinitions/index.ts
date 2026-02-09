@@ -22,6 +22,7 @@ import { mediaNodes } from './media';
 import { securityNodes } from './security';
 import { customNodes } from './custom';
 import { paymentNodes } from './payments';
+import { apiNodes } from './api';
 
 // Combine all node definitions
 export const nodeDefinitions: NodeDefinition[] = [
@@ -42,6 +43,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   ...securityNodes,
   ...customNodes,
   ...paymentNodes,
+  ...apiNodes,
 ];
 
 // Helper function to get node by type
