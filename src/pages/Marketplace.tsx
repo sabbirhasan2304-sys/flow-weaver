@@ -91,7 +91,7 @@ export default function Marketplace() {
 
   useEffect(() => {
     fetchPlugins();
-  }, []);
+  }, [user]);
 
   const fetchPlugins = async () => {
     setLoading(true);
@@ -103,12 +103,33 @@ export default function Marketplace() {
     
     if (error) {
       toast.error('Failed to load plugins');
-    } else {
-      setPlugins(data || []);
-      // Mark system plugins as installed by default
-      const systemPlugins = new Set((data || []).filter(p => p.is_system).map(p => p.id));
-      setInstalledPlugins(systemPlugins);
+      setLoading(false);
+      return;
     }
+    
+    setPlugins(data || []);
+
+    // Fetch user's installed plugins from database
+    if (user) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileData) {
+        const { data: installs } = await supabase
+          .from('user_plugin_installs')
+          .select('plugin_id')
+          .eq('profile_id', profileData.id);
+
+        const installedSet = new Set((installs || []).map(i => i.plugin_id));
+        setInstalledPlugins(installedSet);
+      }
+    } else {
+      setInstalledPlugins(new Set());
+    }
+    
     setLoading(false);
   };
 
@@ -131,19 +152,55 @@ export default function Marketplace() {
 
     setInstallingId(plugin.id);
     
-    // Simulate installation delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    if (installedPlugins.has(plugin.id)) {
-      setInstalledPlugins(prev => {
-        const next = new Set(prev);
-        next.delete(plugin.id);
-        return next;
-      });
-      toast.success(`Uninstalled ${plugin.display_name}`);
-    } else {
-      setInstalledPlugins(prev => new Set([...prev, plugin.id]));
-      toast.success(`Installed ${plugin.display_name}! It's now available in the node palette.`);
+    try {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profileData) {
+        toast.error('Profile not found');
+        setInstallingId(null);
+        return;
+      }
+
+      if (installedPlugins.has(plugin.id)) {
+        // Uninstall - delete from database
+        const { error } = await supabase
+          .from('user_plugin_installs')
+          .delete()
+          .eq('profile_id', profileData.id)
+          .eq('plugin_id', plugin.id);
+
+        if (error) {
+          toast.error(`Failed to uninstall ${plugin.display_name}`);
+        } else {
+          setInstalledPlugins(prev => {
+            const next = new Set(prev);
+            next.delete(plugin.id);
+            return next;
+          });
+          toast.success(`Uninstalled ${plugin.display_name}`);
+        }
+      } else {
+        // Install - insert into database
+        const { error } = await supabase
+          .from('user_plugin_installs')
+          .insert({
+            profile_id: profileData.id,
+            plugin_id: plugin.id,
+          });
+
+        if (error) {
+          toast.error(`Failed to install ${plugin.display_name}`);
+        } else {
+          setInstalledPlugins(prev => new Set([...prev, plugin.id]));
+          toast.success(`Installed ${plugin.display_name}! It's now available in the node palette.`);
+        }
+      }
+    } catch (err) {
+      toast.error('An error occurred');
     }
     
     setInstallingId(null);
