@@ -239,49 +239,87 @@ export default function Index() {
           >
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Code className="h-4 w-4" />
-              Developer API
+              Developer API v2
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Build Integrations with Our API
+              Full Platform Access via REST API
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Access all platform features programmatically. Execute workflows, 
-              manage automations, and integrate with any external system.
+              20+ endpoints to automate everything. Create workflows, execute them, 
+              manage credentials, batch operations, webhooks — all programmatically.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-8 items-center">
+          {/* API Capabilities Grid */}
+          <div className="grid md:grid-cols-3 gap-4 mb-12">
+            {[
+              { icon: Workflow, title: 'Workflow CRUD', desc: 'Create, read, update, delete, clone workflows. Full lifecycle management via API.' },
+              { icon: Play, title: 'Remote Execution', desc: 'Execute any workflow with custom input. Get real-time results, logs, and output data.' },
+              { icon: Zap, title: 'Batch Operations', desc: 'Execute up to 10 workflows in a single API call. Parallel processing with error handling.' },
+              { icon: Globe, title: 'Webhook Events', desc: 'Register webhooks for execution.completed, execution.failed events with HMAC verification.' },
+              { icon: Database, title: 'Template Library', desc: 'Browse 50+ templates, search by category, and create workflows from templates via API.' },
+              { icon: Shield, title: 'Credential Management', desc: 'Securely create and manage integration credentials for your workflows.' },
+              { icon: Code, title: 'Execution Analytics', desc: 'Workflow stats, execution history, retry failed runs, and performance metrics.' },
+              { icon: Users, title: 'Usage Monitoring', desc: 'Track API calls, response times, error rates, and credit balance in real-time.' },
+              { icon: Bot, title: '8 SDK Languages', desc: 'Code examples in JavaScript, TypeScript, Python, PHP, Go, Ruby, Java, and cURL.' },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+                className="p-4 rounded-lg bg-card border border-border hover:border-primary/40 transition-colors"
+              >
+                <item.icon className="h-5 w-5 text-primary mb-2" />
+                <h4 className="font-semibold text-foreground text-sm">{item.title}</h4>
+                <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 items-start">
+            {/* Endpoint list */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="space-y-6"
             >
-              <div className="space-y-4">
+              <h3 className="text-lg font-bold text-foreground mb-4">Available Endpoints</h3>
+              <div className="space-y-1.5 text-sm font-mono">
                 {[
-                  { title: 'RESTful API', desc: 'Standard REST endpoints for all operations' },
-                  { title: 'API Key Authentication', desc: 'Secure keys with configurable permissions' },
-                  { title: 'Rate Limiting', desc: 'Customizable limits per API key' },
-                  { title: 'Usage Analytics', desc: 'Track all API calls and performance' },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border">
-                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <h4 className="font-semibold text-foreground">{item.title}</h4>
-                      <p className="text-sm text-muted-foreground">{item.desc}</p>
-                    </div>
+                  { method: 'GET', path: '/health', color: 'text-emerald-500' },
+                  { method: 'GET', path: '/workflows', color: 'text-emerald-500' },
+                  { method: 'POST', path: '/workflows', color: 'text-blue-500' },
+                  { method: 'PUT', path: '/workflows/:id', color: 'text-amber-500' },
+                  { method: 'DELETE', path: '/workflows/:id', color: 'text-rose-500' },
+                  { method: 'POST', path: '/workflows/:id/execute', color: 'text-blue-500' },
+                  { method: 'POST', path: '/workflows/:id/clone', color: 'text-blue-500' },
+                  { method: 'GET', path: '/workflows/:id/stats', color: 'text-emerald-500' },
+                  { method: 'GET', path: '/executions', color: 'text-emerald-500' },
+                  { method: 'GET', path: '/executions/:id/logs', color: 'text-emerald-500' },
+                  { method: 'POST', path: '/executions/:id/retry', color: 'text-blue-500' },
+                  { method: 'GET', path: '/templates', color: 'text-emerald-500' },
+                  { method: 'POST', path: '/credentials', color: 'text-blue-500' },
+                  { method: 'POST', path: '/webhooks', color: 'text-blue-500' },
+                  { method: 'POST', path: '/batch/execute', color: 'text-blue-500' },
+                  { method: 'GET', path: '/usage/summary', color: 'text-emerald-500' },
+                ].map((ep, i) => (
+                  <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded bg-muted/50">
+                    <span className={`font-bold text-xs w-14 ${ep.color}`}>{ep.method}</span>
+                    <span className="text-muted-foreground">{ep.path}</span>
                   </div>
                 ))}
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 mt-6">
                 <Button asChild>
                   <Link to="/api-docs">
                     <FileText className="h-4 w-4 mr-2" />
-                    View API Docs
+                    Full API Docs
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link to="/api-keys">
+                  <Link to="/auth">
                     <Code className="h-4 w-4 mr-2" />
                     Get API Key
                   </Link>
@@ -289,34 +327,59 @@ export default function Index() {
               </div>
             </motion.div>
 
+            {/* Code example */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="bg-card rounded-xl border border-border p-6 overflow-hidden"
+              className="space-y-4"
             >
-              <div className="flex items-center gap-2 mb-4">
-                <div className="h-3 w-3 rounded-full bg-rose-500" />
-                <div className="h-3 w-3 rounded-full bg-amber-500" />
-                <div className="h-3 w-3 rounded-full bg-emerald-500" />
-                <span className="ml-2 text-sm text-muted-foreground">API Example</span>
-              </div>
-              <pre className="text-sm overflow-x-auto">
-                <code className="text-muted-foreground">
+              <div className="bg-card rounded-xl border border-border p-5 overflow-hidden">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="h-3 w-3 rounded-full bg-rose-500" />
+                  <div className="h-3 w-3 rounded-full bg-amber-500" />
+                  <div className="h-3 w-3 rounded-full bg-emerald-500" />
+                  <span className="ml-2 text-xs text-muted-foreground">Execute Workflow</span>
+                </div>
+                <pre className="text-xs overflow-x-auto leading-relaxed">
+                  <code className="text-muted-foreground">
 {`curl -X POST \\
-  "https://api.biztoribd.com/workflows/:id/execute" \\
+  "${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-api/workflows/:id/execute" \\
   -H "x-api-key: bz_your_api_key" \\
   -H "Content-Type: application/json" \\
-  -d '{"input": {"data": "your data"}}'
+  -d '{"input": {"email": "user@example.com"}}'
 
 # Response
 {
   "success": true,
-  "executionId": "uuid",
-  "output": { ... }
+  "executionId": "550e8400-...",
+  "status": "completed",
+  "output": { "emailSent": true }
 }`}
-                </code>
-              </pre>
+                  </code>
+                </pre>
+              </div>
+              <div className="bg-card rounded-xl border border-border p-5 overflow-hidden">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="h-3 w-3 rounded-full bg-rose-500" />
+                  <div className="h-3 w-3 rounded-full bg-amber-500" />
+                  <div className="h-3 w-3 rounded-full bg-emerald-500" />
+                  <span className="ml-2 text-xs text-muted-foreground">Batch Execute</span>
+                </div>
+                <pre className="text-xs overflow-x-auto leading-relaxed">
+                  <code className="text-muted-foreground">
+{`curl -X POST \\
+  ".../public-api/batch/execute" \\
+  -H "x-api-key: bz_your_api_key" \\
+  -d '{
+    "operations": [
+      {"action":"execute","workflow_id":"wf-1","input":{}},
+      {"action":"execute","workflow_id":"wf-2","input":{}}
+    ]
+  }'`}
+                  </code>
+                </pre>
+              </div>
             </motion.div>
           </div>
         </div>

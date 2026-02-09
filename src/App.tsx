@@ -117,14 +117,7 @@ const App = () => (
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/api-docs"
-            element={
-              <ProtectedRoute>
-                <ApiDocs />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/api-docs" element={<ApiDocs />} />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
