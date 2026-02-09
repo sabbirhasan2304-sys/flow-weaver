@@ -609,6 +609,42 @@ export type Database = {
           },
         ]
       }
+      user_plugin_installs: {
+        Row: {
+          id: string
+          installed_at: string
+          plugin_id: string
+          profile_id: string
+        }
+        Insert: {
+          id?: string
+          installed_at?: string
+          plugin_id: string
+          profile_id: string
+        }
+        Update: {
+          id?: string
+          installed_at?: string
+          plugin_id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_plugin_installs_plugin_id_fkey"
+            columns: ["plugin_id"]
+            isOneToOne: false
+            referencedRelation: "node_plugins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_plugin_installs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
