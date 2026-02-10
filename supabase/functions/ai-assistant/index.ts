@@ -61,51 +61,63 @@ serve(async (req) => {
       const { data: { user }, error: authError } = await supabase.auth.getUser(token);
       
       if (user) {
-        // Get profile ID
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
+        // Check if user is admin - admins bypass credit checks
+        const { data: adminRole } = await supabase
+          .from('user_roles')
+          .select('role')
           .eq('user_id', user.id)
-          .single();
+          .eq('role', 'admin')
+          .maybeSingle();
 
-        if (profile) {
-          // Check credits balance
-          const { data: credits } = await supabase
-            .from('user_credits')
-            .select('balance')
-            .eq('profile_id', profile.id)
+        const isAdmin = !!adminRole;
+
+        if (!isAdmin) {
+          // Get profile ID
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('user_id', user.id)
             .single();
 
-          const balance = credits?.balance ? Number(credits.balance) : 0;
-          
-          if (balance < CREDIT_COST_PER_MESSAGE) {
-            return new Response(JSON.stringify({ 
-              error: 'Insufficient credits',
-              message: 'You need to add credits to use AI features. Visit Billing to purchase credits.',
-              creditsRequired: CREDIT_COST_PER_MESSAGE,
-              currentBalance: balance,
-            }), {
-              status: 402,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            });
-          }
+          if (profile) {
+            // Check credits balance
+            const { data: credits } = await supabase
+              .from('user_credits')
+              .select('balance')
+              .eq('profile_id', profile.id)
+              .single();
 
-          // Deduct credits
-          try {
-            await supabase.rpc('deduct_credits', {
-              p_profile_id: profile.id,
-              p_amount: CREDIT_COST_PER_MESSAGE,
-              p_description: 'AI Assistant message',
-            });
-          } catch (deductError) {
-            console.error('Failed to deduct credits:', deductError);
-            return new Response(JSON.stringify({ 
-              error: 'Failed to process credits',
-              message: 'Unable to deduct credits. Please try again.',
-            }), {
-              status: 500,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            });
+            const balance = credits?.balance ? Number(credits.balance) : 0;
+            
+            if (balance < CREDIT_COST_PER_MESSAGE) {
+              return new Response(JSON.stringify({ 
+                error: 'Insufficient credits',
+                message: 'You need to add credits to use AI features. Visit Billing to purchase credits.',
+                creditsRequired: CREDIT_COST_PER_MESSAGE,
+                currentBalance: balance,
+              }), {
+                status: 402,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+
+            // Deduct credits
+            try {
+              await supabase.rpc('deduct_credits', {
+                p_profile_id: profile.id,
+                p_amount: CREDIT_COST_PER_MESSAGE,
+                p_description: 'AI Assistant message',
+              });
+            } catch (deductError) {
+              console.error('Failed to deduct credits:', deductError);
+              return new Response(JSON.stringify({ 
+                error: 'Failed to process credits',
+                message: 'Unable to deduct credits. Please try again.',
+              }), {
+                status: 500,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
           }
         }
       }
