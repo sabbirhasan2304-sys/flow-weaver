@@ -281,39 +281,51 @@ serve(async (req) => {
       const { data: { user } } = await supabase.auth.getUser(token);
       
       if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
+        // Check if user is admin - admins bypass credit checks
+        const { data: adminRole } = await supabase
+          .from('user_roles')
+          .select('role')
           .eq('user_id', user.id)
-          .single();
+          .eq('role', 'admin')
+          .maybeSingle();
 
-        if (profile) {
-          const { data: credits } = await supabase
-            .from('user_credits')
-            .select('balance')
-            .eq('profile_id', profile.id)
+        const isAdmin = !!adminRole;
+
+        if (!isAdmin) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('user_id', user.id)
             .single();
 
-          const balance = credits?.balance ? Number(credits.balance) : 0;
-          
-          if (balance < CREDIT_COST_PER_GENERATION) {
-            return new Response(JSON.stringify({ 
-              error: 'Insufficient credits',
-              message: 'You need credits to generate workflows. Visit Billing to purchase credits.',
-              creditsRequired: CREDIT_COST_PER_GENERATION,
-              currentBalance: balance,
-            }), {
-              status: 402,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          if (profile) {
+            const { data: credits } = await supabase
+              .from('user_credits')
+              .select('balance')
+              .eq('profile_id', profile.id)
+              .single();
+
+            const balance = credits?.balance ? Number(credits.balance) : 0;
+            
+            if (balance < CREDIT_COST_PER_GENERATION) {
+              return new Response(JSON.stringify({ 
+                error: 'Insufficient credits',
+                message: 'You need credits to generate workflows. Visit Billing to purchase credits.',
+                creditsRequired: CREDIT_COST_PER_GENERATION,
+                currentBalance: balance,
+              }), {
+                status: 402,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+
+            // Deduct credits
+            await supabase.rpc('deduct_credits', {
+              p_profile_id: profile.id,
+              p_amount: CREDIT_COST_PER_GENERATION,
+              p_description: 'AI Workflow generation',
             });
           }
-
-          // Deduct credits
-          await supabase.rpc('deduct_credits', {
-            p_profile_id: profile.id,
-            p_amount: CREDIT_COST_PER_GENERATION,
-            p_description: 'AI Workflow generation',
-          });
         }
       }
     }
