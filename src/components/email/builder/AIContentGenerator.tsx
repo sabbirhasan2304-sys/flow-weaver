@@ -27,16 +27,18 @@ interface AIContentGeneratorProps {
   onInsertSubject: (subject: string) => void;
   onInsertBodyText: (text: string) => void;
   onInsertCTA: (text: string) => void;
+  onGenerateFullEmail?: (blocks: { type: string; content: Record<string, any> }[], subject: string) => void;
   currentSubject?: string;
   currentBodyText?: string;
 }
 
-type GeneratorTab = 'subject' | 'body' | 'cta';
+type GeneratorTab = 'subject' | 'body' | 'cta' | 'full_email';
 
 export function AIContentGenerator({
   onInsertSubject,
   onInsertBodyText,
   onInsertCTA,
+  onGenerateFullEmail,
   currentSubject,
   currentBodyText,
 }: AIContentGeneratorProps) {
@@ -65,6 +67,7 @@ export function AIContentGenerator({
         subject: 'subject_lines',
         body: 'email_body',
         cta: 'cta',
+        full_email: 'full_email',
       };
 
       const { data, error } = await supabase.functions.invoke('generate-email-content', {
@@ -82,6 +85,9 @@ export function AIContentGenerator({
 
       if (data?.suggestions) {
         setSuggestions(data.suggestions);
+      } else if (data?.blocks && data?.subject && onGenerateFullEmail) {
+        onGenerateFullEmail(data.blocks, data.subject);
+        toast.success('Full email generated!');
       } else if (data?.content) {
         setGeneratedContent(data.content);
       } else if (data?.error) {
@@ -125,9 +131,10 @@ export function AIContentGenerator({
   };
 
   const tabs: { key: GeneratorTab; label: string; icon: typeof Heading1 }[] = [
-    { key: 'subject', label: 'Subject Lines', icon: Heading1 },
-    { key: 'body', label: 'Body Content', icon: Type },
-    { key: 'cta', label: 'CTA Text', icon: MousePointerClick },
+    { key: 'full_email', label: 'Full Email', icon: Sparkles },
+    { key: 'subject', label: 'Subjects', icon: Heading1 },
+    { key: 'body', label: 'Body', icon: Type },
+    { key: 'cta', label: 'CTA', icon: MousePointerClick },
   ];
 
   return (
@@ -191,13 +198,18 @@ export function AIContentGenerator({
           {/* Prompt */}
           <div>
             <Label className="text-xs">
-              {tab === 'subject' ? 'What is the email about?' : tab === 'body' ? 'Describe the email content' : 'What action should the user take?'}
+              {tab === 'full_email' ? 'Describe the email you want'
+                : tab === 'subject' ? 'What is the email about?'
+                : tab === 'body' ? 'Describe the email content'
+                : 'What action should the user take?'}
             </Label>
             <Textarea
               value={prompt}
               onChange={e => setPrompt(e.target.value)}
               placeholder={
-                tab === 'subject'
+                tab === 'full_email'
+                  ? 'e.g., Welcome email for new SaaS users, introduce features and get them started...'
+                  : tab === 'subject'
                   ? 'e.g., Summer sale 50% off all products...'
                   : tab === 'body'
                   ? 'e.g., Welcome email for new subscribers, introduce features...'

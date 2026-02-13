@@ -1,5 +1,5 @@
 import { EmailBlock } from './emailBlockTypes';
-import { Heading1, Type, ImageIcon, MousePointerClick, FileText, Minus, MoveVertical, Columns, Share2, PlayCircle } from 'lucide-react';
+import { Heading1, Type, ImageIcon, MousePointerClick, FileText, Minus, MoveVertical, Columns, Share2, PlayCircle, Timer, ShoppingBag, Code } from 'lucide-react';
 
 interface BlockPreviewProps {
   block: EmailBlock;
@@ -18,6 +18,9 @@ const iconMap: Record<string, any> = {
   columns: Columns,
   social: Share2,
   video: PlayCircle,
+  countdown: Timer,
+  product: ShoppingBag,
+  html: Code,
 };
 
 const SOCIAL_LABELS: Record<string, string> = {
@@ -144,6 +147,70 @@ export function BlockPreview({ block, selected, onClick }: BlockPreviewProps) {
           </div>
         );
       }
+      case 'countdown': {
+        const c = block.content;
+        const units = [
+          c.showDays && { label: 'Days', val: '07' },
+          c.showHours && { label: 'Hours', val: '12' },
+          c.showMinutes && { label: 'Min', val: '34' },
+          c.showSeconds && { label: 'Sec', val: '56' },
+        ].filter(Boolean) as { label: string; val: string }[];
+        return (
+          <div style={{ backgroundColor: c.backgroundColor, padding: `${c.padding}px`, textAlign: c.align as any }}>
+            {c.label && <p style={{ margin: '0 0 12px', fontSize: '14px', color: c.textColor, opacity: 0.8 }}>{c.label}</p>}
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+              {units.map((u, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '28px', fontWeight: 'bold', color: c.accentColor }}>{u.val}</div>
+                    <div style={{ fontSize: '11px', color: c.textColor, opacity: 0.7 }}>{u.label}</div>
+                  </div>
+                  {i < units.length - 1 && <span style={{ fontSize: '24px', color: c.textColor, opacity: 0.5 }}>:</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case 'product': {
+        const p = block.content;
+        return (
+          <div style={{ padding: `${p.padding}px` }}>
+            <div style={{ border: `1px solid ${p.borderColor}`, borderRadius: '8px', overflow: 'hidden', background: p.backgroundColor, display: 'flex' }}>
+              <div style={{ width: '40%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {p.imageUrl ? (
+                  <img src={p.imageUrl} alt={p.name} style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }} />
+                ) : (
+                  <div style={{ width: '120px', height: '90px', background: '#f0f0f0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ShoppingBag className="h-6 w-6 text-muted-foreground/40" />
+                  </div>
+                )}
+              </div>
+              <div style={{ flex: 1, padding: '16px' }}>
+                <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 600 }}>{p.name}</h3>
+                <p style={{ margin: '0 0 8px', fontSize: '13px', color: '#666' }}>{p.description}</p>
+                <div style={{ marginBottom: '12px' }}>
+                  {p.originalPrice && <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '13px', marginRight: '6px' }}>{p.originalPrice}</span>}
+                  <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{p.price}</span>
+                </div>
+                <span style={{ display: 'inline-block', background: p.buttonColor, color: p.buttonTextColor, padding: '8px 20px', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>{p.buttonText}</span>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      case 'html':
+        return (
+          <div style={{ padding: `${block.content.padding}px` }}>
+            <div className="border border-dashed border-muted-foreground/30 rounded p-3 bg-muted/30">
+              <div className="flex items-center gap-1 mb-2">
+                <Code className="h-3 w-3 text-muted-foreground" />
+                <span className="text-[10px] font-medium text-muted-foreground uppercase">Custom HTML</span>
+              </div>
+              <div dangerouslySetInnerHTML={{ __html: block.content.code }} />
+            </div>
+          </div>
+        );
       default:
         return null;
     }

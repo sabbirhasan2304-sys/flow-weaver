@@ -17,6 +17,7 @@ import {
   MoveVertical, Trash2, Copy, ArrowUp, ArrowDown, Eye, Code,
   GripVertical, X, Save, Columns, Share2, PlayCircle,
   Monitor, Tablet, Smartphone, Palette, Undo2, Redo2,
+  Timer, ShoppingBag, Code as CodeIcon,
 } from 'lucide-react';
 
 interface EmailBuilderProps {
@@ -32,8 +33,11 @@ const BLOCK_PALETTE = [
   { type: 'image' as const, label: 'Image', icon: ImageIcon, description: 'Image block' },
   { type: 'button' as const, label: 'Button', icon: MousePointerClick, description: 'CTA button' },
   { type: 'columns' as const, label: 'Columns', icon: Columns, description: '2-3 column layout' },
+  { type: 'product' as const, label: 'Product', icon: ShoppingBag, description: 'Product card' },
+  { type: 'countdown' as const, label: 'Countdown', icon: Timer, description: 'Countdown timer' },
   { type: 'social' as const, label: 'Social', icon: Share2, description: 'Social links' },
   { type: 'video' as const, label: 'Video', icon: PlayCircle, description: 'Video embed' },
+  { type: 'html' as const, label: 'HTML', icon: CodeIcon, description: 'Custom HTML' },
   { type: 'divider' as const, label: 'Divider', icon: Minus, description: 'Horizontal line' },
   { type: 'spacer' as const, label: 'Spacer', icon: MoveVertical, description: 'Vertical space' },
   { type: 'footer' as const, label: 'Footer', icon: FileText, description: 'Footer content' },
@@ -435,6 +439,18 @@ export function EmailBuilder({ initialBlocks, initialSubject, onSave, onCancel }
                     newBlock.content.text = text;
                     setBlocksWithHistory(prev => [...prev, newBlock]);
                     setSelectedBlockId(newBlock.id);
+                  }}
+                  onGenerateFullEmail={(aiBlocks, aiSubject) => {
+                    const newBlocks = aiBlocks.map(b => {
+                      const blockType = b.type as EmailBlock['type'];
+                      const block = createBlock(blockType);
+                      block.content = { ...block.content, ...b.content };
+                      return block;
+                    });
+                    setBlocks(newBlocks);
+                    pushHistory(newBlocks);
+                    setSubject(aiSubject);
+                    setSelectedBlockId(null);
                   }}
                 />
 
