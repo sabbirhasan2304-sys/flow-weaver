@@ -117,7 +117,7 @@ function socialIconSvg(platform: string, color: string, size: string): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24">${paths[platform] || ''}</svg>`;
 }
 
-export function blocksToHtml(blocks: EmailBlock[], bodyBg: string = '#ffffff', contentBg: string = '#ffffff'): string {
+export function blocksToHtml(blocks: EmailBlock[], bodyBg: string = '#f4f4f5', contentBg: string = '#ffffff', fontFamily: string = 'Arial, Helvetica, sans-serif'): string {
   const blockHtmls = blocks.map(block => {
     switch (block.type) {
       case 'header':
@@ -198,11 +198,13 @@ export function blocksToHtml(blocks: EmailBlock[], bodyBg: string = '#ffffff', c
   }).join('\n');
 
   return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background-color:${bodyBg};font-family:Arial,Helvetica,sans-serif;">
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>@media only screen and (max-width:480px){.email-container{width:100%!important;}.email-col{display:block!important;width:100%!important;}}</style>
+</head>
+<body style="margin:0;padding:0;background-color:${bodyBg};font-family:${fontFamily};">
 <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color:${bodyBg};">
 <tr><td align="center" style="padding:20px 0;">
-<table role="presentation" cellpadding="0" cellspacing="0" width="600" style="max-width:600px;width:100%;background-color:${contentBg};border-radius:8px;overflow:hidden;">
+<table role="presentation" cellpadding="0" cellspacing="0" width="600" class="email-container" style="max-width:600px;width:100%;background-color:${contentBg};border-radius:8px;overflow:hidden;">
 ${blockHtmls}
 </table>
 </td></tr>
