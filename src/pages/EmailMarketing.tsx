@@ -7,7 +7,8 @@ import { EmailCampaigns } from '@/components/email/EmailCampaigns';
 import { EmailTemplates } from '@/components/email/EmailTemplates';
 import { EmailSmtpSettings } from '@/components/email/EmailSmtpSettings';
 import { EmailDashboard } from '@/components/email/EmailDashboard';
-import { Mail, Users, ListChecks, Send, LayoutTemplate, Settings } from 'lucide-react';
+import { AutomationList } from '@/components/email/automation/AutomationList';
+import { Mail, Users, ListChecks, Send, LayoutTemplate, Settings, Zap } from 'lucide-react';
 
 export default function EmailMarketing() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -23,7 +24,7 @@ export default function EmailMarketing() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-grid">
             <TabsTrigger value="dashboard" className="gap-2">
               <Mail className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -40,6 +41,10 @@ export default function EmailMarketing() {
               <Send className="h-4 w-4" />
               <span className="hidden sm:inline">Campaigns</span>
             </TabsTrigger>
+            <TabsTrigger value="automations" className="gap-2">
+              <Zap className="h-4 w-4" />
+              <span className="hidden sm:inline">Automations</span>
+            </TabsTrigger>
             <TabsTrigger value="templates" className="gap-2">
               <LayoutTemplate className="h-4 w-4" />
               <span className="hidden sm:inline">Templates</span>
@@ -54,6 +59,7 @@ export default function EmailMarketing() {
           <TabsContent value="contacts"><EmailContacts /></TabsContent>
           <TabsContent value="lists"><EmailLists /></TabsContent>
           <TabsContent value="campaigns"><EmailCampaigns /></TabsContent>
+          <TabsContent value="automations"><AutomationList /></TabsContent>
           <TabsContent value="templates"><EmailTemplates /></TabsContent>
           <TabsContent value="settings"><EmailSmtpSettings /></TabsContent>
         </Tabs>
