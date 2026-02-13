@@ -112,8 +112,9 @@ serve(async (req) => {
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-  // Get API key from header
-  const apiKey = req.headers.get('x-api-key') || req.headers.get('authorization')?.replace('Bearer ', '');
+  // Get API key from header, query param, or body
+  const url = new URL(req.url);
+  const apiKey = req.headers.get('x-api-key') || req.headers.get('authorization')?.replace('Bearer ', '') || url.searchParams.get('api_key');
   
   if (!apiKey) {
     return jsonResponse({
@@ -158,7 +159,12 @@ serve(async (req) => {
         response = await handleCredentials(supabase, req, profileId!, resourceId, permissions!);
         break;
       case 'webhooks':
-        response = await handleWebhooks(supabase, req, profileId!, resourceId, permissions!);
+        if (pathParts[1] === 'incoming') {
+          response = await handleIncomingWebhook(supabase, req, profileId!);
+        } else {
+          response = await handleWebhooks(supabase, req, profileId!, resourceId, permissions!);
+        }
+        break;
         break;
       case 'usage':
         response = await handleUsage(supabase, req, profileId!, apiKeyId!, permissions!);
@@ -1090,6 +1096,114 @@ async function handleTracking(
     default:
       return jsonResponse({ error: 'Unknown track action', available: ['open', 'click', 'pageview'] }, 400);
   }
+}
+
+// ==================== INCOMING WEBHOOKS (Universal) ====================
+async function handleIncomingWebhook(
+  supabase: any, req: Request, profileId: string
+): Promise<Response> {
+  if (req.method !== 'POST') return jsonResponse({ error: 'POST required for incoming webhooks' }, 405);
+
+  const body = await req.json().catch(() => ({}));
+  const url = new URL(req.url);
+  const platform = url.searchParams.get('platform') || body.platform || 'custom';
+  const event = body.event || body.topic || '';
+  const customer = body.customer || body.email ? { email: body.email || body.customer?.email } : null;
+
+  // Normalize events from different platforms
+  let triggerEndpoint = '';
+  let triggerData: any = {};
+
+  if (event.includes('checkout') || event.includes('abandon')) {
+    const email = customer?.email || body.email || body.contact?.email;
+    if (!email) return jsonResponse({ error: 'customer.email required' }, 400);
+
+    // Upsert contact
+    let { data: contact } = await supabase.from('email_contacts').select('id').eq('email', email).eq('profile_id', profileId).single();
+    if (!contact) {
+      const { data: newC } = await supabase.from('email_contacts').insert({
+        email, first_name: customer?.first_name || body.data?.first_name || null,
+        last_name: customer?.last_name || body.data?.last_name || null,
+        profile_id: profileId, source: platform,
+      }).select('id').single();
+      contact = newC;
+    }
+
+    return jsonResponse({
+      message: `${event} event processed from ${platform}`,
+      contact_id: contact?.id,
+      trigger_type: 'checkout_abandon',
+      platform,
+    });
+  }
+
+  if (event.includes('payment') || event.includes('failed')) {
+    const email = customer?.email || body.email;
+    if (!email) return jsonResponse({ error: 'customer.email required' }, 400);
+
+    let { data: contact } = await supabase.from('email_contacts').select('id').eq('email', email).eq('profile_id', profileId).single();
+    if (!contact) {
+      const { data: newC } = await supabase.from('email_contacts').insert({
+        email, profile_id: profileId, source: platform,
+      }).select('id').single();
+      contact = newC;
+    }
+
+    return jsonResponse({
+      message: `Payment failure event processed from ${platform}`,
+      contact_id: contact?.id,
+      trigger_type: 'payment_failure',
+      platform,
+    });
+  }
+
+  if (event.includes('order') || event.includes('purchase') || event.includes('paid')) {
+    const email = customer?.email || body.email || body.contact_email;
+    if (!email) return jsonResponse({ error: 'customer.email required' }, 400);
+
+    const { data: contact } = await supabase.from('email_contacts').upsert({
+      email,
+      first_name: customer?.first_name || body.billing_address?.first_name || null,
+      last_name: customer?.last_name || body.billing_address?.last_name || null,
+      profile_id: profileId,
+      source: platform,
+    }, { onConflict: 'email,profile_id' }).select('id').single();
+
+    return jsonResponse({
+      message: `Order event processed from ${platform}`,
+      contact_id: contact?.id,
+      trigger_type: 'purchase',
+      platform,
+    });
+  }
+
+  if (event.includes('customer') || event.includes('subscriber')) {
+    const email = customer?.email || body.email;
+    if (!email) return jsonResponse({ error: 'customer.email required' }, 400);
+
+    const { data: contact } = await supabase.from('email_contacts').upsert({
+      email,
+      first_name: customer?.first_name || body.first_name || null,
+      last_name: customer?.last_name || body.last_name || null,
+      phone: customer?.phone || body.phone || null,
+      profile_id: profileId,
+      source: platform,
+    }, { onConflict: 'email,profile_id' }).select('id').single();
+
+    return jsonResponse({
+      message: `Customer synced from ${platform}`,
+      contact_id: contact?.id,
+      platform,
+    });
+  }
+
+  // Generic fallback — just log it
+  return jsonResponse({
+    message: `Webhook received from ${platform}`,
+    event: event || 'unknown',
+    platform,
+    note: 'Event type not recognized. Supported: checkout.*, payment.*, order.*, customer.*',
+  });
 }
 
         const executeUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/execute-workflow`;

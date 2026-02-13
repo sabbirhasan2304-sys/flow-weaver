@@ -9,7 +9,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { 
   Copy, Key, Zap, List, CheckCircle, AlertTriangle, 
   Shield, Clock, Code, BookOpen, Terminal, Globe,
-  FileJson, Lock, Activity, ArrowRight, ExternalLink
+  FileJson, Lock, Activity, ArrowRight, ExternalLink,
+  Download, ShoppingBag, ShoppingCart, Plug
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -908,6 +909,332 @@ req.end();`;
   },
 };
 
+// WordPress/WooCommerce plugin code
+const wordpressPluginCode = `<?php
+/**
+ * Plugin Name: BiztoriBD Tracker for WooCommerce
+ * Description: Auto-tracks cart abandonment, checkout abandonment, payment failures & syncs customers.
+ * Version: 1.0.0
+ * Author: BiztoriBD
+ * Requires Plugins: woocommerce
+ */
+
+if (!defined('ABSPATH')) exit;
+
+class BiztoriBD_Tracker {
+    private $api_key;
+    private $api_url;
+
+    public function __construct() {
+        $this->api_key = get_option('biztoribbd_api_key', '');
+        $this->api_url = get_option('biztoribbd_api_url', '${API_BASE_URL}');
+
+        // Admin settings
+        add_action('admin_menu', [$this, 'add_settings_page']);
+        add_action('admin_init', [$this, 'register_settings']);
+
+        if (empty($this->api_key)) return;
+
+        // WooCommerce hooks
+        add_action('woocommerce_add_to_cart', [$this, 'on_add_to_cart'], 10, 6);
+        add_action('woocommerce_after_checkout_validation', [$this, 'on_checkout_attempt'], 10, 2);
+        add_action('woocommerce_payment_complete', [$this, 'on_order_complete']);
+        add_action('woocommerce_order_status_failed', [$this, 'on_payment_failed']);
+        add_action('woocommerce_order_status_completed', [$this, 'on_order_complete']);
+        add_action('woocommerce_created_customer', [$this, 'on_customer_created'], 10, 3);
+
+        // Front-end JS tracker
+        add_action('wp_footer', [$this, 'inject_tracker_script']);
+
+        // Cron for abandoned carts
+        add_action('biztoribbd_check_abandoned_carts', [$this, 'check_abandoned_carts']);
+        if (!wp_next_scheduled('biztoribbd_check_abandoned_carts')) {
+            wp_schedule_event(time(), 'hourly', 'biztoribbd_check_abandoned_carts');
+        }
+    }
+
+    // Settings page
+    public function add_settings_page() {
+        add_options_page('BiztoriBD Tracker', 'BiztoriBD Tracker', 'manage_options', 'biztoribbd-tracker', [$this, 'settings_page']);
+    }
+
+    public function register_settings() {
+        register_setting('biztoribbd_settings', 'biztoribbd_api_key');
+        register_setting('biztoribbd_settings', 'biztoribbd_api_url');
+    }
+
+    public function settings_page() {
+        ?>
+        <div class="wrap">
+            <h1>BiztoriBD Tracker Settings</h1>
+            <form method="post" action="options.php">
+                <?php settings_fields('biztoribbd_settings'); ?>
+                <table class="form-table">
+                    <tr><th>API Key</th>
+                        <td><input type="text" name="biztoribbd_api_key" value="<?php echo esc_attr(get_option('biztoribbd_api_key')); ?>" class="regular-text" placeholder="bz_xxxxxxxxxxxx" /></td>
+                    </tr>
+                    <tr><th>API URL (optional)</th>
+                        <td><input type="url" name="biztoribbd_api_url" value="<?php echo esc_attr(get_option('biztoribbd_api_url', '${API_BASE_URL}')); ?>" class="regular-text" /></td>
+                    </tr>
+                </table>
+                <?php submit_button(); ?>
+            </form>
+        </div>
+        <?php
+    }
+
+    // API call helper
+    private function post($endpoint, $data) {
+        wp_remote_post($this->api_url . $endpoint, [
+            'headers' => [
+                'x-api-key'    => $this->api_key,
+                'Content-Type' => 'application/json',
+            ],
+            'body'      => json_encode($data),
+            'timeout'   => 5,
+            'blocking'  => false,
+        ]);
+    }
+
+    // Track cart abandonment via JS (beforeunload)
+    public function inject_tracker_script() {
+        if (!is_cart() && !is_checkout()) return;
+        $cart = WC()->cart;
+        if (!$cart || $cart->is_empty()) return;
+
+        $email = is_user_logged_in() ? wp_get_current_user()->user_email : 'null';
+        $items = [];
+        foreach ($cart->get_cart() as $item) {
+            $product = $item['data'];
+            $items[] = [
+                'name'     => $product->get_name(),
+                'price'    => (float)$product->get_price(),
+                'quantity' => $item['quantity'],
+            ];
+        }
+        $total = (float)$cart->get_cart_contents_total();
+        ?>
+        <script>
+        (function(){
+            var bzEmail = <?php echo $email !== 'null' ? '"'.esc_js($email).'"' : 'null'; ?>;
+            var bzItems = <?php echo json_encode($items); ?>;
+            var bzTotal = <?php echo $total; ?>;
+            var bzCompleted = false;
+
+            // Mark as completed on thank-you page
+            if (document.querySelector('.woocommerce-order-received')) bzCompleted = true;
+
+            window.addEventListener('beforeunload', function() {
+                if (bzCompleted || !bzEmail) return;
+                var isCheckout = <?php echo is_checkout() ? 'true' : 'false'; ?>;
+                var endpoint = isCheckout ? '/triggers/checkout-abandon' : '/triggers/cart-abandon';
+                var payload = isCheckout
+                    ? { email: bzEmail, cart_value: bzTotal, checkout_step: 'in_progress', items: bzItems }
+                    : { email: bzEmail, cart_total: bzTotal, items: bzItems };
+
+                navigator.sendBeacon && navigator.sendBeacon(
+                    '<?php echo esc_js($this->api_url); ?>' + endpoint,
+                    new Blob([JSON.stringify(Object.assign(payload, {_key: '<?php echo esc_js($this->api_key); ?>'}))], {type:'application/json'})
+                );
+            });
+        })();
+        </script>
+        <?php
+    }
+
+    // Server-side: payment failed
+    public function on_payment_failed($order_id) {
+        $order = wc_get_order($order_id);
+        if (!$order) return;
+        $this->post('/triggers/payment-failure', [
+            'email'      => $order->get_billing_email(),
+            'order_id'   => (string)$order_id,
+            'amount'     => (float)$order->get_total(),
+            'error_code' => 'payment_failed',
+            'retry_url'  => $order->get_checkout_payment_url(),
+        ]);
+    }
+
+    // Server-side: order complete — sync contact
+    public function on_order_complete($order_id) {
+        $order = wc_get_order($order_id);
+        if (!$order) return;
+        $this->post('/contacts', [
+            'email'      => $order->get_billing_email(),
+            'first_name' => $order->get_billing_first_name(),
+            'last_name'  => $order->get_billing_last_name(),
+            'phone'      => $order->get_billing_phone(),
+            'company'    => $order->get_billing_company(),
+            'source'     => 'woocommerce',
+            'custom_fields' => [
+                'last_order_id'    => (string)$order_id,
+                'last_order_total' => (float)$order->get_total(),
+                'order_count'      => 1,
+            ],
+        ]);
+    }
+
+    // New customer created
+    public function on_customer_created($customer_id, $new_customer_data, $password_generated) {
+        $user = get_userdata($customer_id);
+        if (!$user) return;
+        $this->post('/contacts', [
+            'email'      => $user->user_email,
+            'first_name' => $user->first_name,
+            'last_name'  => $user->last_name,
+            'source'     => 'woocommerce',
+        ]);
+    }
+}
+
+new BiztoriBD_Tracker();`;
+
+// Shopify Liquid snippet code
+const shopifySnippetCode = `{% comment %}
+  BiztoriBD Tracker for Shopify
+  Add this snippet to theme.liquid before </body>
+{% endcomment %}
+
+<script>
+(function() {
+  var BZ_API_KEY = "bz_your_api_key_here";
+  var BZ_API_URL = "${API_BASE_URL}";
+
+  var BZShopify = {
+    _post: function(endpoint, data) {
+      fetch(BZ_API_URL + endpoint, {
+        method: "POST",
+        headers: { "x-api-key": BZ_API_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      }).catch(function(e) { console.warn("BZ:", e); });
+    },
+
+    init: function() {
+      // Auto-track pageview
+      this._post("/track/pageview", {
+        page_url: window.location.href,
+        referrer: document.referrer,
+        contact_email: this._getEmail()
+      });
+
+      // Detect checkout abandonment
+      this._trackCheckoutAbandon();
+
+      // Identify customer if logged in
+      {% if customer %}
+      this.identify("{{ customer.email }}", {
+        firstName: "{{ customer.first_name }}",
+        lastName: "{{ customer.last_name }}",
+        phone: "{{ customer.phone }}",
+        ordersCount: {{ customer.orders_count | default: 0 }}
+      });
+      {% endif %}
+
+      // Track cart on page with items
+      {% if cart.item_count > 0 %}
+      this._currentCart = {
+        total: {{ cart.total_price | money_without_currency | remove: ',' }},
+        items: [
+          {% for item in cart.items %}
+          { name: "{{ item.product.title | escape }}", price: {{ item.final_price | money_without_currency | remove: ',' }}, quantity: {{ item.quantity }}, image_url: "{{ item.image | image_url: '200x' }}" }{% unless forloop.last %},{% endunless %}
+          {% endfor %}
+        ]
+      };
+      {% endif %}
+    },
+
+    identify: function(email, data) {
+      this._post("/contacts", {
+        email: email,
+        first_name: data.firstName || null,
+        last_name: data.lastName || null,
+        phone: data.phone || null,
+        source: "shopify",
+        custom_fields: { orders_count: data.ordersCount || 0 }
+      });
+    },
+
+    _getEmail: function() {
+      {% if customer %}
+      return "{{ customer.email }}";
+      {% else %}
+      return null;
+      {% endif %}
+    },
+
+    _trackCheckoutAbandon: function() {
+      // Only on checkout pages
+      if (window.location.pathname.indexOf('/checkouts/') === -1) return;
+      var self = this;
+      var completed = false;
+
+      // Shopify fires this on thank-you page
+      if (window.Shopify && window.Shopify.checkout && window.Shopify.checkout.order_id) {
+        completed = true;
+      }
+
+      window.addEventListener("beforeunload", function() {
+        if (completed) return;
+        var email = self._getEmail();
+        if (!email) {
+          // Try to get email from checkout form
+          var emailField = document.querySelector('input[type="email"], #checkout_email');
+          if (emailField) email = emailField.value;
+        }
+        if (!email) return;
+
+        var cart = self._currentCart || {};
+        navigator.sendBeacon && navigator.sendBeacon(
+          BZ_API_URL + "/triggers/checkout-abandon",
+          new Blob([JSON.stringify({
+            email: email,
+            cart_value: cart.total || 0,
+            checkout_step: "in_progress",
+            items: cart.items || [],
+            _key: BZ_API_KEY
+          })], { type: "application/json" })
+        );
+      });
+    }
+  };
+
+  // Initialize
+  if (document.readyState === "complete") {
+    BZShopify.init();
+  } else {
+    window.addEventListener("load", function() { BZShopify.init(); });
+  }
+
+  window.BZShopify = BZShopify;
+})();
+</script>
+
+{% comment %}
+  === ADDITIONAL: Thank You Page Tracking ===
+  Add this to your "Additional Scripts" in Settings → Checkout → Order status page:
+{% endcomment %}
+{% if first_time_accessed %}
+<script>
+  // Order completion tracking
+  fetch("${API_BASE_URL}/contacts", {
+    method: "POST",
+    headers: { "x-api-key": "bz_your_api_key_here", "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: "{{ order.email }}",
+      first_name: "{{ order.billing_address.first_name }}",
+      last_name: "{{ order.billing_address.last_name }}",
+      phone: "{{ order.billing_address.phone }}",
+      source: "shopify",
+      custom_fields: {
+        last_order_id: "{{ order.order_number }}",
+        last_order_total: {{ order.total_price | money_without_currency | remove: ',' }},
+        currency: "{{ order.currency }}"
+      }
+    })
+  });
+</script>
+{% endif %}`;
+
 export default function ApiDocs() {
   const { toast } = useToast();
   const [selectedEndpoint, setSelectedEndpoint] = useState(endpoints[0]);
@@ -943,6 +1270,7 @@ export default function ApiDocs() {
     { id: "ratelimits", label: "Rate Limits", icon: Clock },
     { id: "security", label: "Security", icon: Shield },
     { id: "webhooks", label: "Webhooks", icon: Globe },
+    { id: "plugins", label: "Plugins & Integrations", icon: Plug },
   ];
 
   return (
@@ -2159,6 +2487,282 @@ const apiKey = "bz_live_xxxxxxxxxxxxxxxx"; // ❌ Bad!
   "signature": "sha256=xxxxxxxxxxxxxxxxxxxxx"
 }`}
                     </pre>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Plugins & Integrations Section */}
+          {activeSection === "plugins" && (
+            <div className="space-y-6">
+              {/* Overview */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plug className="h-5 w-5" />
+                    Plugins & Platform Integrations
+                  </CardTitle>
+                  <CardDescription>
+                    Ready-to-install plugins for WordPress/WooCommerce & Shopify, plus webhook-based integration for any platform
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="p-4 border rounded-lg text-center">
+                      <ShoppingCart className="h-8 w-8 mx-auto text-purple-600 mb-2" />
+                      <h5 className="font-semibold">WordPress / WooCommerce</h5>
+                      <p className="text-xs text-muted-foreground mt-1">PHP plugin with auto cart/checkout/payment tracking</p>
+                    </div>
+                    <div className="p-4 border rounded-lg text-center">
+                      <ShoppingBag className="h-8 w-8 mx-auto text-green-600 mb-2" />
+                      <h5 className="font-semibold">Shopify</h5>
+                      <p className="text-xs text-muted-foreground mt-1">Theme snippet & webhook integration</p>
+                    </div>
+                    <div className="p-4 border rounded-lg text-center">
+                      <Globe className="h-8 w-8 mx-auto text-blue-600 mb-2" />
+                      <h5 className="font-semibold">Webhook API</h5>
+                      <p className="text-xs text-muted-foreground mt-1">Universal webhook receiver for any platform</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* WordPress / WooCommerce Plugin */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ShoppingCart className="h-5 w-5 text-purple-600" />
+                    WordPress / WooCommerce Plugin
+                  </CardTitle>
+                  <CardDescription>
+                    Download and install this PHP plugin to automatically track cart abandonment, checkout abandonment, payment failures, and post-purchase events in WooCommerce.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold mb-2">Installation Steps</h4>
+                    <ol className="space-y-3 text-sm">
+                      <li className="flex gap-3">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">1</span>
+                        <span>Copy the PHP code below and save it as <code className="bg-muted px-1 rounded">biztoribbd-tracker.php</code></span>
+                      </li>
+                      <li className="flex gap-3">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">2</span>
+                        <span>Upload it to your WordPress <code className="bg-muted px-1 rounded">wp-content/plugins/</code> directory</span>
+                      </li>
+                      <li className="flex gap-3">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">3</span>
+                        <span>Activate the plugin from <strong>Plugins → Installed Plugins</strong> in WordPress admin</span>
+                      </li>
+                      <li className="flex gap-3">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">4</span>
+                        <span>Go to <strong>Settings → BiztoriBD Tracker</strong> and enter your API Key</span>
+                      </li>
+                    </ol>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">Plugin Code — <code className="text-xs bg-muted px-1 rounded">biztoribbd-tracker.php</code></h4>
+                      <Button size="sm" variant="outline" onClick={() => copyCode(wordpressPluginCode)}>
+                        <Copy className="h-3 w-3 mr-1" /> Copy
+                      </Button>
+                    </div>
+                    <pre className="bg-muted p-4 rounded-lg text-xs overflow-x-auto max-h-[500px]">
+                      {wordpressPluginCode}
+                    </pre>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">What It Tracks Automatically</h4>
+                    <div className="grid gap-2 md:grid-cols-2">
+                      <div className="flex items-center gap-2 p-2 border rounded text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                        <span><strong>Cart Abandonment</strong> — items added but checkout not started</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 border rounded text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                        <span><strong>Checkout Abandonment</strong> — checkout started but order not placed</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 border rounded text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                        <span><strong>Payment Failures</strong> — declined cards and payment errors</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 border rounded text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                        <span><strong>Post-Purchase</strong> — order completion synced as contact</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Shopify Integration */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ShoppingBag className="h-5 w-5 text-green-600" />
+                    Shopify Integration
+                  </CardTitle>
+                  <CardDescription>
+                    Two methods: Liquid theme snippet for front-end tracking, or webhook-based server-side integration.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <Tabs defaultValue="snippet">
+                    <TabsList>
+                      <TabsTrigger value="snippet">Theme Snippet</TabsTrigger>
+                      <TabsTrigger value="webhooks">Shopify Webhooks</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="snippet" className="space-y-4 mt-4">
+                      <div>
+                        <h4 className="font-semibold mb-2">Installation Steps</h4>
+                        <ol className="space-y-2 text-sm">
+                          <li className="flex gap-3">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">1</span>
+                            <span>In Shopify Admin, go to <strong>Online Store → Themes → Edit Code</strong></span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">2</span>
+                            <span>Open <code className="bg-muted px-1 rounded">theme.liquid</code> and paste the snippet before <code className="bg-muted px-1 rounded">&lt;/body&gt;</code></span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">3</span>
+                            <span>Replace <code className="bg-muted px-1 rounded">bz_your_api_key_here</code> with your actual API key</span>
+                          </li>
+                        </ol>
+                      </div>
+                      <div className="relative">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold">Shopify Liquid Snippet</h4>
+                          <Button size="sm" variant="outline" onClick={() => copyCode(shopifySnippetCode)}>
+                            <Copy className="h-3 w-3 mr-1" /> Copy
+                          </Button>
+                        </div>
+                        <pre className="bg-muted p-4 rounded-lg text-xs overflow-x-auto max-h-[500px]">
+                          {shopifySnippetCode}
+                        </pre>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="webhooks" className="space-y-4 mt-4">
+                      <div>
+                        <h4 className="font-semibold mb-2">Shopify Webhook Setup</h4>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          For server-side tracking (no theme code needed), configure Shopify webhooks to send events directly to our API.
+                        </p>
+                        <ol className="space-y-2 text-sm">
+                          <li className="flex gap-3">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">1</span>
+                            <span>In Shopify Admin, go to <strong>Settings → Notifications → Webhooks</strong></span>
+                          </li>
+                          <li className="flex gap-3">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">2</span>
+                            <span>Create webhooks for these events with the URL below:</span>
+                          </li>
+                        </ol>
+                        <div className="mt-3 bg-muted p-3 rounded-lg">
+                          <p className="text-xs text-muted-foreground mb-1">Webhook URL:</p>
+                          <div className="flex items-center gap-2">
+                            <code className="text-sm flex-1 break-all">{API_BASE_URL}/webhooks/incoming?platform=shopify</code>
+                            <Button size="sm" variant="ghost" onClick={() => copyCode(`${API_BASE_URL}/webhooks/incoming?platform=shopify`)}>
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="mt-3 space-y-2">
+                          <h5 className="text-sm font-medium">Recommended webhook events:</h5>
+                          {[
+                            { event: "checkouts/create", desc: "Tracks checkout abandonment" },
+                            { event: "orders/create", desc: "Tracks completed purchases" },
+                            { event: "orders/paid", desc: "Confirms successful payment" },
+                            { event: "orders/cancelled", desc: "Tracks order cancellations" },
+                            { event: "customers/create", desc: "Auto-syncs new customers as contacts" },
+                          ].map(w => (
+                            <div key={w.event} className="flex items-center gap-3 p-2 border rounded text-sm">
+                              <Badge variant="outline" className="font-mono text-xs shrink-0">{w.event}</Badge>
+                              <span className="text-muted-foreground">{w.desc}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+
+              {/* Webhook API (Universal) */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5 text-blue-600" />
+                    Universal Webhook Receiver
+                  </CardTitle>
+                  <CardDescription>
+                    For any platform not listed above — send webhook events to our universal endpoint.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="bg-muted p-3 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Endpoint:</p>
+                    <div className="flex items-center gap-2">
+                      <code className="text-sm flex-1 break-all">POST {API_BASE_URL}/webhooks/incoming</code>
+                      <Button size="sm" variant="ghost" onClick={() => copyCode(`POST ${API_BASE_URL}/webhooks/incoming`)}>
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Payload Format</h4>
+                    <pre className="bg-muted p-4 rounded-lg text-sm overflow-x-auto">
+{`{
+  "platform": "custom",
+  "event": "checkout.abandoned",
+  "customer": {
+    "email": "customer@example.com",
+    "first_name": "Jane",
+    "last_name": "Doe"
+  },
+  "data": {
+    "cart_value": 129.99,
+    "currency": "USD",
+    "items": [
+      { "name": "Product A", "price": 99.99, "quantity": 1 },
+      { "name": "Product B", "price": 30.00, "quantity": 1 }
+    ],
+    "checkout_url": "https://yourstore.com/checkout/recover/abc123"
+  }
+}`}
+                    </pre>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">Supported Events</h4>
+                    <div className="grid gap-2 md:grid-cols-2">
+                      {[
+                        { event: "checkout.abandoned", desc: "Customer left during checkout" },
+                        { event: "cart.abandoned", desc: "Items left in cart" },
+                        { event: "payment.failed", desc: "Payment attempt failed" },
+                        { event: "order.completed", desc: "Order placed successfully" },
+                        { event: "customer.created", desc: "New customer registered" },
+                        { event: "product.viewed", desc: "Product page viewed" },
+                      ].map(e => (
+                        <div key={e.event} className="flex items-center gap-2 p-2 border rounded text-sm">
+                          <Badge variant="secondary" className="font-mono text-xs shrink-0">{e.event}</Badge>
+                          <span className="text-muted-foreground text-xs">{e.desc}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg p-4">
+                    <h5 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Authentication</h5>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      Include your API key as <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">x-api-key</code> header or <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">?api_key=bz_xxx</code> query parameter (for platforms that don't support custom headers).
+                    </p>
                   </div>
                 </CardContent>
               </Card>
