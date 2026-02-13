@@ -166,6 +166,24 @@ serve(async (req) => {
       case 'batch':
         response = await handleBatch(supabase, req, profileId!, permissions!);
         break;
+      case 'contacts':
+        response = await handleContacts(supabase, req, profileId!, resourceId, action, permissions!);
+        break;
+      case 'lists':
+        response = await handleLists(supabase, req, profileId!, resourceId, permissions!);
+        break;
+      case 'campaigns':
+        response = await handleCampaigns(supabase, req, profileId!, resourceId, action, permissions!);
+        break;
+      case 'email-templates':
+        response = await handleEmailTemplates(supabase, req, profileId!, resourceId, permissions!);
+        break;
+      case 'triggers':
+        response = await handleTriggers(supabase, req, profileId!, resourceId, permissions!);
+        break;
+      case 'track':
+        response = await handleTracking(supabase, req, profileId!);
+        break;
       case 'health':
         response = jsonResponse({
           status: 'ok',
@@ -179,6 +197,14 @@ serve(async (req) => {
             'GET /credentials', 'POST /credentials', 'DELETE /credentials/:id',
             'POST /webhooks', 'GET /webhooks', 'DELETE /webhooks/:id',
             'GET /usage', 'GET /usage/summary', 'POST /batch/execute',
+            'GET /contacts', 'POST /contacts', 'PUT /contacts/:id', 'DELETE /contacts/:id',
+            'GET /lists', 'POST /lists', 'PUT /lists/:id', 'DELETE /lists/:id',
+            'POST /lists/:id/subscribe', 'POST /lists/:id/unsubscribe',
+            'GET /campaigns', 'POST /campaigns', 'PUT /campaigns/:id', 'POST /campaigns/:id/send',
+            'GET /email-templates', 'POST /email-templates',
+            'POST /triggers/checkout-abandon', 'POST /triggers/payment-failure',
+            'POST /triggers/cart-abandon', 'POST /triggers/browse-abandon',
+            'POST /track/open', 'POST /track/click', 'POST /track/pageview',
           ],
         });
         break;
@@ -186,7 +212,7 @@ serve(async (req) => {
         response = jsonResponse({
           error: 'Not Found',
           message: `Unknown resource: ${resource}`,
-          availableResources: ['workflows', 'executions', 'templates', 'credentials', 'webhooks', 'usage', 'batch', 'health'],
+          availableResources: ['workflows', 'executions', 'templates', 'credentials', 'webhooks', 'usage', 'batch', 'contacts', 'lists', 'campaigns', 'email-templates', 'triggers', 'track', 'health'],
         }, 404);
     }
 
@@ -664,7 +690,407 @@ async function handleBatch(
         if (!wf) {
           results.push({ workflow_id: op.workflow_id, status: 'error', error: 'Workflow not found' });
           continue;
+}
+
+// ==================== CONTACTS ====================
+async function handleContacts(
+  supabase: any, req: Request, profileId: string,
+  contactId?: string, action?: string, permissions?: string[]
+): Promise<Response> {
+  // POST /contacts
+  if (req.method === 'POST' && !contactId) {
+    if (!permissions?.includes('write')) return jsonResponse({ error: 'Permission denied: write access required' }, 403);
+    const body = await req.json();
+    if (!body.email) return jsonResponse({ error: 'email is required' }, 400);
+
+    const { data, error } = await supabase.from('email_contacts').insert({
+      email: body.email,
+      first_name: body.first_name || null,
+      last_name: body.last_name || null,
+      phone: body.phone || null,
+      company: body.company || null,
+      source: body.source || 'api',
+      custom_fields: body.custom_fields || {},
+      profile_id: profileId,
+    }).select('id, email, first_name, last_name, status, created_at').single();
+
+    if (error) return jsonResponse({ error: 'Failed to create contact', details: error.message }, 500);
+    return jsonResponse({ data, message: 'Contact created' }, 201);
+  }
+
+  // PUT /contacts/:id
+  if (req.method === 'PUT' && contactId) {
+    if (!permissions?.includes('write')) return jsonResponse({ error: 'Permission denied: write access required' }, 403);
+    const body = await req.json();
+    const updates: any = {};
+    if (body.email !== undefined) updates.email = body.email;
+    if (body.first_name !== undefined) updates.first_name = body.first_name;
+    if (body.last_name !== undefined) updates.last_name = body.last_name;
+    if (body.phone !== undefined) updates.phone = body.phone;
+    if (body.company !== undefined) updates.company = body.company;
+    if (body.status !== undefined) updates.status = body.status;
+    if (body.custom_fields !== undefined) updates.custom_fields = body.custom_fields;
+
+    const { data, error } = await supabase.from('email_contacts')
+      .update(updates).eq('id', contactId).eq('profile_id', profileId)
+      .select('id, email, first_name, last_name, status, updated_at').single();
+
+    if (error || !data) return jsonResponse({ error: 'Contact not found' }, 404);
+    return jsonResponse({ data, message: 'Contact updated' });
+  }
+
+  // DELETE /contacts/:id
+  if (req.method === 'DELETE' && contactId) {
+    if (!permissions?.includes('write')) return jsonResponse({ error: 'Permission denied: write access required' }, 403);
+    const { error } = await supabase.from('email_contacts').delete().eq('id', contactId).eq('profile_id', profileId);
+    if (error) return jsonResponse({ error: 'Failed to delete contact' }, 500);
+    return jsonResponse({ message: 'Contact deleted' });
+  }
+
+  if (!permissions?.includes('read')) return jsonResponse({ error: 'Permission denied: read access required' }, 403);
+
+  // GET /contacts/:id
+  if (contactId) {
+    const { data } = await supabase.from('email_contacts').select('*').eq('id', contactId).eq('profile_id', profileId).single();
+    if (!data) return jsonResponse({ error: 'Contact not found' }, 404);
+    return jsonResponse({ data });
+  }
+
+  // GET /contacts
+  const url = new URL(req.url);
+  const page = parseInt(url.searchParams.get('page') || '1');
+  const limit = Math.min(parseInt(url.searchParams.get('limit') || '20'), 100);
+  const offset = (page - 1) * limit;
+  const status = url.searchParams.get('status');
+  const search = url.searchParams.get('search');
+
+  let query = supabase.from('email_contacts')
+    .select('id, email, first_name, last_name, status, source, company, created_at', { count: 'exact' })
+    .eq('profile_id', profileId);
+
+  if (status) query = query.eq('status', status);
+  if (search) query = query.or(`email.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%`);
+
+  const { data, error, count } = await query.order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+  if (error) return jsonResponse({ error: 'Failed to fetch contacts' }, 500);
+
+  return jsonResponse({ data, pagination: { page, limit, total: count, totalPages: Math.ceil((count || 0) / limit) } });
+}
+
+// ==================== LISTS ====================
+async function handleLists(
+  supabase: any, req: Request, profileId: string,
+  listId?: string, permissions?: string[]
+): Promise<Response> {
+  const url = new URL(req.url);
+  const pathParts = url.pathname.split('/').filter(Boolean);
+  const action = pathParts.length > 3 ? pathParts[pathParts.length - 1] : null;
+
+  // POST /lists/:id/subscribe
+  if (req.method === 'POST' && listId && action === 'subscribe') {
+    if (!permissions?.includes('write')) return jsonResponse({ error: 'Permission denied' }, 403);
+    const body = await req.json();
+    if (!body.contact_id && !body.email) return jsonResponse({ error: 'contact_id or email required' }, 400);
+
+    let contactId = body.contact_id;
+    if (!contactId && body.email) {
+      const { data: contact } = await supabase.from('email_contacts').select('id').eq('email', body.email).eq('profile_id', profileId).single();
+      if (!contact) {
+        const { data: newContact } = await supabase.from('email_contacts').insert({ email: body.email, profile_id: profileId, source: 'api' }).select('id').single();
+        contactId = newContact?.id;
+      } else {
+        contactId = contact.id;
+      }
+    }
+
+    const { error } = await supabase.from('email_list_members').upsert({ list_id: listId, contact_id: contactId, status: 'active' }, { onConflict: 'list_id,contact_id' });
+    if (error) return jsonResponse({ error: 'Failed to subscribe', details: error.message }, 500);
+    return jsonResponse({ message: 'Subscribed successfully', contact_id: contactId });
+  }
+
+  // POST /lists/:id/unsubscribe
+  if (req.method === 'POST' && listId && action === 'unsubscribe') {
+    if (!permissions?.includes('write')) return jsonResponse({ error: 'Permission denied' }, 403);
+    const body = await req.json();
+    if (!body.contact_id) return jsonResponse({ error: 'contact_id required' }, 400);
+
+    const { error } = await supabase.from('email_list_members').update({ status: 'unsubscribed', unsubscribed_at: new Date().toISOString() }).eq('list_id', listId).eq('contact_id', body.contact_id);
+    if (error) return jsonResponse({ error: 'Failed to unsubscribe' }, 500);
+    return jsonResponse({ message: 'Unsubscribed successfully' });
+  }
+
+  // POST /lists
+  if (req.method === 'POST' && !listId) {
+    if (!permissions?.includes('write')) return jsonResponse({ error: 'Permission denied' }, 403);
+    const body = await req.json();
+    if (!body.name) return jsonResponse({ error: 'name is required' }, 400);
+
+    const { data, error } = await supabase.from('email_lists').insert({
+      name: body.name, description: body.description || null, profile_id: profileId,
+    }).select('id, name, description, subscriber_count, created_at').single();
+
+    if (error) return jsonResponse({ error: 'Failed to create list' }, 500);
+    return jsonResponse({ data, message: 'List created' }, 201);
+  }
+
+  // PUT /lists/:id
+  if (req.method === 'PUT' && listId) {
+    if (!permissions?.includes('write')) return jsonResponse({ error: 'Permission denied' }, 403);
+    const body = await req.json();
+    const updates: any = {};
+    if (body.name !== undefined) updates.name = body.name;
+    if (body.description !== undefined) updates.description = body.description;
+
+    const { data, error } = await supabase.from('email_lists').update(updates).eq('id', listId).eq('profile_id', profileId).select('id, name, description, subscriber_count, updated_at').single();
+    if (error || !data) return jsonResponse({ error: 'List not found' }, 404);
+    return jsonResponse({ data, message: 'List updated' });
+  }
+
+  // DELETE /lists/:id
+  if (req.method === 'DELETE' && listId) {
+    if (!permissions?.includes('write')) return jsonResponse({ error: 'Permission denied' }, 403);
+    const { error } = await supabase.from('email_lists').delete().eq('id', listId).eq('profile_id', profileId);
+    if (error) return jsonResponse({ error: 'Failed to delete list' }, 500);
+    return jsonResponse({ message: 'List deleted' });
+  }
+
+  if (!permissions?.includes('read')) return jsonResponse({ error: 'Permission denied' }, 403);
+
+  if (listId && !action) {
+    const { data } = await supabase.from('email_lists').select('*').eq('id', listId).eq('profile_id', profileId).single();
+    if (!data) return jsonResponse({ error: 'List not found' }, 404);
+    return jsonResponse({ data });
+  }
+
+  const { data } = await supabase.from('email_lists').select('id, name, description, subscriber_count, is_default, created_at').eq('profile_id', profileId).order('created_at', { ascending: false });
+  return jsonResponse({ data: data || [] });
+}
+
+// ==================== CAMPAIGNS ====================
+async function handleCampaigns(
+  supabase: any, req: Request, profileId: string,
+  campaignId?: string, action?: string, permissions?: string[]
+): Promise<Response> {
+  // POST /campaigns
+  if (req.method === 'POST' && !campaignId) {
+    if (!permissions?.includes('write')) return jsonResponse({ error: 'Permission denied' }, 403);
+    const body = await req.json();
+    if (!body.name) return jsonResponse({ error: 'name is required' }, 400);
+
+    const { data, error } = await supabase.from('email_campaigns').insert({
+      name: body.name,
+      subject: body.subject || null,
+      from_email: body.from_email || null,
+      from_name: body.from_name || null,
+      html_content: body.html_content || null,
+      text_content: body.text_content || null,
+      list_id: body.list_id || null,
+      profile_id: profileId,
+    }).select('id, name, subject, status, created_at').single();
+
+    if (error) return jsonResponse({ error: 'Failed to create campaign', details: error.message }, 500);
+    return jsonResponse({ data, message: 'Campaign created' }, 201);
+  }
+
+  // PUT /campaigns/:id
+  if (req.method === 'PUT' && campaignId && !action) {
+    if (!permissions?.includes('write')) return jsonResponse({ error: 'Permission denied' }, 403);
+    const body = await req.json();
+    const updates: any = {};
+    ['name', 'subject', 'from_email', 'from_name', 'html_content', 'text_content', 'list_id', 'scheduled_at'].forEach(k => {
+      if (body[k] !== undefined) updates[k] = body[k];
+    });
+
+    const { data, error } = await supabase.from('email_campaigns').update(updates).eq('id', campaignId).eq('profile_id', profileId).select('id, name, subject, status, updated_at').single();
+    if (error || !data) return jsonResponse({ error: 'Campaign not found' }, 404);
+    return jsonResponse({ data, message: 'Campaign updated' });
+  }
+
+  // POST /campaigns/:id/send
+  if (action === 'send' && campaignId && req.method === 'POST') {
+    if (!permissions?.includes('execute')) return jsonResponse({ error: 'Permission denied: execute access required' }, 403);
+    const { data: campaign } = await supabase.from('email_campaigns').select('*').eq('id', campaignId).eq('profile_id', profileId).single();
+    if (!campaign) return jsonResponse({ error: 'Campaign not found' }, 404);
+    if (campaign.status !== 'draft') return jsonResponse({ error: 'Campaign must be in draft status to send' }, 400);
+
+    await supabase.from('email_campaigns').update({ status: 'sending', sent_at: new Date().toISOString() }).eq('id', campaignId);
+
+    const sendUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email-campaign`;
+    const sendResp = await fetch(sendUrl, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ campaignId }),
+    });
+    const result = await sendResp.json();
+    return jsonResponse({ message: 'Campaign sending initiated', ...result });
+  }
+
+  // GET /campaigns/:id/stats
+  if (action === 'stats' && campaignId) {
+    if (!permissions?.includes('read')) return jsonResponse({ error: 'Permission denied' }, 403);
+    const { data } = await supabase.from('email_campaigns').select('total_sent, total_delivered, total_opens, total_clicks, total_bounces, total_unsubscribes, total_complaints').eq('id', campaignId).eq('profile_id', profileId).single();
+    if (!data) return jsonResponse({ error: 'Campaign not found' }, 404);
+    return jsonResponse({ data });
+  }
+
+  if (!permissions?.includes('read')) return jsonResponse({ error: 'Permission denied' }, 403);
+
+  if (campaignId && !action) {
+    const { data } = await supabase.from('email_campaigns').select('id, name, subject, status, from_email, from_name, list_id, total_sent, total_opens, total_clicks, created_at, sent_at, scheduled_at').eq('id', campaignId).eq('profile_id', profileId).single();
+    if (!data) return jsonResponse({ error: 'Campaign not found' }, 404);
+    return jsonResponse({ data });
+  }
+
+  const url = new URL(req.url);
+  const page = parseInt(url.searchParams.get('page') || '1');
+  const limit = Math.min(parseInt(url.searchParams.get('limit') || '20'), 100);
+  const offset = (page - 1) * limit;
+  const status = url.searchParams.get('status');
+
+  let query = supabase.from('email_campaigns').select('id, name, subject, status, total_sent, total_opens, total_clicks, created_at, sent_at', { count: 'exact' }).eq('profile_id', profileId);
+  if (status) query = query.eq('status', status);
+
+  const { data, error, count } = await query.order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+  if (error) return jsonResponse({ error: 'Failed to fetch campaigns' }, 500);
+  return jsonResponse({ data, pagination: { page, limit, total: count, totalPages: Math.ceil((count || 0) / limit) } });
+}
+
+// ==================== EMAIL TEMPLATES ====================
+async function handleEmailTemplates(
+  supabase: any, req: Request, profileId: string,
+  templateId?: string, permissions?: string[]
+): Promise<Response> {
+  if (req.method === 'POST' && !templateId) {
+    if (!permissions?.includes('write')) return jsonResponse({ error: 'Permission denied' }, 403);
+    const body = await req.json();
+    if (!body.name) return jsonResponse({ error: 'name is required' }, 400);
+
+    const { data, error } = await supabase.from('email_templates').insert({
+      name: body.name,
+      subject: body.subject || null,
+      html_content: body.html_content || null,
+      text_content: body.text_content || null,
+      category: body.category || 'custom',
+      profile_id: profileId,
+    }).select('id, name, subject, category, created_at').single();
+
+    if (error) return jsonResponse({ error: 'Failed to create template' }, 500);
+    return jsonResponse({ data, message: 'Email template created' }, 201);
+  }
+
+  if (!permissions?.includes('read')) return jsonResponse({ error: 'Permission denied' }, 403);
+
+  if (templateId) {
+    const { data } = await supabase.from('email_templates').select('*').eq('id', templateId).eq('profile_id', profileId).single();
+    if (!data) return jsonResponse({ error: 'Email template not found' }, 404);
+    return jsonResponse({ data });
+  }
+
+  const { data } = await supabase.from('email_templates').select('id, name, subject, category, created_at, updated_at').eq('profile_id', profileId).order('created_at', { ascending: false });
+  return jsonResponse({ data: data || [] });
+}
+
+// ==================== TRIGGERS (Ecommerce Events) ====================
+async function handleTriggers(
+  supabase: any, req: Request, profileId: string,
+  triggerType?: string, permissions?: string[]
+): Promise<Response> {
+  if (req.method !== 'POST') return jsonResponse({ error: 'POST required to fire triggers' }, 405);
+  if (!permissions?.includes('execute')) return jsonResponse({ error: 'Permission denied: execute access required' }, 403);
+
+  const body = await req.json();
+
+  switch (triggerType) {
+    case 'checkout-abandon': {
+      if (!body.email) return jsonResponse({ error: 'email is required' }, 400);
+      // Upsert contact and log the event
+      let { data: contact } = await supabase.from('email_contacts').select('id').eq('email', body.email).eq('profile_id', profileId).single();
+      if (!contact) {
+        const { data: newC } = await supabase.from('email_contacts').insert({ email: body.email, first_name: body.first_name || null, last_name: body.last_name || null, profile_id: profileId, source: 'checkout_abandon' }).select('id').single();
+        contact = newC;
+      }
+      return jsonResponse({
+        message: 'Checkout abandonment event recorded',
+        contact_id: contact?.id,
+        trigger_type: 'checkout_abandon',
+        data: { cart_value: body.cart_value, items: body.items, checkout_step: body.checkout_step },
+      });
+    }
+    case 'payment-failure': {
+      if (!body.email) return jsonResponse({ error: 'email is required' }, 400);
+      let { data: contact } = await supabase.from('email_contacts').select('id').eq('email', body.email).eq('profile_id', profileId).single();
+      if (!contact) {
+        const { data: newC } = await supabase.from('email_contacts').insert({ email: body.email, profile_id: profileId, source: 'payment_failure' }).select('id').single();
+        contact = newC;
+      }
+      return jsonResponse({
+        message: 'Payment failure event recorded',
+        contact_id: contact?.id,
+        trigger_type: 'payment_failure',
+        data: { order_id: body.order_id, amount: body.amount, error_code: body.error_code, retry_url: body.retry_url },
+      });
+    }
+    case 'cart-abandon': {
+      if (!body.email) return jsonResponse({ error: 'email is required' }, 400);
+      let { data: contact } = await supabase.from('email_contacts').select('id').eq('email', body.email).eq('profile_id', profileId).single();
+      if (!contact) {
+        const { data: newC } = await supabase.from('email_contacts').insert({ email: body.email, profile_id: profileId, source: 'cart_abandon' }).select('id').single();
+        contact = newC;
+      }
+      return jsonResponse({
+        message: 'Cart abandonment event recorded',
+        contact_id: contact?.id,
+        trigger_type: 'cart_abandon',
+        data: { cart_items: body.items, cart_total: body.cart_total },
+      });
+    }
+    case 'browse-abandon': {
+      if (!body.email) return jsonResponse({ error: 'email is required' }, 400);
+      return jsonResponse({
+        message: 'Browse abandonment event recorded',
+        trigger_type: 'browse_abandon',
+        data: { products_viewed: body.products, page_url: body.page_url },
+      });
+    }
+    default:
+      return jsonResponse({ error: `Unknown trigger type: ${triggerType}`, available: ['checkout-abandon', 'payment-failure', 'cart-abandon', 'browse-abandon'] }, 400);
+  }
+}
+
+// ==================== TRACKING (Open/Click/Pageview) ====================
+async function handleTracking(
+  supabase: any, req: Request, profileId: string
+): Promise<Response> {
+  if (req.method !== 'POST') return jsonResponse({ error: 'POST required' }, 405);
+
+  const url = new URL(req.url);
+  const pathParts = url.pathname.split('/').filter(Boolean);
+  const trackAction = pathParts[pathParts.length - 1];
+  const body = await req.json().catch(() => ({}));
+
+  switch (trackAction) {
+    case 'open':
+      if (body.campaign_id) {
+        await supabase.rpc('increment_campaign_opens', { p_campaign_id: body.campaign_id });
+        if (body.recipient_id) {
+          await supabase.from('email_campaign_recipients').update({ opened_at: new Date().toISOString(), open_count: supabase.raw('COALESCE(open_count, 0) + 1') }).eq('id', body.recipient_id);
         }
+      }
+      return jsonResponse({ message: 'Open tracked' });
+    case 'click':
+      if (body.campaign_id) {
+        await supabase.rpc('increment_campaign_clicks', { p_campaign_id: body.campaign_id });
+        if (body.recipient_id) {
+          await supabase.from('email_campaign_recipients').update({ clicked_at: new Date().toISOString(), click_count: supabase.raw('COALESCE(click_count, 0) + 1') }).eq('id', body.recipient_id);
+        }
+      }
+      return jsonResponse({ message: 'Click tracked', url: body.url });
+    case 'pageview':
+      return jsonResponse({ message: 'Pageview tracked', page: body.page_url, referrer: body.referrer });
+    default:
+      return jsonResponse({ error: 'Unknown track action', available: ['open', 'click', 'pageview'] }, 400);
+  }
+}
 
         const executeUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/execute-workflow`;
         const response = await fetch(executeUrl, {
