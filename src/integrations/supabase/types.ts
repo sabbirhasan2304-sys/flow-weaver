@@ -203,6 +203,62 @@ export type Database = {
           },
         ]
       }
+      email_ab_variants: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          html_content: string | null
+          id: string
+          is_winner: boolean
+          subject: string | null
+          total_bounces: number
+          total_clicks: number
+          total_opens: number
+          total_sent: number
+          updated_at: string
+          variant_label: string
+          weight: number
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          is_winner?: boolean
+          subject?: string | null
+          total_bounces?: number
+          total_clicks?: number
+          total_opens?: number
+          total_sent?: number
+          updated_at?: string
+          variant_label?: string
+          weight?: number
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          is_winner?: boolean
+          subject?: string | null
+          total_bounces?: number
+          total_clicks?: number
+          total_opens?: number
+          total_sent?: number
+          updated_at?: string
+          variant_label?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_ab_variants_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_automation_steps: {
         Row: {
           automation_id: string
@@ -360,6 +416,10 @@ export type Database = {
       }
       email_campaigns: {
         Row: {
+          ab_test_duration_hours: number | null
+          ab_test_metric: string | null
+          ab_test_sample_percent: number | null
+          ab_winner_selected_at: string | null
           campaign_type: string | null
           completed_at: string | null
           created_at: string
@@ -367,6 +427,7 @@ export type Database = {
           from_name: string | null
           html_content: string | null
           id: string
+          is_ab_test: boolean
           list_id: string | null
           name: string
           profile_id: string
@@ -389,6 +450,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ab_test_duration_hours?: number | null
+          ab_test_metric?: string | null
+          ab_test_sample_percent?: number | null
+          ab_winner_selected_at?: string | null
           campaign_type?: string | null
           completed_at?: string | null
           created_at?: string
@@ -396,6 +461,7 @@ export type Database = {
           from_name?: string | null
           html_content?: string | null
           id?: string
+          is_ab_test?: boolean
           list_id?: string | null
           name: string
           profile_id: string
@@ -418,6 +484,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ab_test_duration_hours?: number | null
+          ab_test_metric?: string | null
+          ab_test_sample_percent?: number | null
+          ab_winner_selected_at?: string | null
           campaign_type?: string | null
           completed_at?: string | null
           created_at?: string
@@ -425,6 +495,7 @@ export type Database = {
           from_name?: string | null
           html_content?: string | null
           id?: string
+          is_ab_test?: boolean
           list_id?: string | null
           name?: string
           profile_id?: string
