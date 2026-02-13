@@ -31,6 +31,7 @@ import {
   Fingerprint, KeyRound, ShieldCheck, UserCheck, Scan,
   Search, ChevronRight, GripVertical,
   Tag, FlaskConical, TrendingUp, ClipboardList,
+  Link2, Phone, QrCode, Copy, Flame, Rss, BarChart2, Bug, FileInput,
 } from 'lucide-react';
 import {
   OpenAIIcon, AnthropicIcon, GoogleIcon, SlackIcon, DiscordIcon,
@@ -100,6 +101,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string; style?: 
   Archive, CloudUpload, CloudDownload, Fingerprint, KeyRound,
   ShieldCheck, UserCheck, Scan,
   Tag, FlaskConical, TrendingUp, ClipboardList,
+  Link2, Phone, QrCode, Copy, Flame, Rss, BarChart2, Bug, FileInput,
   
   // Service-specific icons
   OpenAI: OpenAIIcon, Anthropic: AnthropicIcon, Google: GoogleIcon,
