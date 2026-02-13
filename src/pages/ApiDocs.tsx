@@ -303,6 +303,293 @@ const endpoints = [
       { code: 404, message: "Execution not found", description: "The specified execution ID does not exist or you don't have access." },
     ],
   },
+  // ==================== EMAIL MARKETING ENDPOINTS ====================
+  {
+    method: "POST",
+    path: "/contacts",
+    description: "Create a new contact",
+    summary: "Add a new contact to your email marketing list. Contacts are automatically de-duplicated by email.",
+    auth: true,
+    permissions: ["write"],
+    rateLimit: "100 requests/hour",
+    body: `{
+  "email": "john@example.com",
+  "first_name": "John",
+  "last_name": "Doe",
+  "phone": "+1234567890",
+  "company": "Acme Inc",
+  "source": "website",
+  "custom_fields": { "plan": "pro", "signup_page": "/pricing" }
+}`,
+    bodyFields: [
+      { name: "email", type: "string", required: true, description: "Contact's email address." },
+      { name: "first_name", type: "string", required: false, description: "Contact's first name." },
+      { name: "last_name", type: "string", required: false, description: "Contact's last name." },
+      { name: "phone", type: "string", required: false, description: "Phone number." },
+      { name: "company", type: "string", required: false, description: "Company name." },
+      { name: "source", type: "string", required: false, description: "How the contact was acquired (e.g. 'website', 'api', 'import')." },
+      { name: "custom_fields", type: "object", required: false, description: "Arbitrary key-value pairs for custom data." },
+    ],
+    response: `{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "john@example.com",
+    "first_name": "John",
+    "last_name": "Doe",
+    "status": "subscribed",
+    "created_at": "2024-01-15T10:30:00.000Z"
+  },
+  "message": "Contact created"
+}`,
+    responseFields: [
+      { name: "data.id", type: "string (UUID)", description: "Unique contact identifier." },
+      { name: "data.email", type: "string", description: "Contact email." },
+      { name: "data.status", type: "string", description: "Subscription status: subscribed, unsubscribed, bounced." },
+    ],
+  },
+  {
+    method: "GET",
+    path: "/contacts",
+    description: "List all contacts with filtering",
+    summary: "Retrieve a paginated list of contacts. Filter by status or search by name/email.",
+    auth: true,
+    permissions: ["read"],
+    rateLimit: "100 requests/hour",
+    params: [
+      { name: "page", type: "integer", required: false, default: "1", description: "Page number." },
+      { name: "limit", type: "integer", required: false, default: "20", description: "Items per page (max 100)." },
+      { name: "status", type: "string", required: false, description: "Filter by status: subscribed, unsubscribed, bounced." },
+      { name: "search", type: "string", required: false, description: "Search by email, first name, or last name." },
+    ],
+    response: `{
+  "data": [
+    { "id": "...", "email": "john@example.com", "first_name": "John", "status": "subscribed", "source": "api" }
+  ],
+  "pagination": { "page": 1, "limit": 20, "total": 150, "totalPages": 8 }
+}`,
+    responseFields: [
+      { name: "data", type: "array", description: "Array of contact objects." },
+      { name: "pagination", type: "object", description: "Pagination metadata." },
+    ],
+  },
+  {
+    method: "POST",
+    path: "/lists",
+    description: "Create a new email list",
+    summary: "Create a new mailing list to organize your contacts into segments.",
+    auth: true,
+    permissions: ["write"],
+    rateLimit: "100 requests/hour",
+    body: `{
+  "name": "Newsletter Subscribers",
+  "description": "Weekly newsletter recipients"
+}`,
+    bodyFields: [
+      { name: "name", type: "string", required: true, description: "List name." },
+      { name: "description", type: "string", required: false, description: "List description." },
+    ],
+    response: `{
+  "data": { "id": "...", "name": "Newsletter Subscribers", "subscriber_count": 0, "created_at": "..." },
+  "message": "List created"
+}`,
+    responseFields: [
+      { name: "data.id", type: "string (UUID)", description: "Unique list identifier." },
+      { name: "data.subscriber_count", type: "integer", description: "Number of active subscribers." },
+    ],
+  },
+  {
+    method: "POST",
+    path: "/lists/:id/subscribe",
+    description: "Subscribe a contact to a list",
+    summary: "Add a contact to a mailing list. If the email doesn't exist as a contact, it will be created automatically.",
+    auth: true,
+    permissions: ["write"],
+    rateLimit: "100 requests/hour",
+    pathParams: [
+      { name: "id", type: "string (UUID)", required: true, description: "The list ID to subscribe to." },
+    ],
+    body: `{
+  "email": "john@example.com"
+}`,
+    bodyFields: [
+      { name: "email", type: "string", required: false, description: "Email address. Contact will be auto-created if it doesn't exist." },
+      { name: "contact_id", type: "string (UUID)", required: false, description: "Existing contact ID. Use either email or contact_id." },
+    ],
+    response: `{
+  "message": "Subscribed successfully",
+  "contact_id": "550e8400-e29b-41d4-a716-446655440000"
+}`,
+    responseFields: [
+      { name: "contact_id", type: "string (UUID)", description: "ID of the subscribed contact." },
+    ],
+  },
+  {
+    method: "POST",
+    path: "/campaigns",
+    description: "Create a new email campaign",
+    summary: "Create a draft email campaign. Add HTML content, subject, sender info, and target list.",
+    auth: true,
+    permissions: ["write"],
+    rateLimit: "50 requests/hour",
+    body: `{
+  "name": "January Newsletter",
+  "subject": "Your January Update",
+  "from_email": "hello@yourstore.com",
+  "from_name": "Your Store",
+  "html_content": "<h1>Hello {{first_name}}!</h1><p>Here's your update...</p>",
+  "list_id": "list-uuid-here"
+}`,
+    bodyFields: [
+      { name: "name", type: "string", required: true, description: "Campaign name (internal)." },
+      { name: "subject", type: "string", required: false, description: "Email subject line." },
+      { name: "from_email", type: "string", required: false, description: "Sender email address." },
+      { name: "html_content", type: "string", required: false, description: "HTML email body. Supports merge tags like {{first_name}}." },
+      { name: "list_id", type: "string (UUID)", required: false, description: "Target mailing list ID." },
+    ],
+    response: `{
+  "data": { "id": "...", "name": "January Newsletter", "subject": "Your January Update", "status": "draft", "created_at": "..." },
+  "message": "Campaign created"
+}`,
+    responseFields: [
+      { name: "data.status", type: "string", description: "Campaign status: draft, sending, sent, scheduled." },
+    ],
+  },
+  {
+    method: "POST",
+    path: "/campaigns/:id/send",
+    description: "Send an email campaign",
+    summary: "Initiate sending a draft campaign to all contacts in the target list. Campaign must be in 'draft' status.",
+    auth: true,
+    permissions: ["execute"],
+    rateLimit: "10 requests/hour",
+    pathParams: [
+      { name: "id", type: "string (UUID)", required: true, description: "Campaign ID to send." },
+    ],
+    response: `{
+  "message": "Campaign sending initiated"
+}`,
+    responseFields: [],
+    errors: [
+      { code: 400, message: "Campaign must be in draft status to send", description: "Only draft campaigns can be sent." },
+      { code: 404, message: "Campaign not found", description: "Campaign doesn't exist or you don't have access." },
+    ],
+  },
+  {
+    method: "POST",
+    path: "/triggers/checkout-abandon",
+    description: "Fire checkout abandonment event",
+    summary: "Track when a user fills out checkout details (shipping/payment) but leaves without completing the purchase. Triggers automated recovery emails.",
+    auth: true,
+    permissions: ["execute"],
+    rateLimit: "200 requests/hour",
+    body: `{
+  "email": "customer@example.com",
+  "first_name": "Jane",
+  "cart_value": 129.99,
+  "checkout_step": "payment",
+  "items": [
+    { "name": "Premium Widget", "price": 49.99, "quantity": 2, "image_url": "https://..." },
+    { "name": "Accessory Pack", "price": 30.01, "quantity": 1 }
+  ]
+}`,
+    bodyFields: [
+      { name: "email", type: "string", required: true, description: "Customer email. Contact is auto-created if needed." },
+      { name: "first_name", type: "string", required: false, description: "Customer first name for personalization." },
+      { name: "cart_value", type: "number", required: false, description: "Total cart value for dynamic email content." },
+      { name: "checkout_step", type: "string", required: false, description: "Where they stopped: 'shipping', 'payment', 'review'." },
+      { name: "items", type: "array", required: false, description: "Cart items with name, price, quantity, image_url." },
+    ],
+    response: `{
+  "message": "Checkout abandonment event recorded",
+  "contact_id": "...",
+  "trigger_type": "checkout_abandon",
+  "data": { "cart_value": 129.99, "items": [...], "checkout_step": "payment" }
+}`,
+    responseFields: [
+      { name: "contact_id", type: "string (UUID)", description: "The contact that was matched or created." },
+      { name: "trigger_type", type: "string", description: "Type of trigger fired." },
+    ],
+  },
+  {
+    method: "POST",
+    path: "/triggers/payment-failure",
+    description: "Fire payment failure recovery event",
+    summary: "Track when a payment attempt fails (card declined, insufficient funds, etc.). Sends recovery email with a retry payment link.",
+    auth: true,
+    permissions: ["execute"],
+    rateLimit: "200 requests/hour",
+    body: `{
+  "email": "customer@example.com",
+  "order_id": "ORD-12345",
+  "amount": 89.99,
+  "error_code": "card_declined",
+  "retry_url": "https://yourstore.com/checkout/retry?order=ORD-12345"
+}`,
+    bodyFields: [
+      { name: "email", type: "string", required: true, description: "Customer email." },
+      { name: "order_id", type: "string", required: false, description: "Your order reference ID." },
+      { name: "amount", type: "number", required: false, description: "Payment amount that failed." },
+      { name: "error_code", type: "string", required: false, description: "Payment gateway error code." },
+      { name: "retry_url", type: "string", required: false, description: "URL for the customer to retry payment." },
+    ],
+    response: `{
+  "message": "Payment failure event recorded",
+  "contact_id": "...",
+  "trigger_type": "payment_failure",
+  "data": { "order_id": "ORD-12345", "amount": 89.99, "error_code": "card_declined", "retry_url": "..." }
+}`,
+    responseFields: [
+      { name: "contact_id", type: "string (UUID)", description: "The contact that was matched or created." },
+    ],
+  },
+  {
+    method: "POST",
+    path: "/triggers/cart-abandon",
+    description: "Fire cart abandonment event",
+    summary: "Track when a user adds items to cart but leaves the site without proceeding to checkout.",
+    auth: true,
+    permissions: ["execute"],
+    rateLimit: "200 requests/hour",
+    body: `{
+  "email": "shopper@example.com",
+  "cart_total": 75.50,
+  "items": [
+    { "name": "Running Shoes", "price": 75.50, "quantity": 1 }
+  ]
+}`,
+    bodyFields: [
+      { name: "email", type: "string", required: true, description: "Customer email." },
+      { name: "cart_total", type: "number", required: false, description: "Total cart value." },
+      { name: "items", type: "array", required: false, description: "Items in the cart." },
+    ],
+    response: `{
+  "message": "Cart abandonment event recorded",
+  "contact_id": "...",
+  "trigger_type": "cart_abandon"
+}`,
+    responseFields: [],
+  },
+  {
+    method: "POST",
+    path: "/track/pageview",
+    description: "Track a page view event",
+    summary: "Record page views for behavior-based segmentation and browse abandonment triggers.",
+    auth: true,
+    permissions: ["execute"],
+    rateLimit: "500 requests/hour",
+    body: `{
+  "page_url": "https://yourstore.com/products/widget",
+  "referrer": "https://google.com",
+  "contact_email": "visitor@example.com"
+}`,
+    bodyFields: [
+      { name: "page_url", type: "string", required: false, description: "URL of the page viewed." },
+      { name: "referrer", type: "string", required: false, description: "Referrer URL." },
+      { name: "contact_email", type: "string", required: false, description: "Email if known (for attribution)." },
+    ],
+    response: `{ "message": "Pageview tracked" }`,
+    responseFields: [],
+  },
 ];
 
 // Error codes reference
@@ -650,6 +937,7 @@ export default function ApiDocs() {
     { id: "quickstart", label: "Quick Start", icon: Zap },
     { id: "authentication", label: "Authentication", icon: Key },
     { id: "endpoints", label: "API Endpoints", icon: List },
+    { id: "tracking", label: "JS Tracking SDK", icon: Code },
     { id: "sdks", label: "SDKs & Libraries", icon: Code },
     { id: "errors", label: "Error Handling", icon: AlertTriangle },
     { id: "ratelimits", label: "Rate Limits", icon: Clock },
@@ -1222,6 +1510,225 @@ curl -X POST \\
                   </CardContent>
                 </Card>
               </div>
+            </div>
+          )}
+
+          {/* JS Tracking SDK Section */}
+          {activeSection === "tracking" && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Code className="h-5 w-5" />
+                    JavaScript Tracking SDK
+                  </CardTitle>
+                  <CardDescription>
+                    Embed this script on your website to automatically track e-commerce events, trigger abandoned cart/checkout recovery, and capture payment failures.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h4 className="font-semibold mb-2">1. Add the tracking script to your website</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Copy and paste this script before the closing <code className="bg-muted px-1 rounded">&lt;/body&gt;</code> tag on every page of your site.
+                    </p>
+                    <div className="relative">
+                      <pre className="bg-muted p-4 rounded-lg text-sm overflow-x-auto">
+{`<script>
+(function() {
+  var BZ_API_KEY = "bz_your_api_key_here";
+  var BZ_API_URL = "${API_BASE_URL}";
+
+  var BZTracker = {
+    _post: function(endpoint, data) {
+      fetch(BZ_API_URL + endpoint, {
+        method: "POST",
+        headers: {
+          "x-api-key": BZ_API_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      }).catch(function(e) { console.warn("BZ tracking error:", e); });
+    },
+
+    // Track page views
+    trackPageview: function(email) {
+      this._post("/track/pageview", {
+        page_url: window.location.href,
+        referrer: document.referrer,
+        contact_email: email || null
+      });
+    },
+
+    // Track cart abandonment
+    trackCartAbandon: function(email, items, cartTotal) {
+      this._post("/triggers/cart-abandon", {
+        email: email,
+        items: items,
+        cart_total: cartTotal
+      });
+    },
+
+    // Track checkout abandonment
+    trackCheckoutAbandon: function(email, opts) {
+      this._post("/triggers/checkout-abandon", {
+        email: email,
+        first_name: opts.firstName || null,
+        cart_value: opts.cartValue || null,
+        checkout_step: opts.checkoutStep || "unknown",
+        items: opts.items || []
+      });
+    },
+
+    // Track payment failure
+    trackPaymentFailure: function(email, opts) {
+      this._post("/triggers/payment-failure", {
+        email: email,
+        order_id: opts.orderId || null,
+        amount: opts.amount || null,
+        error_code: opts.errorCode || null,
+        retry_url: opts.retryUrl || null
+      });
+    },
+
+    // Subscribe contact to a list
+    subscribe: function(email, listId) {
+      this._post("/lists/" + listId + "/subscribe", { email: email });
+    },
+
+    // Create or update a contact
+    identify: function(email, data) {
+      this._post("/contacts", {
+        email: email,
+        first_name: data.firstName || null,
+        last_name: data.lastName || null,
+        phone: data.phone || null,
+        company: data.company || null,
+        source: "website",
+        custom_fields: data.customFields || {}
+      });
+    }
+  };
+
+  // Auto-track pageview on load
+  BZTracker.trackPageview();
+
+  // Expose globally
+  window.BZTracker = BZTracker;
+})();
+</script>`}
+                      </pre>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => copyCode(`<script>
+(function() {
+  var BZ_API_KEY = "bz_your_api_key_here";
+  var BZ_API_URL = "${API_BASE_URL}";
+  var BZTracker = {
+    _post: function(endpoint, data) { fetch(BZ_API_URL + endpoint, { method: "POST", headers: { "x-api-key": BZ_API_KEY, "Content-Type": "application/json" }, body: JSON.stringify(data) }).catch(function(e) { console.warn("BZ tracking error:", e); }); },
+    trackPageview: function(email) { this._post("/track/pageview", { page_url: window.location.href, referrer: document.referrer, contact_email: email || null }); },
+    trackCartAbandon: function(email, items, cartTotal) { this._post("/triggers/cart-abandon", { email: email, items: items, cart_total: cartTotal }); },
+    trackCheckoutAbandon: function(email, opts) { this._post("/triggers/checkout-abandon", { email: email, first_name: opts.firstName || null, cart_value: opts.cartValue || null, checkout_step: opts.checkoutStep || "unknown", items: opts.items || [] }); },
+    trackPaymentFailure: function(email, opts) { this._post("/triggers/payment-failure", { email: email, order_id: opts.orderId || null, amount: opts.amount || null, error_code: opts.errorCode || null, retry_url: opts.retryUrl || null }); },
+    subscribe: function(email, listId) { this._post("/lists/" + listId + "/subscribe", { email: email }); },
+    identify: function(email, data) { this._post("/contacts", { email: email, first_name: data.firstName || null, last_name: data.lastName || null, phone: data.phone || null, company: data.company || null, source: "website", custom_fields: data.customFields || {} }); }
+  };
+  BZTracker.trackPageview();
+  window.BZTracker = BZTracker;
+})();
+</script>`)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">2. Usage examples</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm font-medium mb-1">Identify a user (e.g. after login or form fill)</p>
+                        <pre className="bg-muted p-3 rounded-lg text-sm overflow-x-auto">
+{`BZTracker.identify("john@example.com", {
+  firstName: "John",
+  lastName: "Doe",
+  company: "Acme Inc"
+});`}
+                        </pre>
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium mb-1">Track checkout abandonment (on checkout page unload)</p>
+                        <pre className="bg-muted p-3 rounded-lg text-sm overflow-x-auto">
+{`window.addEventListener("beforeunload", function() {
+  if (!orderCompleted) {
+    BZTracker.trackCheckoutAbandon("john@example.com", {
+      cartValue: 129.99,
+      checkoutStep: "payment",
+      items: [
+        { name: "Widget Pro", price: 99.99, quantity: 1 },
+        { name: "Cable", price: 30.00, quantity: 1 }
+      ]
+    });
+  }
+});`}
+                        </pre>
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium mb-1">Track payment failure (in your payment error handler)</p>
+                        <pre className="bg-muted p-3 rounded-lg text-sm overflow-x-auto">
+{`function onPaymentError(error) {
+  BZTracker.trackPaymentFailure("john@example.com", {
+    orderId: "ORD-12345",
+    amount: 89.99,
+    errorCode: error.code, // e.g. "card_declined"
+    retryUrl: window.location.href + "?retry=1"
+  });
+  
+  showErrorMessage("Payment failed. We'll send you a recovery link.");
+}`}
+                        </pre>
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium mb-1">Track cart abandonment (when user has items but navigates away)</p>
+                        <pre className="bg-muted p-3 rounded-lg text-sm overflow-x-auto">
+{`// Call this when cart has items and user is leaving
+BZTracker.trackCartAbandon("john@example.com", [
+  { name: "Running Shoes", price: 75.50, quantity: 1 }
+], 75.50);`}
+                        </pre>
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium mb-1">Subscribe to a list (e.g. newsletter signup form)</p>
+                        <pre className="bg-muted p-3 rounded-lg text-sm overflow-x-auto">
+{`document.getElementById("signup-form").addEventListener("submit", function(e) {
+  e.preventDefault();
+  var email = document.getElementById("email-input").value;
+  BZTracker.subscribe(email, "your-list-id-here");
+  showSuccess("You're subscribed!");
+});`}
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg p-4">
+                    <h5 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">How It Works</h5>
+                    <ul className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                      <li>• The script auto-tracks page views on every page load</li>
+                      <li>• Call <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">BZTracker.identify()</code> after login/signup to associate activity with a contact</li>
+                      <li>• Use <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">beforeunload</code> event to detect checkout abandonment</li>
+                      <li>• Hook into your payment gateway's error callback for payment failure tracking</li>
+                      <li>• All events create/update contacts automatically — no manual syncing needed</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
