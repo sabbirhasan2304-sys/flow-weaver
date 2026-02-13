@@ -10,10 +10,44 @@ import { EmailDashboard } from '@/components/email/EmailDashboard';
 import { EmailAnalytics } from '@/components/email/EmailAnalytics';
 import { AutomationList } from '@/components/email/automation/AutomationList';
 import { SignupForms } from '@/components/email/SignupForms';
-import { Mail, Users, ListChecks, Send, LayoutTemplate, Settings, Zap, BarChart3, FileText } from 'lucide-react';
+import { SendTimeOptimization } from '@/components/email/SendTimeOptimization';
+import { PredictiveAnalytics } from '@/components/email/PredictiveAnalytics';
+import { SmsMarketing } from '@/components/email/SmsMarketing';
+import { AICampaignAgents } from '@/components/email/AICampaignAgents';
+import { EcommerceTriggers } from '@/components/email/EcommerceTriggers';
+import { LandingPageBuilder } from '@/components/email/LandingPageBuilder';
+import { SocialScheduling } from '@/components/email/SocialScheduling';
+import { TeamManagement } from '@/components/email/TeamManagement';
+import { GdprCompliance } from '@/components/email/GdprCompliance';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import {
+  Mail, Users, ListChecks, Send, LayoutTemplate, Settings, Zap, BarChart3, FileText,
+  Clock, Brain, Smartphone, Bot, ShoppingCart, Globe, Share2, Shield,
+} from 'lucide-react';
 
 export default function EmailMarketing() {
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  const tabs = [
+    { value: 'dashboard', label: 'Overview', icon: Mail },
+    { value: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { value: 'predictive', label: 'Predictions', icon: Brain },
+    { value: 'contacts', label: 'Contacts', icon: Users },
+    { value: 'lists', label: 'Lists', icon: ListChecks },
+    { value: 'forms', label: 'Forms', icon: FileText },
+    { value: 'campaigns', label: 'Campaigns', icon: Send },
+    { value: 'automations', label: 'Automations', icon: Zap },
+    { value: 'send-time', label: 'Send Time', icon: Clock },
+    { value: 'ai-agents', label: 'AI Agents', icon: Bot },
+    { value: 'sms', label: 'SMS', icon: Smartphone },
+    { value: 'ecommerce', label: 'E-commerce', icon: ShoppingCart },
+    { value: 'templates', label: 'Templates', icon: LayoutTemplate },
+    { value: 'landing', label: 'Landing Pages', icon: Globe },
+    { value: 'social', label: 'Social', icon: Share2 },
+    { value: 'team', label: 'Team', icon: Users },
+    { value: 'compliance', label: 'Compliance', icon: Shield },
+    { value: 'settings', label: 'SMTP', icon: Settings },
+  ];
 
   return (
     <DashboardLayout>
@@ -26,53 +60,38 @@ export default function EmailMarketing() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-9 lg:w-auto lg:inline-grid">
-            <TabsTrigger value="dashboard" className="gap-2">
-              <Mail className="h-4 w-4" />
-              <span className="hidden sm:inline">Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Analytics</span>
-            </TabsTrigger>
-            <TabsTrigger value="contacts" className="gap-2">
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Contacts</span>
-            </TabsTrigger>
-            <TabsTrigger value="lists" className="gap-2">
-              <ListChecks className="h-4 w-4" />
-              <span className="hidden sm:inline">Lists</span>
-            </TabsTrigger>
-            <TabsTrigger value="forms" className="gap-2">
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Forms</span>
-            </TabsTrigger>
-            <TabsTrigger value="campaigns" className="gap-2">
-              <Send className="h-4 w-4" />
-              <span className="hidden sm:inline">Campaigns</span>
-            </TabsTrigger>
-            <TabsTrigger value="automations" className="gap-2">
-              <Zap className="h-4 w-4" />
-              <span className="hidden sm:inline">Automations</span>
-            </TabsTrigger>
-            <TabsTrigger value="templates" className="gap-2">
-              <LayoutTemplate className="h-4 w-4" />
-              <span className="hidden sm:inline">Templates</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="gap-2">
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">SMTP</span>
-            </TabsTrigger>
-          </TabsList>
+          <ScrollArea className="w-full">
+            <TabsList className="inline-flex w-max">
+              {tabs.map(tab => {
+                const Icon = tab.icon;
+                return (
+                  <TabsTrigger key={tab.value} value={tab.value} className="gap-1.5 whitespace-nowrap">
+                    <Icon className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline text-xs">{tab.label}</span>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
 
           <TabsContent value="dashboard"><EmailDashboard /></TabsContent>
           <TabsContent value="analytics"><EmailAnalytics /></TabsContent>
+          <TabsContent value="predictive"><PredictiveAnalytics /></TabsContent>
           <TabsContent value="contacts"><EmailContacts /></TabsContent>
           <TabsContent value="lists"><EmailLists /></TabsContent>
           <TabsContent value="forms"><SignupForms /></TabsContent>
           <TabsContent value="campaigns"><EmailCampaigns /></TabsContent>
           <TabsContent value="automations"><AutomationList /></TabsContent>
+          <TabsContent value="send-time"><SendTimeOptimization /></TabsContent>
+          <TabsContent value="ai-agents"><AICampaignAgents /></TabsContent>
+          <TabsContent value="sms"><SmsMarketing /></TabsContent>
+          <TabsContent value="ecommerce"><EcommerceTriggers /></TabsContent>
           <TabsContent value="templates"><EmailTemplates /></TabsContent>
+          <TabsContent value="landing"><LandingPageBuilder /></TabsContent>
+          <TabsContent value="social"><SocialScheduling /></TabsContent>
+          <TabsContent value="team"><TeamManagement /></TabsContent>
+          <TabsContent value="compliance"><GdprCompliance /></TabsContent>
           <TabsContent value="settings"><EmailSmtpSettings /></TabsContent>
         </Tabs>
       </div>
