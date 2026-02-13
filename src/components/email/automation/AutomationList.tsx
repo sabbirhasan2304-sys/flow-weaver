@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Plus, Zap, Play, Pause, Trash2, Edit, Users, CheckCircle2, Clock } from 'lucide-react';
+import { Plus, Zap, Play, Pause, Trash2, Edit, Users, CheckCircle2, Clock, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { AutomationJourneyBuilder } from './AutomationJourneyBuilder';
+import { AutomationTemplates } from './AutomationTemplates';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -55,7 +56,7 @@ export function AutomationList() {
   const [builderOpen, setBuilderOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   useEffect(() => {
     if (profile) fetchAutomations();
   }, [profile]);
@@ -108,7 +109,10 @@ export function AutomationList() {
       <div className="space-y-4 mt-4">
         <div className="flex justify-between items-center">
           <p className="text-sm text-muted-foreground">Build automated email journeys with triggers, delays, and branching logic</p>
-          <Button onClick={handleCreate}><Plus className="h-4 w-4 mr-2" />New Automation</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setTemplatesOpen(true)}><Sparkles className="h-4 w-4 mr-2" />Templates</Button>
+            <Button onClick={handleCreate}><Plus className="h-4 w-4 mr-2" />New Automation</Button>
+          </div>
         </div>
 
         {loading ? (
@@ -192,6 +196,11 @@ export function AutomationList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <AutomationTemplates
+        open={templatesOpen}
+        onOpenChange={setTemplatesOpen}
+        onInstalled={fetchAutomations}
+      />
     </>
   );
 }
