@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { 
   Zap, Folder, Sparkles, Store, History, Key,
-  LogOut, Settings, User, ChevronDown, CreditCard, Shield, Code, FileText
+  LogOut, Settings, User, ChevronDown, CreditCard, Shield, Code, FileText, Mail
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -28,6 +28,7 @@ const navItems = [
   { label: 'Marketplace', href: '/marketplace', icon: Store },
   { label: 'Executions', href: '/executions', icon: History },
   { label: 'Credentials', href: '/credentials', icon: Key },
+  { label: 'Email', href: '/email-marketing', icon: Mail },
   { label: 'API', href: '/api-keys', icon: Code },
 ];
 
