@@ -9,7 +9,8 @@ import { EmailSmtpSettings } from '@/components/email/EmailSmtpSettings';
 import { EmailDashboard } from '@/components/email/EmailDashboard';
 import { EmailAnalytics } from '@/components/email/EmailAnalytics';
 import { AutomationList } from '@/components/email/automation/AutomationList';
-import { Mail, Users, ListChecks, Send, LayoutTemplate, Settings, Zap, BarChart3 } from 'lucide-react';
+import { SignupForms } from '@/components/email/SignupForms';
+import { Mail, Users, ListChecks, Send, LayoutTemplate, Settings, Zap, BarChart3, FileText } from 'lucide-react';
 
 export default function EmailMarketing() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -25,7 +26,7 @@ export default function EmailMarketing() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-8 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-9 lg:w-auto lg:inline-grid">
             <TabsTrigger value="dashboard" className="gap-2">
               <Mail className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -41,6 +42,10 @@ export default function EmailMarketing() {
             <TabsTrigger value="lists" className="gap-2">
               <ListChecks className="h-4 w-4" />
               <span className="hidden sm:inline">Lists</span>
+            </TabsTrigger>
+            <TabsTrigger value="forms" className="gap-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Forms</span>
             </TabsTrigger>
             <TabsTrigger value="campaigns" className="gap-2">
               <Send className="h-4 w-4" />
@@ -64,6 +69,7 @@ export default function EmailMarketing() {
           <TabsContent value="analytics"><EmailAnalytics /></TabsContent>
           <TabsContent value="contacts"><EmailContacts /></TabsContent>
           <TabsContent value="lists"><EmailLists /></TabsContent>
+          <TabsContent value="forms"><SignupForms /></TabsContent>
           <TabsContent value="campaigns"><EmailCampaigns /></TabsContent>
           <TabsContent value="automations"><AutomationList /></TabsContent>
           <TabsContent value="templates"><EmailTemplates /></TabsContent>
