@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.email-tracking]
 verify_jwt = false
+
+[functions.generate-email-content]
+verify_jwt = false

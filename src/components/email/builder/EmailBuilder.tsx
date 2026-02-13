@@ -6,6 +6,7 @@ import { EmailBlock, createBlock, blocksToHtml } from './emailBlockTypes';
 import { BlockPreview } from './BlockPreview';
 import { BlockEditor } from './BlockEditor';
 import { STARTER_TEMPLATES } from './starterTemplates';
+import { AIContentGenerator } from './AIContentGenerator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -413,28 +414,50 @@ export function EmailBuilder({ initialBlocks, initialSubject, onSave, onCancel }
           )}
         </div>
 
-        {/* Right: Block settings */}
+        {/* Right: Block settings + AI */}
         {previewMode === 'edit' && (
-          <div className="w-72 border-l border-border bg-card">
+          <div className="w-80 border-l border-border bg-card">
             <ScrollArea className="h-full">
-              {selectedBlock ? (
-                <div className="p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium capitalize">{selectedBlock.type} Settings</p>
-                    <div className="flex gap-0.5">
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => moveBlock(selectedBlock.id, -1)}><ArrowUp className="h-3 w-3" /></Button>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => moveBlock(selectedBlock.id, 1)}><ArrowDown className="h-3 w-3" /></Button>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => duplicateBlock(selectedBlock.id)}><Copy className="h-3 w-3" /></Button>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteBlock(selectedBlock.id)}><Trash2 className="h-3 w-3" /></Button>
+              <div className="p-4 space-y-4">
+                {/* AI Content Generator */}
+                <AIContentGenerator
+                  currentSubject={subject}
+                  currentBodyText={blocks.filter(b => b.type === 'text').map(b => b.content.text).join('\n\n')}
+                  onInsertSubject={(s) => setSubject(s)}
+                  onInsertBodyText={(text) => {
+                    const newBlock = createBlock('text');
+                    newBlock.content.text = text;
+                    setBlocksWithHistory(prev => [...prev, newBlock]);
+                    setSelectedBlockId(newBlock.id);
+                  }}
+                  onInsertCTA={(text) => {
+                    const newBlock = createBlock('button');
+                    newBlock.content.text = text;
+                    setBlocksWithHistory(prev => [...prev, newBlock]);
+                    setSelectedBlockId(newBlock.id);
+                  }}
+                />
+
+                {/* Block editor */}
+                {selectedBlock ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium capitalize">{selectedBlock.type} Settings</p>
+                      <div className="flex gap-0.5">
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => moveBlock(selectedBlock.id, -1)}><ArrowUp className="h-3 w-3" /></Button>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => moveBlock(selectedBlock.id, 1)}><ArrowDown className="h-3 w-3" /></Button>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => duplicateBlock(selectedBlock.id)}><Copy className="h-3 w-3" /></Button>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteBlock(selectedBlock.id)}><Trash2 className="h-3 w-3" /></Button>
+                      </div>
                     </div>
+                    <BlockEditor block={selectedBlock} onChange={updateBlockContent} />
+                  </>
+                ) : (
+                  <div className="text-center text-sm text-muted-foreground py-6">
+                    <p>Select a block to edit its settings</p>
                   </div>
-                  <BlockEditor block={selectedBlock} onChange={updateBlockContent} />
-                </div>
-              ) : (
-                <div className="p-4 text-center text-sm text-muted-foreground py-12">
-                  <p>Select a block to edit its settings</p>
-                </div>
-              )}
+                )}
+              </div>
             </ScrollArea>
           </div>
         )}
