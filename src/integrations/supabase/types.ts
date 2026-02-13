@@ -203,6 +203,104 @@ export type Database = {
           },
         ]
       }
+      email_automation_steps: {
+        Row: {
+          automation_id: string
+          branch_label: string | null
+          config: Json
+          created_at: string
+          id: string
+          parent_step_id: string | null
+          step_order: number
+          step_type: string
+          updated_at: string
+        }
+        Insert: {
+          automation_id: string
+          branch_label?: string | null
+          config?: Json
+          created_at?: string
+          id?: string
+          parent_step_id?: string | null
+          step_order?: number
+          step_type: string
+          updated_at?: string
+        }
+        Update: {
+          automation_id?: string
+          branch_label?: string | null
+          config?: Json
+          created_at?: string
+          id?: string
+          parent_step_id?: string | null
+          step_order?: number
+          step_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_automation_steps_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "email_automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_automation_steps_parent_step_id_fkey"
+            columns: ["parent_step_id"]
+            isOneToOne: false
+            referencedRelation: "email_automation_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_automations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          profile_id: string
+          stats: Json
+          status: string
+          trigger_config: Json
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          profile_id: string
+          stats?: Json
+          status?: string
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          profile_id?: string
+          stats?: Json
+          status?: string
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_automations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_campaign_recipients: {
         Row: {
           bounced_at: string | null
