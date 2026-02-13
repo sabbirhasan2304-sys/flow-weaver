@@ -10,7 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Search, Upload, Trash2, Edit, UserPlus } from 'lucide-react';
+import { Plus, Search, Upload, Trash2, Edit, UserPlus, FileSpreadsheet } from 'lucide-react';
+import { CsvImport } from './CsvImport';
 import { format } from 'date-fns';
 
 interface Contact {
@@ -34,10 +35,9 @@ export function EmailContacts() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [csvImportOpen, setCsvImportOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [form, setForm] = useState({ email: '', first_name: '', last_name: '', phone: '', company: '' });
-  const [importText, setImportText] = useState('');
 
   useEffect(() => {
     if (profile) fetchContacts();
@@ -84,25 +84,7 @@ export function EmailContacts() {
     else { toast.success('Contact deleted'); fetchContacts(); }
   };
 
-  const importContacts = async () => {
-    if (!profile || !importText.trim()) return;
-    const lines = importText.trim().split('\n');
-    const contactsToInsert = lines.map(line => {
-      const parts = line.split(',').map(p => p.trim());
-      return {
-        profile_id: profile.id,
-        email: parts[0],
-        first_name: parts[1] || null,
-        last_name: parts[2] || null,
-      };
-    }).filter(c => c.email && c.email.includes('@'));
-
-    if (contactsToInsert.length === 0) { toast.error('No valid emails found'); return; }
-
-    const { error } = await supabase.from('email_contacts').upsert(contactsToInsert, { onConflict: 'profile_id,email' });
-    if (error) toast.error('Failed to import contacts');
-    else { toast.success(`${contactsToInsert.length} contacts imported`); setImportDialogOpen(false); setImportText(''); fetchContacts(); }
-  };
+  // Removed old importContacts - now using CsvImport component
 
   const openEdit = (contact: Contact) => {
     setEditingContact(contact);
@@ -133,25 +115,16 @@ export function EmailContacts() {
           <Input placeholder="Search contacts..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
         <div className="flex gap-2">
-          <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+          <Dialog open={csvImportOpen} onOpenChange={setCsvImportOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline"><Upload className="h-4 w-4 mr-2" />Import</Button>
+              <Button variant="outline"><Upload className="h-4 w-4 mr-2" />Import CSV</Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Import Contacts</DialogTitle></DialogHeader>
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">Paste contacts (one per line): <code>email, first_name, last_name</code></p>
-                <textarea
-                  className="w-full h-40 p-3 text-sm border rounded-md bg-background"
-                  placeholder={"john@example.com, John, Doe\njane@example.com, Jane, Smith"}
-                  value={importText}
-                  onChange={e => setImportText(e.target.value)}
-                />
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setImportDialogOpen(false)}>Cancel</Button>
-                <Button onClick={importContacts}>Import</Button>
-              </DialogFooter>
+            <DialogContent className="max-w-2xl max-h-[85vh] overflow-auto">
+              <DialogHeader><DialogTitle className="flex items-center gap-2"><FileSpreadsheet className="h-5 w-5" />Import Contacts from CSV</DialogTitle></DialogHeader>
+              <CsvImport
+                onComplete={() => { setCsvImportOpen(false); fetchContacts(); }}
+                onCancel={() => setCsvImportOpen(false)}
+              />
             </DialogContent>
           </Dialog>
           <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setEditingContact(null); setForm({ email: '', first_name: '', last_name: '', phone: '', company: '' }); } }}>
