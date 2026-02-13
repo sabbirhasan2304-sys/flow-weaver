@@ -11,8 +11,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Plus, Send, Play, Pause, Trash2, Eye, Search } from 'lucide-react';
+import { Plus, Send, Trash2, Search, FlaskConical } from 'lucide-react';
 import { format } from 'date-fns';
+import { ABTestEditor } from './ABTestEditor';
 
 interface Campaign {
   id: string;
@@ -29,6 +30,7 @@ interface Campaign {
   created_at: string;
   list_id: string | null;
   smtp_config_id: string | null;
+  is_ab_test: boolean;
 }
 
 interface EmailList { id: string; name: string; subscriber_count: number; }
@@ -42,6 +44,7 @@ export function EmailCampaigns() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [abTestCampaignId, setAbTestCampaignId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', subject: '', list_id: '', smtp_config_id: '', html_content: '' });
 
   useEffect(() => {
@@ -107,6 +110,19 @@ export function EmailCampaigns() {
 
   const filtered = campaigns.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
 
+  // If A/B test editor is open, show it fullscreen
+  if (abTestCampaignId) {
+    return (
+      <div className="space-y-4 mt-4">
+        <div className="flex items-center gap-3">
+          <FlaskConical className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-semibold">A/B Test Configuration</h2>
+        </div>
+        <ABTestEditor campaignId={abTestCampaignId} onClose={() => { setAbTestCampaignId(null); fetchCampaigns(); }} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 mt-4">
       <div className="flex flex-col sm:flex-row gap-3 justify-between">
@@ -160,7 +176,7 @@ export function EmailCampaigns() {
                 <TableHead>Opens</TableHead>
                 <TableHead>Clicks</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead className="w-[100px]"></TableHead>
+                <TableHead className="w-[120px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -171,9 +187,12 @@ export function EmailCampaigns() {
               ) : filtered.map(c => (
                 <TableRow key={c.id}>
                   <TableCell>
-                    <div>
-                      <p className="font-medium">{c.name}</p>
-                      <p className="text-xs text-muted-foreground">{c.subject || 'No subject'}</p>
+                    <div className="flex items-center gap-2">
+                      <div>
+                        <p className="font-medium">{c.name}</p>
+                        <p className="text-xs text-muted-foreground">{c.subject || 'No subject'}</p>
+                      </div>
+                      {c.is_ab_test && <Badge variant="outline" className="text-[10px] gap-1"><FlaskConical className="h-3 w-3" />A/B</Badge>}
                     </div>
                   </TableCell>
                   <TableCell>{statusBadge(c.status)}</TableCell>
@@ -184,9 +203,14 @@ export function EmailCampaigns() {
                   <TableCell>
                     <div className="flex gap-1">
                       {c.status === 'draft' && (
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => sendCampaign(c)} title="Send">
-                          <Send className="h-3 w-3" />
-                        </Button>
+                        <>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setAbTestCampaignId(c.id)} title="A/B Test">
+                            <FlaskConical className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => sendCampaign(c)} title="Send">
+                            <Send className="h-3 w-3" />
+                          </Button>
+                        </>
                       )}
                       <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteCampaign(c.id)}>
                         <Trash2 className="h-3 w-3" />
