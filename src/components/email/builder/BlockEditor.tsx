@@ -201,6 +201,57 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
         </div>
       );
 
+    case 'countdown':
+      return (
+        <div className="space-y-3">
+          <div><Label>Target Date</Label><Input type="date" value={block.content.targetDate} onChange={e => update('targetDate', e.target.value)} /></div>
+          <div><Label>Label</Label><Input value={block.content.label} onChange={e => update('label', e.target.value)} /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><Label>Background</Label><Input type="color" value={block.content.backgroundColor} onChange={e => update('backgroundColor', e.target.value)} className="h-9" /></div>
+            <div><Label>Text Color</Label><Input type="color" value={block.content.textColor} onChange={e => update('textColor', e.target.value)} className="h-9" /></div>
+          </div>
+          <div><Label>Accent Color</Label><Input type="color" value={block.content.accentColor} onChange={e => update('accentColor', e.target.value)} className="h-9" /></div>
+          <div className="space-y-2">
+            <Label className="text-xs">Show Units</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-2"><Switch checked={block.content.showDays} onCheckedChange={v => update('showDays', v)} /><Label className="text-xs">Days</Label></div>
+              <div className="flex items-center gap-2"><Switch checked={block.content.showHours} onCheckedChange={v => update('showHours', v)} /><Label className="text-xs">Hours</Label></div>
+              <div className="flex items-center gap-2"><Switch checked={block.content.showMinutes} onCheckedChange={v => update('showMinutes', v)} /><Label className="text-xs">Minutes</Label></div>
+              <div className="flex items-center gap-2"><Switch checked={block.content.showSeconds} onCheckedChange={v => update('showSeconds', v)} /><Label className="text-xs">Seconds</Label></div>
+            </div>
+          </div>
+        </div>
+      );
+
+    case 'product':
+      return (
+        <div className="space-y-3">
+          <div><Label>Product Name</Label><Input value={block.content.name} onChange={e => update('name', e.target.value)} /></div>
+          <div><Label>Description</Label><Textarea value={block.content.description} onChange={e => update('description', e.target.value)} rows={2} /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><Label>Price</Label><Input value={block.content.price} onChange={e => update('price', e.target.value)} /></div>
+            <div><Label>Original Price</Label><Input value={block.content.originalPrice} onChange={e => update('originalPrice', e.target.value)} placeholder="Strike-through" /></div>
+          </div>
+          <div><Label>Image URL</Label><Input value={block.content.imageUrl} onChange={e => update('imageUrl', e.target.value)} placeholder="https://..." /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><Label>Button Text</Label><Input value={block.content.buttonText} onChange={e => update('buttonText', e.target.value)} /></div>
+            <div><Label>Button Link</Label><Input value={block.content.buttonLink} onChange={e => update('buttonLink', e.target.value)} /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><Label>Button Color</Label><Input type="color" value={block.content.buttonColor} onChange={e => update('buttonColor', e.target.value)} className="h-9" /></div>
+            <div><Label>Border Color</Label><Input type="color" value={block.content.borderColor} onChange={e => update('borderColor', e.target.value)} className="h-9" /></div>
+          </div>
+        </div>
+      );
+
+    case 'html':
+      return (
+        <div className="space-y-3">
+          <div><Label>Custom HTML</Label><Textarea value={block.content.code} onChange={e => update('code', e.target.value)} rows={8} className="font-mono text-xs" /></div>
+          <p className="text-[10px] text-muted-foreground">⚠️ Ensure your HTML is email-safe. Avoid JavaScript or external CSS.</p>
+        </div>
+      );
+
     default:
       return <p className="text-sm text-muted-foreground">No settings available</p>;
   }

@@ -1,6 +1,6 @@
 export interface EmailBlock {
   id: string;
-  type: 'header' | 'text' | 'image' | 'button' | 'footer' | 'divider' | 'spacer' | 'columns' | 'social' | 'video';
+  type: 'header' | 'text' | 'image' | 'button' | 'footer' | 'divider' | 'spacer' | 'columns' | 'social' | 'video' | 'countdown' | 'product' | 'html';
   content: Record<string, any>;
 }
 
@@ -90,6 +90,38 @@ export const DEFAULT_BLOCK_CONTENT: Record<EmailBlock['type'], Record<string, an
     padding: '16',
     align: 'center',
     playButtonColor: '#ff0000',
+  },
+  countdown: {
+    targetDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+    label: 'Offer ends in',
+    backgroundColor: '#1e293b',
+    textColor: '#ffffff',
+    accentColor: '#f59e0b',
+    padding: '24',
+    align: 'center',
+    showDays: true,
+    showHours: true,
+    showMinutes: true,
+    showSeconds: true,
+  },
+  product: {
+    name: 'Product Name',
+    description: 'A short description of this amazing product.',
+    price: '$49.99',
+    originalPrice: '$79.99',
+    imageUrl: '',
+    buttonText: 'Buy Now',
+    buttonLink: 'https://',
+    buttonColor: '#0d9668',
+    buttonTextColor: '#ffffff',
+    padding: '16',
+    layout: 'horizontal',
+    backgroundColor: '#ffffff',
+    borderColor: '#e5e7eb',
+  },
+  html: {
+    code: '<div style="padding:16px;text-align:center;color:#666;">Custom HTML content</div>',
+    padding: '0',
   },
 };
 
@@ -192,6 +224,48 @@ export function blocksToHtml(blocks: EmailBlock[], bodyBg: string = '#f4f4f5', c
           </a>
         </td></tr>`;
       }
+      case 'countdown': {
+        const c = block.content;
+        const units = [
+          c.showDays && 'DD',
+          c.showHours && 'HH',
+          c.showMinutes && 'MM',
+          c.showSeconds && 'SS',
+        ].filter(Boolean);
+        const unitLabels: Record<string, string> = { DD: 'Days', HH: 'Hours', MM: 'Minutes', SS: 'Seconds' };
+        const boxes = units.map(u => `<td style="text-align:center;padding:8px 12px;">
+          <div style="font-size:28px;font-weight:bold;color:${c.accentColor};">00</div>
+          <div style="font-size:11px;color:${c.textColor};opacity:0.7;">${unitLabels[u as string]}</div>
+        </td>`).join('<td style="font-size:24px;color:' + c.textColor + ';opacity:0.5;">:</td>');
+        return `<tr><td style="background-color:${c.backgroundColor};padding:${c.padding}px;text-align:${c.align};">
+          ${c.label ? `<p style="margin:0 0 12px;font-size:14px;color:${c.textColor};opacity:0.8;">${c.label}</p>` : ''}
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr>${boxes}</tr></table>
+          <p style="margin:8px 0 0;font-size:11px;color:${c.textColor};opacity:0.5;">Ends ${c.targetDate}</p>
+        </td></tr>`;
+      }
+      case 'product': {
+        const p = block.content;
+        const imgHtml = p.imageUrl
+          ? `<img src="${p.imageUrl}" alt="${p.name}" style="width:100%;max-width:200px;height:auto;border-radius:8px;" />`
+          : `<div style="width:200px;height:150px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto;"><span style="color:#999;">Product image</span></div>`;
+        const priceHtml = p.originalPrice
+          ? `<span style="text-decoration:line-through;color:#999;font-size:14px;margin-right:8px;">${p.originalPrice}</span><span style="font-size:20px;font-weight:bold;color:#111;">${p.price}</span>`
+          : `<span style="font-size:20px;font-weight:bold;color:#111;">${p.price}</span>`;
+        return `<tr><td style="padding:${p.padding}px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border:1px solid ${p.borderColor};border-radius:8px;overflow:hidden;background:${p.backgroundColor};">
+          <tr>
+            <td style="padding:16px;text-align:center;width:40%;">${imgHtml}</td>
+            <td style="padding:16px;vertical-align:middle;">
+              <h3 style="margin:0 0 8px;font-size:18px;color:#111;">${p.name}</h3>
+              <p style="margin:0 0 12px;font-size:14px;color:#666;line-height:1.4;">${p.description}</p>
+              <div style="margin-bottom:16px;">${priceHtml}</div>
+              <a href="${p.buttonLink}" target="_blank" style="display:inline-block;background:${p.buttonColor};color:${p.buttonTextColor};padding:10px 24px;border-radius:6px;text-decoration:none;font-weight:600;font-size:14px;">${p.buttonText}</a>
+            </td>
+          </tr></table>
+        </td></tr>`;
+      }
+      case 'html':
+        return `<tr><td style="padding:${block.content.padding}px;">${block.content.code}</td></tr>`;
       default:
         return '';
     }

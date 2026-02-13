@@ -88,6 +88,27 @@ Rules:
 - Return ONLY a JSON array of strings`;
 
       userPrompt = `Generate 5 CTA button texts for: ${prompt}`;
+
+    } else if (type === 'full_email') {
+      systemPrompt = `You are an expert email designer. Generate a complete email as structured blocks.
+Rules:
+- Tone: ${toneGuide}
+- Create a compelling, well-structured email
+- Return a JSON object with "subject" (string) and "blocks" (array)
+- Each block has "type" and "content" fields
+- Supported block types: header, text, image, button, divider, spacer, footer, columns, countdown, product
+- For header: {text, fontSize:"28", fontWeight:"bold", color:"#1a1a2e", backgroundColor:"#f8f9fa", padding:"30", align:"center"}
+- For text: {text, fontSize:"16", color:"#333333", lineHeight:"1.6", padding:"16", align:"left"}
+- For button: {text, link:"https://", backgroundColor:"#0d9668", color:"#ffffff", fontSize:"16", borderRadius:"6", padding:"14", align:"center", fullWidth:false}
+- For divider: {color:"#e0e0e0", thickness:"1", padding:"16", width:"100"}
+- For spacer: {height:"24"}
+- For footer: {text, fontSize:"13", color:"#999999", backgroundColor:"#f8f9fa", padding:"24", align:"center", showUnsubscribe:true}
+- For columns: {columns:2, gap:"16", padding:"16", col1_text:"...", col2_text:"..."}
+- Use personalization like {{first_name}} where natural
+- Include a footer with unsubscribe
+- Return ONLY the JSON object, no markdown or other text`;
+
+      userPrompt = `Create a complete email for: ${prompt}${industry ? `\nIndustry: ${industry}` : ''}${audience ? `\nTarget audience: ${audience}` : ''}`;
     }
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -130,7 +151,20 @@ Rules:
 
     // Parse based on type
     let result: any;
-    if (type === 'subject_lines' || type === 'cta') {
+    if (type === 'full_email') {
+      // Extract JSON object with subject + blocks
+      const match = content.match(/\{[\s\S]*\}/);
+      if (match) {
+        try {
+          const parsed = JSON.parse(match[0]);
+          result = { subject: parsed.subject || '', blocks: parsed.blocks || [] };
+        } catch {
+          result = { error: 'Failed to parse generated email structure' };
+        }
+      } else {
+        result = { error: 'Failed to generate email structure' };
+      }
+    } else if (type === 'subject_lines' || type === 'cta') {
       // Extract JSON array from response
       const match = content.match(/\[[\s\S]*\]/);
       if (match) {
