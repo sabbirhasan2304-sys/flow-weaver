@@ -15,9 +15,9 @@ import {
   FileSpreadsheet, Database, Code, GitBranch, Repeat, 
   Filter, Merge, Split, Bot, Brain, Sparkles, 
   Globe, FileJson, Zap, Bell, Upload, Download,
-  Cloud, Server, Lock, Shield, Coins, BarChart,
+  Cloud, Server, Lock, Shield, Coins, BarChart, BarChart3,
   Image, Video, Mic, Settings, Puzzle, Wallet, Rocket,
-  CreditCard, CheckCircle, RotateCcw, User, ShoppingCart,
+  CreditCard, CheckCircle, RotateCcw, User, UserPlus, UserCog, ShoppingCart,
   Calendar, FileText, Cpu, Radio, Box, HardDrive,
   Activity, Key, Link, Hash, AlertTriangle, Terminal,
   Layers, RefreshCw, Timer, Eye, MousePointer, FormInput,
@@ -29,7 +29,8 @@ import {
   Share2, MessageCircle, AtSign, Hash as HashIcon, Users,
   Folder, FolderOpen, Archive, CloudUpload, CloudDownload,
   Fingerprint, KeyRound, ShieldCheck, UserCheck, Scan,
-  Search, ChevronRight, GripVertical
+  Search, ChevronRight, GripVertical,
+  Tag, FlaskConical, TrendingUp, ClipboardList,
 } from 'lucide-react';
 import {
   OpenAIIcon, AnthropicIcon, GoogleIcon, SlackIcon, DiscordIcon,
@@ -84,9 +85,9 @@ const iconMap: Record<string, React.ComponentType<{ className?: string; style?: 
   FileSpreadsheet, Database, Code, GitBranch, Repeat,
   Filter, Merge, Split, Bot, Brain, Sparkles,
   Globe, FileJson, Zap, Bell, Upload, Download,
-  Cloud, Server, Lock, Shield, Coins, BarChart,
+  Cloud, Server, Lock, Shield, Coins, BarChart, BarChart3,
   Image, Video, Mic, Settings, Puzzle, Wallet, Rocket,
-  CreditCard, CheckCircle, RotateCcw, User, ShoppingCart,
+  CreditCard, CheckCircle, RotateCcw, User, UserPlus, UserCog, ShoppingCart,
   Calendar, FileText, Cpu, Radio, Box, HardDrive,
   Activity, Key, Link, Hash, AlertTriangle, Terminal,
   Layers, RefreshCw, Timer, Eye, MousePointer, FormInput,
@@ -98,6 +99,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string; style?: 
   Share2, MessageCircle, AtSign, Users, Folder, FolderOpen,
   Archive, CloudUpload, CloudDownload, Fingerprint, KeyRound,
   ShieldCheck, UserCheck, Scan,
+  Tag, FlaskConical, TrendingUp, ClipboardList,
   
   // Service-specific icons
   OpenAI: OpenAIIcon, Anthropic: AnthropicIcon, Google: GoogleIcon,
