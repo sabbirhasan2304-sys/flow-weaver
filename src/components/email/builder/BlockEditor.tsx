@@ -130,6 +130,77 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
         <div><Label>Height (px)</Label><Input type="number" value={block.content.height} onChange={e => update('height', e.target.value)} min="8" max="120" /></div>
       );
 
+    case 'columns':
+      return (
+        <div className="space-y-3">
+          <div><Label>Number of Columns</Label>
+            <Select value={String(block.content.columns)} onValueChange={v => update('columns', Number(v))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2">2 Columns</SelectItem>
+                <SelectItem value="3">3 Columns</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div><Label>Gap (px)</Label><Input type="number" value={block.content.gap} onChange={e => update('gap', e.target.value)} /></div>
+          <div><Label>Padding</Label><Input type="number" value={block.content.padding} onChange={e => update('padding', e.target.value)} /></div>
+          <div><Label>Background</Label><Input type="color" value={block.content.backgroundColor || '#ffffff'} onChange={e => update('backgroundColor', e.target.value)} className="h-9" /></div>
+          {Array.from({ length: Number(block.content.columns) || 2 }).map((_, i) => (
+            <div key={i}><Label>Column {i + 1} Content</Label><Textarea value={block.content[`col${i + 1}_text`] || ''} onChange={e => update(`col${i + 1}_text`, e.target.value)} rows={2} /></div>
+          ))}
+        </div>
+      );
+
+    case 'social':
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Switch checked={block.content.showLabel} onCheckedChange={v => update('showLabel', v)} />
+            <Label>Show Label</Label>
+          </div>
+          {block.content.showLabel && (
+            <div><Label>Label Text</Label><Input value={block.content.label} onChange={e => update('label', e.target.value)} /></div>
+          )}
+          <div className="grid grid-cols-2 gap-2">
+            <div><Label>Icon Size</Label><Input type="number" value={block.content.iconSize} onChange={e => update('iconSize', e.target.value)} min="16" max="64" /></div>
+            <div><Label>Icon Color</Label><Input type="color" value={block.content.iconColor} onChange={e => update('iconColor', e.target.value)} className="h-9" /></div>
+          </div>
+          <div><Label>Align</Label>
+            <Select value={block.content.align} onValueChange={v => update('align', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="left">Left</SelectItem><SelectItem value="center">Center</SelectItem><SelectItem value="right">Right</SelectItem></SelectContent>
+            </Select>
+          </div>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide pt-2">Social URLs</p>
+          <div><Label>Facebook</Label><Input value={block.content.facebook} onChange={e => update('facebook', e.target.value)} placeholder="https://facebook.com/..." /></div>
+          <div><Label>X / Twitter</Label><Input value={block.content.twitter} onChange={e => update('twitter', e.target.value)} placeholder="https://x.com/..." /></div>
+          <div><Label>Instagram</Label><Input value={block.content.instagram} onChange={e => update('instagram', e.target.value)} placeholder="https://instagram.com/..." /></div>
+          <div><Label>LinkedIn</Label><Input value={block.content.linkedin} onChange={e => update('linkedin', e.target.value)} placeholder="https://linkedin.com/..." /></div>
+          <div><Label>YouTube</Label><Input value={block.content.youtube} onChange={e => update('youtube', e.target.value)} placeholder="https://youtube.com/..." /></div>
+          <div><Label>TikTok</Label><Input value={block.content.tiktok} onChange={e => update('tiktok', e.target.value)} placeholder="https://tiktok.com/..." /></div>
+        </div>
+      );
+
+    case 'video':
+      return (
+        <div className="space-y-3">
+          <div><Label>Video URL</Label><Input value={block.content.videoUrl} onChange={e => update('videoUrl', e.target.value)} placeholder="https://youtube.com/watch?v=..." /></div>
+          <p className="text-xs text-muted-foreground">YouTube URLs auto-generate thumbnails</p>
+          <div><Label>Custom Thumbnail URL</Label><Input value={block.content.thumbnailUrl} onChange={e => update('thumbnailUrl', e.target.value)} placeholder="https://..." /></div>
+          <div><Label>Alt Text</Label><Input value={block.content.alt} onChange={e => update('alt', e.target.value)} /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><Label>Width %</Label><Input type="number" value={block.content.width} onChange={e => update('width', e.target.value)} min="30" max="100" /></div>
+            <div><Label>Align</Label>
+              <Select value={block.content.align} onValueChange={v => update('align', v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent><SelectItem value="left">Left</SelectItem><SelectItem value="center">Center</SelectItem><SelectItem value="right">Right</SelectItem></SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div><Label>Play Button Color</Label><Input type="color" value={block.content.playButtonColor} onChange={e => update('playButtonColor', e.target.value)} className="h-9" /></div>
+        </div>
+      );
+
     default:
       return <p className="text-sm text-muted-foreground">No settings available</p>;
   }

@@ -1,5 +1,5 @@
 import { EmailBlock } from './emailBlockTypes';
-import { Heading1, Type, ImageIcon, MousePointerClick, FileText, Minus, MoveVertical } from 'lucide-react';
+import { Heading1, Type, ImageIcon, MousePointerClick, FileText, Minus, MoveVertical, Columns, Share2, PlayCircle } from 'lucide-react';
 
 interface BlockPreviewProps {
   block: EmailBlock;
@@ -15,6 +15,14 @@ const iconMap: Record<string, any> = {
   footer: FileText,
   divider: Minus,
   spacer: MoveVertical,
+  columns: Columns,
+  social: Share2,
+  video: PlayCircle,
+};
+
+const SOCIAL_LABELS: Record<string, string> = {
+  facebook: 'Facebook', twitter: 'X / Twitter', instagram: 'Instagram',
+  linkedin: 'LinkedIn', youtube: 'YouTube', tiktok: 'TikTok',
 };
 
 export function BlockPreview({ block, selected, onClick }: BlockPreviewProps) {
@@ -78,6 +86,64 @@ export function BlockPreview({ block, selected, onClick }: BlockPreviewProps) {
         );
       case 'spacer':
         return <div style={{ height: `${block.content.height}px` }} className="flex items-center justify-center"><span className="text-[10px] text-muted-foreground/40">spacer</span></div>;
+      case 'columns': {
+        const colCount = Number(block.content.columns) || 2;
+        return (
+          <div style={{ padding: `${block.content.padding}px`, backgroundColor: block.content.backgroundColor || undefined }}>
+            <div style={{ display: 'flex', gap: `${block.content.gap}px` }}>
+              {Array.from({ length: colCount }).map((_, i) => (
+                <div key={i} style={{ flex: 1, padding: '12px', border: '1px dashed #ddd', borderRadius: '4px', fontSize: '13px', color: '#666', whiteSpace: 'pre-wrap' as const }}>
+                  {block.content[`col${i + 1}_text`] || `Column ${i + 1}`}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case 'social': {
+        const platforms = ['facebook', 'twitter', 'instagram', 'linkedin', 'youtube', 'tiktok'];
+        const active = platforms.filter(p => block.content[p]);
+        return (
+          <div style={{ padding: `${block.content.padding}px`, textAlign: block.content.align as any }}>
+            {block.content.showLabel && block.content.label && (
+              <p style={{ margin: '0 0 6px', fontSize: '14px', color: '#666' }}>{block.content.label}</p>
+            )}
+            {active.length > 0 ? (
+              <div style={{ display: 'flex', gap: '10px', justifyContent: block.content.align === 'center' ? 'center' : block.content.align === 'right' ? 'flex-end' : 'flex-start', flexWrap: 'wrap' as const }}>
+                {active.map(p => (
+                  <div key={p} style={{ width: `${block.content.iconSize}px`, height: `${block.content.iconSize}px`, borderRadius: '50%', backgroundColor: block.content.iconColor || '#333', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ color: '#fff', fontSize: '10px', fontWeight: 700 }}>{p[0].toUpperCase()}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm">Add social links in settings</p>
+            )}
+          </div>
+        );
+      }
+      case 'video': {
+        const videoUrl = block.content.videoUrl || '';
+        const ytMatch = videoUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([^&?#]+)/);
+        const thumb = block.content.thumbnailUrl || (ytMatch ? `https://img.youtube.com/vi/${ytMatch[1]}/mqdefault.jpg` : '');
+        return (
+          <div style={{ padding: `${block.content.padding}px`, textAlign: block.content.align as any }}>
+            {thumb ? (
+              <div style={{ position: 'relative', display: 'inline-block', maxWidth: `${block.content.width}%` }}>
+                <img src={thumb} alt={block.content.alt} style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '52px', height: '36px', backgroundColor: block.content.playButtonColor || '#ff0000', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 0, height: 0, borderLeft: '14px solid #fff', borderTop: '8px solid transparent', borderBottom: '8px solid transparent', marginLeft: '3px' }} />
+                </div>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-8 text-center text-muted-foreground text-sm">
+                <PlayCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                Add a video URL in settings
+              </div>
+            )}
+          </div>
+        );
+      }
       default:
         return null;
     }

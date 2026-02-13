@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Heading1, Type, ImageIcon, MousePointerClick, FileText, Minus,
   MoveVertical, Trash2, Copy, ArrowUp, ArrowDown, Eye, Code,
-  GripVertical, X, Save,
+  GripVertical, X, Save, Columns, Share2, PlayCircle,
 } from 'lucide-react';
 
 interface EmailBuilderProps {
@@ -29,6 +29,9 @@ const BLOCK_PALETTE = [
   { type: 'text' as const, label: 'Text', icon: Type, description: 'Paragraph text' },
   { type: 'image' as const, label: 'Image', icon: ImageIcon, description: 'Image block' },
   { type: 'button' as const, label: 'Button', icon: MousePointerClick, description: 'CTA button' },
+  { type: 'columns' as const, label: 'Columns', icon: Columns, description: '2-3 column layout' },
+  { type: 'social' as const, label: 'Social', icon: Share2, description: 'Social links' },
+  { type: 'video' as const, label: 'Video', icon: PlayCircle, description: 'Video embed' },
   { type: 'divider' as const, label: 'Divider', icon: Minus, description: 'Horizontal line' },
   { type: 'spacer' as const, label: 'Spacer', icon: MoveVertical, description: 'Vertical space' },
   { type: 'footer' as const, label: 'Footer', icon: FileText, description: 'Footer content' },
