@@ -73,14 +73,15 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+      <div className="hero-glow absolute inset-0" />
+      <div className="w-full max-w-md relative">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
+        <div className="flex items-center justify-center gap-2.5 mb-8">
+          <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-xl shadow-primary/30">
             <Zap className="h-6 w-6 text-primary-foreground" />
           </div>
-          <span className="text-2xl font-bold text-foreground">BiztoriBD</span>
+          <span className="text-2xl font-extrabold tracking-tight text-foreground">BiztoriBD</span>
         </div>
         
         <Card>
