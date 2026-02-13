@@ -7,8 +7,9 @@ import { EmailCampaigns } from '@/components/email/EmailCampaigns';
 import { EmailTemplates } from '@/components/email/EmailTemplates';
 import { EmailSmtpSettings } from '@/components/email/EmailSmtpSettings';
 import { EmailDashboard } from '@/components/email/EmailDashboard';
+import { EmailAnalytics } from '@/components/email/EmailAnalytics';
 import { AutomationList } from '@/components/email/automation/AutomationList';
-import { Mail, Users, ListChecks, Send, LayoutTemplate, Settings, Zap } from 'lucide-react';
+import { Mail, Users, ListChecks, Send, LayoutTemplate, Settings, Zap, BarChart3 } from 'lucide-react';
 
 export default function EmailMarketing() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -24,10 +25,14 @@ export default function EmailMarketing() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-8 lg:w-auto lg:inline-grid">
             <TabsTrigger value="dashboard" className="gap-2">
               <Mail className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
             <TabsTrigger value="contacts" className="gap-2">
               <Users className="h-4 w-4" />
@@ -56,6 +61,7 @@ export default function EmailMarketing() {
           </TabsList>
 
           <TabsContent value="dashboard"><EmailDashboard /></TabsContent>
+          <TabsContent value="analytics"><EmailAnalytics /></TabsContent>
           <TabsContent value="contacts"><EmailContacts /></TabsContent>
           <TabsContent value="lists"><EmailLists /></TabsContent>
           <TabsContent value="campaigns"><EmailCampaigns /></TabsContent>
