@@ -912,16 +912,16 @@ req.end();`;
 // WordPress/WooCommerce plugin code
 const wordpressPluginCode = `<?php
 /**
- * Plugin Name: BiztoriBD Tracker for WooCommerce
- * Description: Auto-tracks cart abandonment, checkout abandonment, payment failures & syncs customers.
- * Version: 1.0.0
+ * Plugin Name: BiztoriBD Automation for WooCommerce
+ * Description: Full workflow automation engine — trigger workflows on WooCommerce events, manage & monitor workflows, track abandonment, sync contacts.
+ * Version: 2.0.0
  * Author: BiztoriBD
  * Requires Plugins: woocommerce
  */
 
 if (!defined('ABSPATH')) exit;
 
-class BiztoriBD_Tracker {
+class BiztoriBD_Automation {
     private $api_key;
     private $api_url;
 
@@ -929,88 +929,598 @@ class BiztoriBD_Tracker {
         $this->api_key = get_option('biztoribbd_api_key', '');
         $this->api_url = get_option('biztoribbd_api_url', '${API_BASE_URL}');
 
-        // Admin settings
-        add_action('admin_menu', [$this, 'add_settings_page']);
+        // Admin menu & settings
+        add_action('admin_menu', [$this, 'add_admin_menu']);
         add_action('admin_init', [$this, 'register_settings']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
+
+        // AJAX handlers for WP admin
+        add_action('wp_ajax_bz_list_workflows', [$this, 'ajax_list_workflows']);
+        add_action('wp_ajax_bz_execute_workflow', [$this, 'ajax_execute_workflow']);
+        add_action('wp_ajax_bz_list_executions', [$this, 'ajax_list_executions']);
+        add_action('wp_ajax_bz_get_execution', [$this, 'ajax_get_execution']);
+        add_action('wp_ajax_bz_workflow_stats', [$this, 'ajax_workflow_stats']);
+        add_action('wp_ajax_bz_save_mappings', [$this, 'ajax_save_mappings']);
 
         if (empty($this->api_key)) return;
 
-        // WooCommerce hooks
-        add_action('woocommerce_add_to_cart', [$this, 'on_add_to_cart'], 10, 6);
-        add_action('woocommerce_after_checkout_validation', [$this, 'on_checkout_attempt'], 10, 2);
-        add_action('woocommerce_payment_complete', [$this, 'on_order_complete']);
-        add_action('woocommerce_order_status_failed', [$this, 'on_payment_failed']);
+        // WooCommerce event hooks → workflow triggers
+        add_action('woocommerce_new_order', [$this, 'on_new_order'], 10, 2);
         add_action('woocommerce_order_status_completed', [$this, 'on_order_complete']);
+        add_action('woocommerce_order_status_failed', [$this, 'on_payment_failed']);
+        add_action('woocommerce_order_status_cancelled', [$this, 'on_order_cancelled']);
+        add_action('woocommerce_order_status_refunded', [$this, 'on_order_refunded']);
         add_action('woocommerce_created_customer', [$this, 'on_customer_created'], 10, 3);
+        add_action('woocommerce_update_product', [$this, 'on_product_updated'], 10, 2);
+        add_action('woocommerce_add_to_cart', [$this, 'on_add_to_cart'], 10, 6);
 
-        // Front-end JS tracker
+        // Front-end JS tracker for abandonment
         add_action('wp_footer', [$this, 'inject_tracker_script']);
 
         // Cron for abandoned carts
-        add_action('biztoribbd_check_abandoned_carts', [$this, 'check_abandoned_carts']);
-        if (!wp_next_scheduled('biztoribbd_check_abandoned_carts')) {
-            wp_schedule_event(time(), 'hourly', 'biztoribbd_check_abandoned_carts');
+        add_action('biztoribbd_check_abandoned', [$this, 'check_abandoned_carts']);
+        if (!wp_next_scheduled('biztoribbd_check_abandoned')) {
+            wp_schedule_event(time(), 'hourly', 'biztoribbd_check_abandoned');
         }
     }
 
-    // Settings page
-    public function add_settings_page() {
-        add_options_page('BiztoriBD Tracker', 'BiztoriBD Tracker', 'manage_options', 'biztoribbd-tracker', [$this, 'settings_page']);
+    // ==================== ADMIN MENU ====================
+
+    public function add_admin_menu() {
+        add_menu_page(
+            'BiztoriBD Automation',
+            'BiztoriBD',
+            'manage_options',
+            'biztoribbd',
+            [$this, 'page_dashboard'],
+            'dashicons-networking',
+            56
+        );
+        add_submenu_page('biztoribbd', 'Dashboard', 'Dashboard', 'manage_options', 'biztoribbd', [$this, 'page_dashboard']);
+        add_submenu_page('biztoribbd', 'Workflows', 'Workflows', 'manage_options', 'biztoribbd-workflows', [$this, 'page_workflows']);
+        add_submenu_page('biztoribbd', 'Executions', 'Executions', 'manage_options', 'biztoribbd-executions', [$this, 'page_executions']);
+        add_submenu_page('biztoribbd', 'Event Mappings', 'Event Mappings', 'manage_options', 'biztoribbd-mappings', [$this, 'page_mappings']);
+        add_submenu_page('biztoribbd', 'Settings', 'Settings', 'manage_options', 'biztoribbd-settings', [$this, 'page_settings']);
     }
 
     public function register_settings() {
         register_setting('biztoribbd_settings', 'biztoribbd_api_key');
         register_setting('biztoribbd_settings', 'biztoribbd_api_url');
+        register_setting('biztoribbd_settings', 'biztoribbd_event_mappings');
     }
 
-    public function settings_page() {
+    public function enqueue_admin_assets($hook) {
+        if (strpos($hook, 'biztoribbd') === false) return;
+        wp_enqueue_style('biztoribbd-admin', false);
+        wp_add_inline_style('biztoribbd-admin', '
+            .bz-wrap { max-width: 1200px; }
+            .bz-card { background: #fff; border: 1px solid #c3c4c7; border-radius: 4px; padding: 20px; margin-bottom: 20px; }
+            .bz-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px; }
+            .bz-stat { background: #fff; border: 1px solid #c3c4c7; border-radius: 4px; padding: 16px; text-align: center; }
+            .bz-stat .number { font-size: 28px; font-weight: 700; color: #2271b1; }
+            .bz-stat .label { font-size: 13px; color: #646970; margin-top: 4px; }
+            .bz-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+            .bz-badge-success { background: #d4edda; color: #155724; }
+            .bz-badge-error { background: #f8d7da; color: #721c24; }
+            .bz-badge-running { background: #cce5ff; color: #004085; }
+            .bz-badge-active { background: #d4edda; color: #155724; }
+            .bz-badge-inactive { background: #e2e3e5; color: #383d41; }
+            .bz-table { width: 100%; border-collapse: collapse; }
+            .bz-table th, .bz-table td { padding: 10px 12px; border-bottom: 1px solid #e2e4e7; text-align: left; }
+            .bz-table th { background: #f0f0f1; font-weight: 600; font-size: 13px; }
+            .bz-table tr:hover { background: #f6f7f7; }
+            .bz-logs { background: #1d2327; color: #d4d4d8; padding: 16px; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 400px; overflow-y: auto; }
+            .bz-log-info { color: #93c5fd; }
+            .bz-log-success { color: #86efac; }
+            .bz-log-error { color: #fca5a5; }
+            #bz-loading { display: none; text-align: center; padding: 40px; }
+        ');
+        wp_enqueue_script('biztoribbd-admin', false);
+        wp_add_inline_script('biztoribbd-admin', '
+            var bzAjax = { url: "' . admin_url('admin-ajax.php') . '", nonce: "' . wp_create_nonce('bz_nonce') . '" };
+            function bzApi(action, data, callback) {
+                data = data || {};
+                data.action = action;
+                data._ajax_nonce = bzAjax.nonce;
+                jQuery.post(bzAjax.url, data, function(res) {
+                    callback(res.success ? res.data : null, res.success ? null : res.data);
+                });
+            }
+        ');
+    }
+
+    // ==================== ADMIN PAGES ====================
+
+    public function page_dashboard() {
         ?>
-        <div class="wrap">
-            <h1>BiztoriBD Tracker Settings</h1>
-            <form method="post" action="options.php">
-                <?php settings_fields('biztoribbd_settings'); ?>
-                <table class="form-table">
-                    <tr><th>API Key</th>
-                        <td><input type="text" name="biztoribbd_api_key" value="<?php echo esc_attr(get_option('biztoribbd_api_key')); ?>" class="regular-text" placeholder="bz_xxxxxxxxxxxx" /></td>
-                    </tr>
-                    <tr><th>API URL (optional)</th>
-                        <td><input type="url" name="biztoribbd_api_url" value="<?php echo esc_attr(get_option('biztoribbd_api_url', '${API_BASE_URL}')); ?>" class="regular-text" /></td>
-                    </tr>
-                </table>
-                <?php submit_button(); ?>
-            </form>
+        <div class="wrap bz-wrap">
+            <h1>BiztoriBD Automation Dashboard</h1>
+            <?php if (empty($this->api_key)): ?>
+                <div class="notice notice-warning"><p>Please <a href="<?php echo admin_url("admin.php?page=biztoribbd-settings"); ?>">configure your API key</a> to get started.</p></div>
+            <?php else: ?>
+                <div class="bz-grid" id="bz-dashboard-stats">
+                    <div class="bz-stat"><div class="number" id="bz-total-workflows">--</div><div class="label">Total Workflows</div></div>
+                    <div class="bz-stat"><div class="number" id="bz-active-workflows">--</div><div class="label">Active Workflows</div></div>
+                    <div class="bz-stat"><div class="number" id="bz-total-executions">--</div><div class="label">Total Executions</div></div>
+                    <div class="bz-stat"><div class="number" id="bz-success-rate">--</div><div class="label">Success Rate</div></div>
+                </div>
+                <div class="bz-card">
+                    <h2>Recent Executions</h2>
+                    <div id="bz-recent-execs"><p>Loading...</p></div>
+                </div>
+                <script>
+                jQuery(function($) {
+                    bzApi("bz_list_workflows", {}, function(d) {
+                        if (!d) return;
+                        $("#bz-total-workflows").text(d.pagination ? d.pagination.total : d.data.length);
+                        var active = d.data ? d.data.filter(function(w) { return w.is_active; }).length : 0;
+                        $("#bz-active-workflows").text(active);
+                    });
+                    bzApi("bz_list_executions", { limit: 5 }, function(d) {
+                        if (!d || !d.data) { $("#bz-recent-execs").html("<p>No executions yet.</p>"); return; }
+                        $("#bz-total-executions").text(d.pagination ? d.pagination.total : d.data.length);
+                        var success = d.data.filter(function(e) { return e.status === "success"; }).length;
+                        var rate = d.data.length > 0 ? Math.round(success / d.data.length * 100) : 0;
+                        $("#bz-success-rate").text(rate + "%");
+                        var html = "<table class=\\"bz-table\\"><tr><th>Workflow</th><th>Status</th><th>Started</th><th>Duration</th></tr>";
+                        d.data.forEach(function(e) {
+                            var dur = e.finished_at ? ((new Date(e.finished_at) - new Date(e.started_at)) / 1000).toFixed(1) + "s" : "—";
+                            var badge = e.status === "success" ? "bz-badge-success" : e.status === "error" ? "bz-badge-error" : "bz-badge-running";
+                            html += "<tr><td>" + (e.workflow_id || "—").substring(0,8) + "…</td><td><span class=\\"bz-badge " + badge + "\\">" + e.status + "</span></td><td>" + new Date(e.started_at).toLocaleString() + "</td><td>" + dur + "</td></tr>";
+                        });
+                        html += "</table>";
+                        $("#bz-recent-execs").html(html);
+                    });
+                });
+                </script>
+            <?php endif; ?>
         </div>
         <?php
     }
 
-    // API call helper
+    public function page_workflows() {
+        ?>
+        <div class="wrap bz-wrap">
+            <h1>Workflows</h1>
+            <div id="bz-loading"><span class="spinner is-active" style="float:none;"></span> Loading workflows...</div>
+            <div class="bz-card" id="bz-workflows-list"></div>
+            <script>
+            jQuery(function($) {
+                $("#bz-loading").show();
+                bzApi("bz_list_workflows", {}, function(d) {
+                    $("#bz-loading").hide();
+                    if (!d || !d.data || d.data.length === 0) {
+                        $("#bz-workflows-list").html("<p>No workflows found. Create workflows in the BiztoriBD dashboard.</p>");
+                        return;
+                    }
+                    var html = "<table class=\\"bz-table\\"><tr><th>Name</th><th>Status</th><th>Version</th><th>Updated</th><th>Actions</th></tr>";
+                    d.data.forEach(function(w) {
+                        var badge = w.is_active ? "bz-badge-active\\">Active" : "bz-badge-inactive\\">Inactive";
+                        html += "<tr>";
+                        html += "<td><strong>" + w.name + "</strong><br><small style=\\"color:#646970;\\">" + (w.description || "No description") + "</small></td>";
+                        html += "<td><span class=\\"bz-badge " + badge + "</span></td>";
+                        html += "<td>v" + w.version + "</td>";
+                        html += "<td>" + new Date(w.updated_at).toLocaleDateString() + "</td>";
+                        html += "<td>";
+                        if (w.is_active) {
+                            html += "<button class=\\"button button-primary bz-execute\\" data-id=\\"" + w.id + "\\" data-name=\\"" + w.name + "\\">▶ Execute</button> ";
+                        }
+                        html += "<button class=\\"button bz-stats\\" data-id=\\"" + w.id + "\\">📊 Stats</button>";
+                        html += "</td>";
+                        html += "</tr>";
+                    });
+                    html += "</table>";
+                    $("#bz-workflows-list").html(html);
+
+                    // Execute handler
+                    $(".bz-execute").on("click", function() {
+                        var btn = $(this), id = btn.data("id"), name = btn.data("name");
+                        if (!confirm("Execute workflow: " + name + "?")) return;
+                        btn.prop("disabled", true).text("Running...");
+                        bzApi("bz_execute_workflow", { workflow_id: id, input: "{}" }, function(res, err) {
+                            btn.prop("disabled", false).text("▶ Execute");
+                            if (err) { alert("Error: " + (err.message || "Execution failed")); return; }
+                            alert("✅ Execution " + (res.status || "completed") + "\\nDuration: " + (res.duration_ms || 0) + "ms");
+                        });
+                    });
+
+                    // Stats handler
+                    $(".bz-stats").on("click", function() {
+                        var id = $(this).data("id");
+                        bzApi("bz_workflow_stats", { workflow_id: id }, function(res) {
+                            if (!res) { alert("Could not load stats"); return; }
+                            var s = res.data || res;
+                            alert("📊 Workflow Stats\\n\\nTotal Executions: " + (s.total_executions || 0) + "\\nSuccess: " + (s.success || 0) + "\\nFailed: " + (s.failed || 0) + "\\nAvg Duration: " + (s.avg_duration_ms || 0) + "ms\\nLast Run: " + (s.last_executed || "Never"));
+                        });
+                    });
+                });
+            });
+            </script>
+        </div>
+        <?php
+    }
+
+    public function page_executions() {
+        ?>
+        <div class="wrap bz-wrap">
+            <h1>Execution History</h1>
+            <div class="bz-card" id="bz-exec-list"><p>Loading...</p></div>
+            <div class="bz-card" id="bz-exec-detail" style="display:none;">
+                <h2>Execution Details</h2>
+                <div id="bz-exec-meta"></div>
+                <h3>Input Data</h3>
+                <pre id="bz-exec-input" class="bz-logs"></pre>
+                <h3>Output Data</h3>
+                <pre id="bz-exec-output" class="bz-logs"></pre>
+                <h3>Execution Logs</h3>
+                <div id="bz-exec-logs" class="bz-logs"></div>
+                <p><button class="button" onclick="jQuery(\\'#bz-exec-detail\\').hide();jQuery(\\'#bz-exec-list\\').show();">← Back to list</button></p>
+            </div>
+            <script>
+            jQuery(function($) {
+                function loadExecs() {
+                    bzApi("bz_list_executions", { limit: 20 }, function(d) {
+                        if (!d || !d.data || d.data.length === 0) { $("#bz-exec-list").html("<p>No executions yet.</p>"); return; }
+                        var html = "<table class=\\"bz-table\\"><tr><th>ID</th><th>Workflow</th><th>Status</th><th>Started</th><th>Duration</th><th></th></tr>";
+                        d.data.forEach(function(e) {
+                            var dur = e.finished_at ? ((new Date(e.finished_at) - new Date(e.started_at)) / 1000).toFixed(1) + "s" : "Running...";
+                            var badge = e.status === "success" ? "bz-badge-success" : e.status === "error" ? "bz-badge-error" : "bz-badge-running";
+                            html += "<tr>";
+                            html += "<td><code>" + e.id.substring(0,8) + "…</code></td>";
+                            html += "<td>" + (e.workflow_id || "—").substring(0,8) + "…</td>";
+                            html += "<td><span class=\\"bz-badge " + badge + "\\">" + e.status + "</span></td>";
+                            html += "<td>" + new Date(e.started_at).toLocaleString() + "</td>";
+                            html += "<td>" + dur + "</td>";
+                            html += "<td><button class=\\"button bz-view-exec\\" data-id=\\"" + e.id + "\\">View</button></td>";
+                            html += "</tr>";
+                        });
+                        html += "</table>";
+                        $("#bz-exec-list").html(html);
+
+                        $(".bz-view-exec").on("click", function() {
+                            var eid = $(this).data("id");
+                            bzApi("bz_get_execution", { execution_id: eid }, function(res) {
+                                if (!res || !res.data) { alert("Could not load execution"); return; }
+                                var ex = res.data;
+                                var badge = ex.status === "success" ? "bz-badge-success" : ex.status === "error" ? "bz-badge-error" : "bz-badge-running";
+                                $("#bz-exec-meta").html("<p><strong>Status:</strong> <span class=\\"bz-badge " + badge + "\\">" + ex.status + "</span> | <strong>Started:</strong> " + new Date(ex.started_at).toLocaleString() + (ex.error_message ? " | <strong style=\\"color:red\\">Error:</strong> " + ex.error_message : "") + "</p>");
+                                $("#bz-exec-input").text(JSON.stringify(ex.input_data || {}, null, 2));
+                                $("#bz-exec-output").text(JSON.stringify(ex.output_data || {}, null, 2));
+                                var logs = ex.logs || [];
+                                var logHtml = "";
+                                if (Array.isArray(logs)) {
+                                    logs.forEach(function(l) {
+                                        var cls = l.level === "error" ? "bz-log-error" : l.level === "success" ? "bz-log-success" : "bz-log-info";
+                                        logHtml += "<div class=\\"" + cls + "\\">[" + (l.timestamp || "") + "] " + (l.nodeName || l.nodeId || "") + ": " + l.message + "</div>";
+                                    });
+                                }
+                                $("#bz-exec-logs").html(logHtml || "<div>No logs</div>");
+                                $("#bz-exec-list").hide();
+                                $("#bz-exec-detail").show();
+                            });
+                        });
+                    });
+                }
+                loadExecs();
+            });
+            </script>
+        </div>
+        <?php
+    }
+
+    public function page_mappings() {
+        $mappings = get_option('biztoribbd_event_mappings', []);
+        if (!is_array($mappings)) $mappings = [];
+        $events = [
+            'new_order'        => 'New Order Created',
+            'order_completed'  => 'Order Completed',
+            'payment_failed'   => 'Payment Failed',
+            'order_cancelled'  => 'Order Cancelled',
+            'order_refunded'   => 'Order Refunded',
+            'customer_created' => 'New Customer Registered',
+            'product_updated'  => 'Product Updated',
+            'cart_abandon'     => 'Cart Abandoned (hourly check)',
+            'checkout_abandon' => 'Checkout Abandoned',
+        ];
+        ?>
+        <div class="wrap bz-wrap">
+            <h1>WooCommerce → Workflow Mappings</h1>
+            <p class="description">Map WooCommerce events to specific workflows. When the event fires, the mapped workflow will be automatically executed with the event data as input.</p>
+            <div class="bz-card">
+                <div id="bz-mappings-loading"><span class="spinner is-active" style="float:none;"></span> Loading workflows...</div>
+                <form id="bz-mappings-form" style="display:none;">
+                    <table class="bz-table">
+                        <tr><th style="width:35%;">WooCommerce Event</th><th>Workflow to Execute</th></tr>
+                        <?php foreach ($events as $key => $label): ?>
+                        <tr>
+                            <td><strong><?php echo esc_html($label); ?></strong><br><small style="color:#646970;"><?php echo esc_html($key); ?></small></td>
+                            <td><select name="bz_map_<?php echo esc_attr($key); ?>" id="bz_map_<?php echo esc_attr($key); ?>" class="bz-wf-select" style="width:100%;max-width:400px;">
+                                <option value="">— No workflow (disabled) —</option>
+                            </select></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </table>
+                    <p><button type="submit" class="button button-primary">Save Mappings</button></p>
+                </form>
+            </div>
+            <script>
+            jQuery(function($) {
+                var saved = <?php echo json_encode($mappings); ?>;
+                bzApi("bz_list_workflows", {}, function(d) {
+                    $("#bz-mappings-loading").hide();
+                    $("#bz-mappings-form").show();
+                    if (!d || !d.data) return;
+                    d.data.forEach(function(w) {
+                        $(".bz-wf-select").append("<option value=\\"" + w.id + "\\">" + w.name + (w.is_active ? "" : " (inactive)") + "</option>");
+                    });
+                    // Restore saved mappings
+                    Object.keys(saved).forEach(function(k) {
+                        $("#bz_map_" + k).val(saved[k]);
+                    });
+                });
+
+                $("#bz-mappings-form").on("submit", function(e) {
+                    e.preventDefault();
+                    var mappings = {};
+                    $(".bz-wf-select").each(function() {
+                        var key = $(this).attr("name").replace("bz_map_", "");
+                        var val = $(this).val();
+                        if (val) mappings[key] = val;
+                    });
+                    bzApi("bz_save_mappings", { mappings: JSON.stringify(mappings) }, function(res, err) {
+                        if (err) { alert("Failed to save"); return; }
+                        alert("✅ Mappings saved! WooCommerce events will now trigger workflows automatically.");
+                    });
+                });
+            });
+            </script>
+        </div>
+        <?php
+    }
+
+    public function page_settings() {
+        ?>
+        <div class="wrap bz-wrap">
+            <h1>BiztoriBD Settings</h1>
+            <div class="bz-card">
+                <form method="post" action="options.php">
+                    <?php settings_fields('biztoribbd_settings'); ?>
+                    <table class="form-table">
+                        <tr>
+                            <th>API Key</th>
+                            <td>
+                                <input type="password" name="biztoribbd_api_key" value="<?php echo esc_attr(get_option('biztoribbd_api_key')); ?>" class="regular-text" placeholder="bz_xxxxxxxxxxxx" />
+                                <p class="description">Get your API key from <a href="https://www.biztoribd.com" target="_blank">BiztoriBD Dashboard → API Keys</a></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>API URL</th>
+                            <td>
+                                <input type="url" name="biztoribbd_api_url" value="<?php echo esc_attr(get_option('biztoribbd_api_url', '${API_BASE_URL}')); ?>" class="regular-text" />
+                                <p class="description">Only change this if you have a custom deployment.</p>
+                            </td>
+                        </tr>
+                    </table>
+                    <?php submit_button(); ?>
+                </form>
+            </div>
+            <?php if (!empty($this->api_key)): ?>
+            <div class="bz-card">
+                <h2>Connection Status</h2>
+                <div id="bz-conn-status"><span class="spinner is-active" style="float:none;"></span> Testing connection...</div>
+                <script>
+                jQuery(function($) {
+                    $.ajax({
+                        url: "<?php echo esc_js($this->api_url); ?>/health",
+                        headers: { "x-api-key": "<?php echo esc_js($this->api_key); ?>" },
+                        success: function(d) {
+                            $("#bz-conn-status").html("<span style=\\"color:green;font-size:18px;\\">✅ Connected</span><br><small>Server time: " + d.timestamp + "</small>");
+                        },
+                        error: function() {
+                            $("#bz-conn-status").html("<span style=\\"color:red;font-size:18px;\\">❌ Connection failed</span><br><small>Check your API key and URL.</small>");
+                        }
+                    });
+                });
+                </script>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php
+    }
+
+    // ==================== AJAX HANDLERS ====================
+
+    public function ajax_list_workflows() {
+        check_ajax_referer('bz_nonce');
+        $res = $this->get('/workflows?limit=50');
+        wp_send_json_success($res);
+    }
+
+    public function ajax_execute_workflow() {
+        check_ajax_referer('bz_nonce');
+        $wf_id = sanitize_text_field($_POST['workflow_id'] ?? '');
+        $input = json_decode(stripslashes($_POST['input'] ?? '{}'), true) ?: [];
+        $res = $this->api_post('/workflows/' . $wf_id . '/execute', ['input' => $input]);
+        wp_send_json_success($res);
+    }
+
+    public function ajax_list_executions() {
+        check_ajax_referer('bz_nonce');
+        $limit = intval($_POST['limit'] ?? 20);
+        $res = $this->get('/executions?limit=' . $limit);
+        wp_send_json_success($res);
+    }
+
+    public function ajax_get_execution() {
+        check_ajax_referer('bz_nonce');
+        $eid = sanitize_text_field($_POST['execution_id'] ?? '');
+        $res = $this->get('/executions/' . $eid);
+        wp_send_json_success($res);
+    }
+
+    public function ajax_workflow_stats() {
+        check_ajax_referer('bz_nonce');
+        $wf_id = sanitize_text_field($_POST['workflow_id'] ?? '');
+        $res = $this->get('/workflows/' . $wf_id . '/stats');
+        wp_send_json_success($res);
+    }
+
+    public function ajax_save_mappings() {
+        check_ajax_referer('bz_nonce');
+        $mappings = json_decode(stripslashes($_POST['mappings'] ?? '{}'), true) ?: [];
+        update_option('biztoribbd_event_mappings', $mappings);
+        wp_send_json_success(['saved' => true]);
+    }
+
+    // ==================== API HELPERS ====================
+
+    private function get($endpoint) {
+        $response = wp_remote_get($this->api_url . $endpoint, [
+            'headers' => ['x-api-key' => $this->api_key],
+            'timeout' => 15,
+        ]);
+        if (is_wp_error($response)) return ['error' => $response->get_error_message()];
+        return json_decode(wp_remote_retrieve_body($response), true);
+    }
+
+    private function api_post($endpoint, $data) {
+        $response = wp_remote_post($this->api_url . $endpoint, [
+            'headers' => ['x-api-key' => $this->api_key, 'Content-Type' => 'application/json'],
+            'body'    => json_encode($data),
+            'timeout' => 30,
+        ]);
+        if (is_wp_error($response)) return ['error' => $response->get_error_message()];
+        return json_decode(wp_remote_retrieve_body($response), true);
+    }
+
     private function post($endpoint, $data) {
         wp_remote_post($this->api_url . $endpoint, [
-            'headers' => [
-                'x-api-key'    => $this->api_key,
-                'Content-Type' => 'application/json',
-            ],
-            'body'      => json_encode($data),
-            'timeout'   => 5,
-            'blocking'  => false,
+            'headers' => ['x-api-key' => $this->api_key, 'Content-Type' => 'application/json'],
+            'body'    => json_encode($data),
+            'timeout' => 5,
+            'blocking' => false,
         ]);
     }
 
-    // Track cart abandonment via JS (beforeunload)
+    // ==================== EVENT → WORKFLOW TRIGGER ====================
+
+    private function trigger_mapped_workflow($event_key, $input_data) {
+        $mappings = get_option('biztoribbd_event_mappings', []);
+        if (!is_array($mappings) || empty($mappings[$event_key])) return;
+        $workflow_id = $mappings[$event_key];
+        $this->api_post('/workflows/' . $workflow_id . '/execute', [
+            'input' => array_merge($input_data, [
+                '_source'    => 'wordpress',
+                '_event'     => $event_key,
+                '_timestamp' => current_time('c'),
+                '_site_url'  => home_url(),
+            ]),
+        ]);
+    }
+
+    private function get_order_data($order) {
+        $items = [];
+        foreach ($order->get_items() as $item) {
+            $product = $item->get_product();
+            $items[] = [
+                'name'     => $item->get_name(),
+                'quantity' => $item->get_quantity(),
+                'price'    => (float)$item->get_total(),
+                'sku'      => $product ? $product->get_sku() : '',
+            ];
+        }
+        return [
+            'order_id'   => $order->get_id(),
+            'status'     => $order->get_status(),
+            'total'      => (float)$order->get_total(),
+            'currency'   => $order->get_currency(),
+            'email'      => $order->get_billing_email(),
+            'first_name' => $order->get_billing_first_name(),
+            'last_name'  => $order->get_billing_last_name(),
+            'phone'      => $order->get_billing_phone(),
+            'items'      => $items,
+            'payment_method' => $order->get_payment_method_title(),
+        ];
+    }
+
+    // ==================== WOOCOMMERCE HOOKS ====================
+
+    public function on_new_order($order_id, $order = null) {
+        if (!$order) $order = wc_get_order($order_id);
+        if (!$order) return;
+        $data = $this->get_order_data($order);
+        $this->post('/contacts', [
+            'email' => $data['email'], 'first_name' => $data['first_name'], 'last_name' => $data['last_name'],
+            'phone' => $data['phone'], 'source' => 'woocommerce',
+            'custom_fields' => ['last_order_id' => (string)$order_id, 'last_order_total' => $data['total']],
+        ]);
+        $this->trigger_mapped_workflow('new_order', $data);
+    }
+
+    public function on_order_complete($order_id) {
+        $order = wc_get_order($order_id);
+        if (!$order) return;
+        $data = $this->get_order_data($order);
+        $this->post('/contacts', [
+            'email' => $data['email'], 'first_name' => $data['first_name'], 'last_name' => $data['last_name'],
+            'phone' => $data['phone'], 'source' => 'woocommerce',
+            'custom_fields' => ['last_order_id' => (string)$order_id, 'last_order_total' => $data['total'], 'order_count' => 1],
+        ]);
+        $this->trigger_mapped_workflow('order_completed', $data);
+    }
+
+    public function on_payment_failed($order_id) {
+        $order = wc_get_order($order_id);
+        if (!$order) return;
+        $data = $this->get_order_data($order);
+        $this->post('/triggers/payment-failure', [
+            'email' => $data['email'], 'order_id' => (string)$order_id,
+            'amount' => $data['total'], 'error_code' => 'payment_failed',
+            'retry_url' => $order->get_checkout_payment_url(),
+        ]);
+        $this->trigger_mapped_workflow('payment_failed', $data);
+    }
+
+    public function on_order_cancelled($order_id) {
+        $order = wc_get_order($order_id);
+        if (!$order) return;
+        $this->trigger_mapped_workflow('order_cancelled', $this->get_order_data($order));
+    }
+
+    public function on_order_refunded($order_id) {
+        $order = wc_get_order($order_id);
+        if (!$order) return;
+        $this->trigger_mapped_workflow('order_refunded', $this->get_order_data($order));
+    }
+
+    public function on_customer_created($customer_id, $new_customer_data, $password_generated) {
+        $user = get_userdata($customer_id);
+        if (!$user) return;
+        $data = ['email' => $user->user_email, 'first_name' => $user->first_name, 'last_name' => $user->last_name, 'source' => 'woocommerce'];
+        $this->post('/contacts', $data);
+        $this->trigger_mapped_workflow('customer_created', $data);
+    }
+
+    public function on_product_updated($product_id, $product = null) {
+        if (!$product) $product = wc_get_product($product_id);
+        if (!$product) return;
+        $this->trigger_mapped_workflow('product_updated', [
+            'product_id' => $product_id, 'name' => $product->get_name(),
+            'price' => (float)$product->get_price(), 'sku' => $product->get_sku(),
+            'status' => $product->get_status(), 'stock_status' => $product->get_stock_status(),
+        ]);
+    }
+
+    // Cart/checkout abandonment tracking (unchanged from v1)
     public function inject_tracker_script() {
         if (!is_cart() && !is_checkout()) return;
         $cart = WC()->cart;
         if (!$cart || $cart->is_empty()) return;
-
         $email = is_user_logged_in() ? wp_get_current_user()->user_email : 'null';
         $items = [];
         foreach ($cart->get_cart() as $item) {
             $product = $item['data'];
-            $items[] = [
-                'name'     => $product->get_name(),
-                'price'    => (float)$product->get_price(),
-                'quantity' => $item['quantity'],
-            ];
+            $items[] = ['name' => $product->get_name(), 'price' => (float)$product->get_price(), 'quantity' => $item['quantity']];
         }
         $total = (float)$cart->get_cart_contents_total();
         ?>
@@ -1020,10 +1530,7 @@ class BiztoriBD_Tracker {
             var bzItems = <?php echo json_encode($items); ?>;
             var bzTotal = <?php echo $total; ?>;
             var bzCompleted = false;
-
-            // Mark as completed on thank-you page
             if (document.querySelector('.woocommerce-order-received')) bzCompleted = true;
-
             window.addEventListener('beforeunload', function() {
                 if (bzCompleted || !bzEmail) return;
                 var isCheckout = <?php echo is_checkout() ? 'true' : 'false'; ?>;
@@ -1031,7 +1538,6 @@ class BiztoriBD_Tracker {
                 var payload = isCheckout
                     ? { email: bzEmail, cart_value: bzTotal, checkout_step: 'in_progress', items: bzItems }
                     : { email: bzEmail, cart_total: bzTotal, items: bzItems };
-
                 navigator.sendBeacon && navigator.sendBeacon(
                     '<?php echo esc_js($this->api_url); ?>' + endpoint,
                     new Blob([JSON.stringify(Object.assign(payload, {_key: '<?php echo esc_js($this->api_key); ?>'}))], {type:'application/json'})
@@ -1041,53 +1547,9 @@ class BiztoriBD_Tracker {
         </script>
         <?php
     }
-
-    // Server-side: payment failed
-    public function on_payment_failed($order_id) {
-        $order = wc_get_order($order_id);
-        if (!$order) return;
-        $this->post('/triggers/payment-failure', [
-            'email'      => $order->get_billing_email(),
-            'order_id'   => (string)$order_id,
-            'amount'     => (float)$order->get_total(),
-            'error_code' => 'payment_failed',
-            'retry_url'  => $order->get_checkout_payment_url(),
-        ]);
-    }
-
-    // Server-side: order complete — sync contact
-    public function on_order_complete($order_id) {
-        $order = wc_get_order($order_id);
-        if (!$order) return;
-        $this->post('/contacts', [
-            'email'      => $order->get_billing_email(),
-            'first_name' => $order->get_billing_first_name(),
-            'last_name'  => $order->get_billing_last_name(),
-            'phone'      => $order->get_billing_phone(),
-            'company'    => $order->get_billing_company(),
-            'source'     => 'woocommerce',
-            'custom_fields' => [
-                'last_order_id'    => (string)$order_id,
-                'last_order_total' => (float)$order->get_total(),
-                'order_count'      => 1,
-            ],
-        ]);
-    }
-
-    // New customer created
-    public function on_customer_created($customer_id, $new_customer_data, $password_generated) {
-        $user = get_userdata($customer_id);
-        if (!$user) return;
-        $this->post('/contacts', [
-            'email'      => $user->user_email,
-            'first_name' => $user->first_name,
-            'last_name'  => $user->last_name,
-            'source'     => 'woocommerce',
-        ]);
-    }
 }
 
-new BiztoriBD_Tracker();`;
+new BiztoriBD_Automation();`;
 
 // Shopify Liquid snippet code
 const shopifySnippetCode = `{% comment %}
@@ -2512,7 +2974,7 @@ const apiKey = "bz_live_xxxxxxxxxxxxxxxx"; // ❌ Bad!
                     <div className="p-4 border rounded-lg text-center">
                       <ShoppingCart className="h-8 w-8 mx-auto text-purple-600 mb-2" />
                       <h5 className="font-semibold">WordPress / WooCommerce</h5>
-                      <p className="text-xs text-muted-foreground mt-1">PHP plugin with auto cart/checkout/payment tracking</p>
+                      <p className="text-xs text-muted-foreground mt-1">Full automation plugin with workflow management & event triggers</p>
                     </div>
                     <div className="p-4 border rounded-lg text-center">
                       <ShoppingBag className="h-8 w-8 mx-auto text-green-600 mb-2" />
@@ -2533,10 +2995,10 @@ const apiKey = "bz_live_xxxxxxxxxxxxxxxx"; // ❌ Bad!
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ShoppingCart className="h-5 w-5 text-purple-600" />
-                    WordPress / WooCommerce Plugin
+                    WordPress / WooCommerce Automation Plugin
                   </CardTitle>
                   <CardDescription>
-                    Download and install this PHP plugin to automatically track cart abandonment, checkout abandonment, payment failures, and post-purchase events in WooCommerce.
+                    Full workflow automation engine for WordPress — manage workflows, map WooCommerce events to workflows, monitor executions, and track abandonment &amp; payment failures, all from your WP admin.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -2557,7 +3019,11 @@ const apiKey = "bz_live_xxxxxxxxxxxxxxxx"; // ❌ Bad!
                       </li>
                       <li className="flex gap-3">
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">4</span>
-                        <span>Go to <strong>Settings → BiztoriBD Tracker</strong> and enter your API Key</span>
+                        <span>Go to <strong>BiztoriBD → Settings</strong> and enter your API Key</span>
+                      </li>
+                      <li className="flex gap-3">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">5</span>
+                        <span>Go to <strong>BiztoriBD → Event Mappings</strong> to map WooCommerce events to your workflows</span>
                       </li>
                     </ol>
                   </div>
@@ -2575,25 +3041,44 @@ const apiKey = "bz_live_xxxxxxxxxxxxxxxx"; // ❌ Bad!
                   </div>
 
                   <div>
-                    <h4 className="font-semibold mb-2">What It Tracks Automatically</h4>
+                    <h4 className="font-semibold mb-2">Plugin Capabilities</h4>
                     <div className="grid gap-2 md:grid-cols-2">
                       <div className="flex items-center gap-2 p-2 border rounded text-sm">
                         <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
-                        <span><strong>Cart Abandonment</strong> — items added but checkout not started</span>
+                        <span><strong>Workflow Management</strong> — List, execute & monitor workflows from WP admin</span>
                       </div>
                       <div className="flex items-center gap-2 p-2 border rounded text-sm">
                         <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
-                        <span><strong>Checkout Abandonment</strong> — checkout started but order not placed</span>
+                        <span><strong>Event → Workflow Mapping</strong> — Auto-trigger workflows on WooCommerce events</span>
                       </div>
                       <div className="flex items-center gap-2 p-2 border rounded text-sm">
                         <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
-                        <span><strong>Payment Failures</strong> — declined cards and payment errors</span>
+                        <span><strong>Execution Logs</strong> — View detailed execution history, input/output & logs</span>
                       </div>
                       <div className="flex items-center gap-2 p-2 border rounded text-sm">
                         <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
-                        <span><strong>Post-Purchase</strong> — order completion synced as contact</span>
+                        <span><strong>Cart & Checkout Abandonment</strong> — Automatic JS tracking via sendBeacon</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 border rounded text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                        <span><strong>Payment Failure Recovery</strong> — Declined cards trigger recovery workflows</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 border rounded text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+                        <span><strong>Contact Sync</strong> — Customers auto-synced on order & registration</span>
                       </div>
                     </div>
+                  </div>
+
+                  <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-lg p-4">
+                    <h5 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">WordPress Admin Pages</h5>
+                    <ul className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                      <li>• <strong>Dashboard</strong> — Overview stats, recent executions, connection status</li>
+                      <li>• <strong>Workflows</strong> — Browse, execute, and view stats for all your workflows</li>
+                      <li>• <strong>Executions</strong> — Full execution history with input/output data & node-level logs</li>
+                      <li>• <strong>Event Mappings</strong> — Map 9 WooCommerce events to specific workflows</li>
+                      <li>• <strong>Settings</strong> — API key configuration & connection testing</li>
+                    </ul>
                   </div>
                 </CardContent>
               </Card>
