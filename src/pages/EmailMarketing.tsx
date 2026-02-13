@@ -20,9 +20,10 @@ import { SocialScheduling } from '@/components/email/SocialScheduling';
 import { TeamManagement } from '@/components/email/TeamManagement';
 import { GdprCompliance } from '@/components/email/GdprCompliance';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { motion } from 'framer-motion';
 import {
   Mail, Users, ListChecks, Send, LayoutTemplate, Settings, Zap, BarChart3, FileText,
-  Clock, Brain, Smartphone, Bot, ShoppingCart, Globe, Share2, Shield,
+  Clock, Brain, Smartphone, Bot, ShoppingCart, Globe, Share2, Shield, Sparkles,
 } from 'lucide-react';
 
 export default function EmailMarketing() {
@@ -52,20 +53,50 @@ export default function EmailMarketing() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Email Marketing</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage contacts, create campaigns, and send emails
-          </p>
-        </div>
+        {/* Hero Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="relative overflow-hidden rounded-xl border border-border bg-gradient-to-br from-primary/10 via-card to-accent/10 p-6 md:p-8"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="h-10 w-10 rounded-lg bg-primary/15 flex items-center justify-center">
+                  <Mail className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                  <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                    Marketing Suite
+                  </span>
+                </div>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+                Email Marketing
+              </h1>
+              <p className="text-muted-foreground mt-1.5 max-w-lg">
+                Build campaigns, grow your audience, and drive engagement with powerful automation tools.
+              </p>
+            </div>
+          </div>
+        </motion.div>
 
+        {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <ScrollArea className="w-full">
-            <TabsList className="inline-flex w-max">
+            <TabsList className="inline-flex w-max bg-card/80 backdrop-blur-sm border border-border p-1 rounded-lg">
               {tabs.map(tab => {
                 const Icon = tab.icon;
                 return (
-                  <TabsTrigger key={tab.value} value={tab.value} className="gap-1.5 whitespace-nowrap">
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className="gap-1.5 whitespace-nowrap rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all duration-200"
+                  >
                     <Icon className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline text-xs">{tab.label}</span>
                   </TabsTrigger>
