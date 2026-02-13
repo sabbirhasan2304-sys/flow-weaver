@@ -21,7 +21,6 @@ import SelectPlan from "./pages/SelectPlan";
 import ApiKeys from "./pages/ApiKeys";
 import ApiDocs from "./pages/ApiDocs";
 import EmailMarketing from "./pages/EmailMarketing";
-import Downloads from "./pages/Downloads";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -120,14 +119,6 @@ const App = () => (
             }
           />
           <Route path="/api-docs" element={<ApiDocs />} />
-          <Route
-            path="/downloads"
-            element={
-              <ProtectedRoute>
-                <Downloads />
-              </ProtectedRoute>
-            }
-          />
           <Route
             path="/email-marketing"
             element={

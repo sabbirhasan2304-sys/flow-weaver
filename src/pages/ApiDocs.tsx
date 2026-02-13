@@ -12,7 +12,7 @@ import {
   Shield, Clock, Code, BookOpen, Terminal, Globe,
   FileJson, Lock, Activity, ArrowRight, ExternalLink,
   ShoppingCart, ShoppingBag, Plug, Play, Target,
-  Users, Mail, Settings, Search, ChevronRight, Sparkles
+  Users, Mail, Settings, Search, ChevronRight, Sparkles, Download
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
@@ -920,13 +920,30 @@ const apiKey = "bz_live_xxxx"; // ❌ Bad!
                   <CardDescription>Full workflow automation engine for WordPress — manage workflows, map WooCommerce events, monitor executions, track abandonment.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Download Button */}
+                  <div className="flex items-center gap-4 p-4 rounded-lg border border-primary/20 bg-primary/5">
+                    <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Download className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-foreground">Download Plugin (.zip)</p>
+                      <p className="text-xs text-muted-foreground">Ready-to-install WordPress plugin. Upload directly via Plugins → Add New → Upload Plugin.</p>
+                    </div>
+                    <Button asChild>
+                      <a href="/downloads/biztoribbd-automation.zip" download>
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
+                      </a>
+                    </Button>
+                  </div>
+
                   <div>
                     <h4 className="font-semibold mb-2">Installation</h4>
                     <ol className="space-y-2 text-sm">
                       {[
-                        "Copy the PHP code below → save as biztoribbd-tracker.php",
-                        "Upload to wp-content/plugins/ directory",
-                        "Activate from Plugins → Installed Plugins",
+                        "Download the plugin .zip file using the button above",
+                        "In WordPress Admin → Plugins → Add New → Upload Plugin → select the .zip",
+                        "Click Install Now, then Activate",
                         "Go to BiztoriBD → Settings → enter your API Key",
                         "Go to BiztoriBD → Event Mappings → map WooCommerce events to workflows",
                       ].map((step, i) => (
