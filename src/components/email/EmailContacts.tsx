@@ -11,9 +11,10 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
-import { Plus, Search, Upload, Trash2, Edit, UserPlus, FileSpreadsheet, Filter, X, Eye, Activity, Star } from 'lucide-react';
+import { Plus, Search, Upload, Trash2, Edit, UserPlus, FileSpreadsheet, Filter, X, Eye, Activity, Star, Layers } from 'lucide-react';
 import { CsvImport } from './CsvImport';
 import { ContactProfile } from './ContactProfile';
+import { SegmentBuilder } from './SegmentBuilder';
 import { format } from 'date-fns';
 
 interface Contact {
@@ -93,6 +94,8 @@ export function EmailContacts() {
   const [profileContact, setProfileContact] = useState<Contact | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [form, setForm] = useState({ email: '', first_name: '', last_name: '', phone: '', company: '' });
+  const [showSegmentBuilder, setShowSegmentBuilder] = useState(false);
+  const [segmentFilterIds, setSegmentFilterIds] = useState<string[] | null>(null);
 
   // Advanced filters
   const [filterStatus, setFilterStatus] = useState('All');
@@ -165,6 +168,9 @@ export function EmailContacts() {
 
   const filtered = useMemo(() => {
     return contacts.filter(c => {
+      // Segment filter
+      if (segmentFilterIds && !segmentFilterIds.includes(c.id)) return false;
+
       // Search
       const q = search.toLowerCase();
       if (q && !c.email.toLowerCase().includes(q) && !c.first_name?.toLowerCase().includes(q) && !c.last_name?.toLowerCase().includes(q) && !c.company?.toLowerCase().includes(q)) return false;
@@ -180,7 +186,7 @@ export function EmailContacts() {
 
       return true;
     });
-  }, [contacts, search, filterStatus, filterEngagement, filterRFM]);
+  }, [contacts, search, filterStatus, filterEngagement, filterRFM, segmentFilterIds]);
 
   // Segment counts for summary
   const segmentCounts = useMemo(() => {
@@ -271,6 +277,12 @@ export function EmailContacts() {
         </div>
 
         <div className="flex gap-2">
+          <Button
+            variant={showSegmentBuilder ? 'secondary' : 'outline'}
+            onClick={() => { setShowSegmentBuilder(!showSegmentBuilder); if (showSegmentBuilder) setSegmentFilterIds(null); }}
+          >
+            <Layers className="h-4 w-4 mr-2" />Segments
+          </Button>
           <Dialog open={csvImportOpen} onOpenChange={setCsvImportOpen}>
             <DialogTrigger asChild>
               <Button variant="outline"><Upload className="h-4 w-4 mr-2" />Import CSV</Button>
@@ -313,6 +325,25 @@ export function EmailContacts() {
           {filterStatus !== 'All' && <Badge variant="secondary" className="text-xs gap-1">Status: {filterStatus}<button onClick={() => setFilterStatus('All')}><X className="h-2.5 w-2.5" /></button></Badge>}
           {filterEngagement !== 'All' && <Badge variant="secondary" className="text-xs gap-1">Engagement: {filterEngagement}<button onClick={() => setFilterEngagement('All')}><X className="h-2.5 w-2.5" /></button></Badge>}
           {filterRFM !== 'All' && <Badge variant="secondary" className="text-xs gap-1">RFM: {filterRFM}<button onClick={() => setFilterRFM('All')}><X className="h-2.5 w-2.5" /></button></Badge>}
+        </div>
+      )}
+
+      {/* Segment Builder */}
+      {showSegmentBuilder && (
+        <SegmentBuilder
+          contacts={contacts}
+          onApplySegment={(ids) => setSegmentFilterIds(ids)}
+        />
+      )}
+
+      {/* Segment active indicator */}
+      {segmentFilterIds && (
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="text-xs gap-1">
+            <Layers className="h-2.5 w-2.5" />
+            Segment active: {segmentFilterIds.length} contacts
+            <button onClick={() => setSegmentFilterIds(null)}><X className="h-2.5 w-2.5" /></button>
+          </Badge>
         </div>
       )}
 
