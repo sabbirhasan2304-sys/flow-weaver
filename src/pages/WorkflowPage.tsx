@@ -33,6 +33,12 @@ interface Workflow {
   updated_at: string;
 }
 
+// Ref to trigger save from header
+let canvasSaveRef: (() => void) | null = null;
+export function setCanvasSaveRef(fn: (() => void) | null) {
+  canvasSaveRef = fn;
+}
+
 export default function WorkflowPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -229,7 +235,10 @@ export default function WorkflowPage() {
               )}
             </Button>
             
-            <Button variant="outline" size="icon" className="h-9 w-9">
+            <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              toast.success('Workflow link copied to clipboard');
+            }}>
               <Share2 className="h-4 w-4" />
             </Button>
             
@@ -240,20 +249,36 @@ export default function WorkflowPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => toast.info('Workflow settings coming soon')}>
                   <Settings className="h-4 w-4 mr-2" />
                   Workflow Settings
                 </DropdownMenuItem>
-                <DropdownMenuItem>Export as JSON</DropdownMenuItem>
-                <DropdownMenuItem>View Executions</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  const json = JSON.stringify(workflow.data, null, 2);
+                  const blob = new Blob([json], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${workflow.name}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  toast.success('Exported as JSON');
+                }}>Export as JSON</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/executions">View Executions</Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive">
+                <DropdownMenuItem className="text-destructive" onClick={async () => {
+                  const { error } = await supabase.from('workflows').delete().eq('id', workflow.id);
+                  if (error) { toast.error('Failed to delete'); }
+                  else { toast.success('Workflow deleted'); navigate('/dashboard'); }
+                }}>
                   Delete Workflow
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             
-            <Button size="sm" onClick={() => toast.info('Use the save button in the canvas')} disabled={saving}>
+            <Button size="sm" onClick={() => canvasSaveRef?.()} disabled={saving}>
               <Save className="h-4 w-4 mr-2" />
               {saving ? 'Saving...' : 'Save'}
             </Button>

@@ -1,4 +1,5 @@
 import { useCallback, useRef, DragEvent, useState, memo, useEffect } from 'react';
+import { setCanvasSaveRef } from '@/pages/WorkflowPage';
 import {
   ReactFlow,
   Background,
@@ -155,9 +156,14 @@ export function WorkflowCanvas({ workflowId, initialData, onSave }: WorkflowCanv
   const handleSave = useCallback(() => {
     if (onSave) {
       onSave({ nodes, edges });
-      toast.success('Workflow saved');
     }
   }, [nodes, edges, onSave]);
+
+  // Expose save to header button
+  useEffect(() => {
+    setCanvasSaveRef(handleSave);
+    return () => setCanvasSaveRef(null);
+  }, [handleSave]);
 
   const handleRun = useCallback(() => {
     if (isExecuting) {
