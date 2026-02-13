@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { 
   Zap, ArrowRight, Play, Users, Shield, 
   Workflow, Bot, Database, Globe, CheckCircle2,
-  LayoutDashboard, Settings, Code, FileText, Book
+  LayoutDashboard, Settings, Code, FileText, Book,
+  Layers, Cpu, Mail, BarChart3, Lock, Rocket
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -13,47 +14,67 @@ import { useAdmin } from '@/hooks/useAdmin';
 const features = [
   {
     icon: Workflow,
-    title: 'Visual Workflow Builder',
-    description: 'Drag-and-drop interface with 50+ integrations. Build complex automations without code.',
+    title: 'Visual Workflow Engine',
+    description: 'Build sophisticated automations with our drag-and-drop canvas. 230+ nodes, zero code required.',
   },
   {
     icon: Bot,
-    title: 'AI-Powered Nodes',
-    description: 'OpenAI, Claude, Gemini, and Hugging Face integrations for intelligent workflows.',
+    title: 'AI Agent Builder',
+    description: 'Create intelligent agents with OpenAI, Claude, Gemini & LangChain. RAG, chat memory, and more.',
   },
   {
     icon: Database,
-    title: 'Database Integrations',
-    description: 'Connect to PostgreSQL, MongoDB, Redis, Supabase, and more.',
+    title: 'Data & Database',
+    description: 'Native connectors for PostgreSQL, MongoDB, Redis, Supabase, Firebase, and 20+ databases.',
   },
   {
     icon: Globe,
     title: 'API & Webhooks',
-    description: 'HTTP requests, webhooks, and real-time triggers for any use case.',
+    description: 'REST/GraphQL calls, real-time webhooks, cron schedules, and event-driven triggers.',
   },
   {
-    icon: Code,
-    title: 'Public API Access',
-    description: 'Full REST API for external integrations. Execute workflows from any platform.',
+    icon: Mail,
+    title: 'Email Marketing Suite',
+    description: 'Full email platform: campaigns, automation, A/B testing, SMTP, analytics — all built in.',
   },
   {
     icon: Shield,
     title: 'Enterprise Security',
-    description: 'Encrypted credentials, role-based access, API keys with rate limiting.',
+    description: 'Encrypted credentials, RBAC, API keys with rate limiting, and audit logging.',
   },
   {
-    icon: Users,
-    title: 'Team Collaboration',
-    description: 'Share workflows, manage permissions, and work together in real-time.',
+    icon: Layers,
+    title: 'Plugin Marketplace',
+    description: 'Extend with 50+ official plugins. AI, blockchain, IoT, payments, e-commerce and more.',
+  },
+  {
+    icon: Code,
+    title: 'Developer API',
+    description: 'Full REST API with 20+ endpoints. Batch execution, webhooks, 8 SDK languages.',
   },
 ];
 
 const stats = [
-  { value: '50+', label: 'Integrations' },
-  { value: '10k+', label: 'Workflows Created' },
-  { value: '99.9%', label: 'Uptime' },
-  { value: '24/7', label: 'Support' },
+  { value: '230+', label: 'Automation Nodes' },
+  { value: '50+', label: 'Plugins & Integrations' },
+  { value: '99.9%', label: 'Uptime SLA' },
+  { value: '24/7', label: 'Expert Support' },
 ];
+
+const useCases = [
+  { icon: Cpu, title: 'IT Ops & DevOps', desc: 'Automate deployments, monitoring alerts, incident response workflows.' },
+  { icon: BarChart3, title: 'Sales & CRM', desc: 'Lead scoring, pipeline automation, email sequences, and deal tracking.' },
+  { icon: Mail, title: 'Marketing', desc: 'Multi-channel campaigns, A/B testing, segmentation, and analytics.' },
+  { icon: Lock, title: 'Security', desc: 'Threat detection, compliance checks, vulnerability scanning automation.' },
+  { icon: Rocket, title: 'Startups', desc: 'Ship faster with pre-built templates. Scale from MVP to millions of users.' },
+  { icon: Users, title: 'Teams', desc: 'Collaborate on workflows, share credentials, manage permissions.' },
+];
+
+const fadeUp = {
+  initial: { opacity: 0, y: 30 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+};
 
 export default function Index() {
   const { user, loading } = useAuth();
@@ -62,26 +83,29 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/25">
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/30">
               <Zap className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-foreground">BiztoriBD</span>
+            <span className="text-xl font-bold tracking-tight text-foreground">BiztoriBD</span>
           </div>
           
-          <nav className="hidden md:flex items-center gap-6">
-            <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <nav className="hidden md:flex items-center gap-1">
+            <a href="#features" className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
               Features
             </a>
-            <Link to="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#use-cases" className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
+              Use Cases
+            </a>
+            <Link to="/pricing" className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
               Pricing
             </Link>
-            <Link to="/docs" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Documentation
+            <Link to="/docs" className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
+              Docs
             </Link>
-            <a href="#api" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#api" className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
               API
             </a>
           </nav>
@@ -92,14 +116,14 @@ export default function Index() {
               <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             ) : user ? (
               <>
-                <Button variant="ghost" asChild>
+                <Button variant="ghost" size="sm" asChild>
                   <Link to="/dashboard">
                     <LayoutDashboard className="h-4 w-4 mr-2" />
                     Dashboard
                   </Link>
                 </Button>
                 {isAdmin && (
-                  <Button variant="outline" asChild>
+                  <Button variant="outline" size="sm" asChild>
                     <Link to="/admin">
                       <Settings className="h-4 w-4 mr-2" />
                       Admin
@@ -109,13 +133,13 @@ export default function Index() {
               </>
             ) : (
               <>
-                <Button variant="ghost" asChild>
+                <Button variant="ghost" size="sm" asChild>
                   <Link to="/auth">Sign In</Link>
                 </Button>
-                <Button asChild className="shadow-lg shadow-primary/25">
+                <Button size="sm" asChild className="shadow-lg shadow-primary/25">
                   <Link to="/auth">
-                    Get Started
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                    Get Started Free
+                    <ArrowRight className="h-4 w-4 ml-1" />
                   </Link>
                 </Button>
               </>
@@ -126,41 +150,63 @@ export default function Index() {
       
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
-        <div className="container mx-auto px-4 py-24 md:py-32 relative">
+        <div className="hero-glow absolute inset-0" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,hsl(var(--primary)/0.08),transparent_50%)]" />
+        <div className="container mx-auto px-4 py-28 md:py-40 relative">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             className="text-center max-w-4xl mx-auto"
           >
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <Zap className="h-4 w-4" />
-              Made in Bangladesh 🇧🇩
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1, duration: 0.5 }}
+              className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-4 py-1.5 rounded-full text-sm font-medium mb-8"
+            >
+              <Zap className="h-3.5 w-3.5" />
+              Built for the Future of Work 🚀
+            </motion.div>
             
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-              Automate Your Workflows
+            <h1 className="text-5xl md:text-7xl font-extrabold text-foreground mb-6 leading-[1.1] tracking-tight">
+              Automate Everything.
               <br />
-              <span className="gradient-text">Without the Complexity</span>
+              <span className="gradient-text">Build Anything.</span>
             </h1>
             
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              BiztoriBD is a powerful visual workflow automation platform. 
-              Connect your apps, automate tasks, and build sophisticated AI-powered automations.
+            <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
+              The all-in-one automation platform for modern teams. 
+              Visual workflows, AI agents, email marketing, and a powerful API — 
+              no coding required.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" asChild>
+              <Button size="lg" asChild className="h-12 px-8 text-base shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-shadow">
                 <Link to="/auth">
-                  Start Building for Free
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  Start Building Free
+                  <ArrowRight className="h-5 w-5 ml-2" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline">
-                <Play className="h-4 w-4 mr-2" />
+              <Button size="lg" variant="outline" className="h-12 px-8 text-base">
+                <Play className="h-5 w-5 mr-2" />
                 Watch Demo
               </Button>
+            </div>
+
+            <div className="flex items-center justify-center gap-6 mt-8 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+                Free forever plan
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+                No credit card needed
+              </span>
+              <span className="hidden sm:flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+                Setup in 2 minutes
+              </span>
             </div>
           </motion.div>
           
@@ -168,58 +214,69 @@ export default function Index() {
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-20 max-w-3xl mx-auto"
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-24 max-w-3xl mx-auto"
           >
             {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-foreground">
+              <motion.div 
+                key={index} 
+                className="text-center group"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <div className="text-3xl md:text-4xl font-extrabold text-foreground group-hover:text-primary transition-colors">
                   {stat.value}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
                   {stat.label}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
       
       {/* Features Section */}
-      <section id="features" className="py-24 bg-muted/30">
+      <section id="features" className="py-28 bg-muted/30 relative">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Everything You Need to Automate
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+              <Layers className="h-3.5 w-3.5" />
+              Platform Capabilities
+            </div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
+              Everything You Need to Scale
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              From simple tasks to complex workflows, BiztoriBD has the tools 
-              to make automation accessible to everyone.
+              From simple task automation to enterprise-grade AI agents — 
+              one platform, unlimited possibilities.
             </p>
           </motion.div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-card rounded-xl border border-border p-6 hover:border-primary/50 transition-colors"
+                transition={{ delay: index * 0.08, duration: 0.5 }}
+                whileHover={{ y: -4 }}
+                className="bg-card rounded-xl border border-border p-6 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300"
               >
-                <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <feature.icon className="h-6 w-6 text-primary" />
+                <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                  <feature.icon className="h-5 w-5 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">
+                <h3 className="text-base font-bold text-foreground mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {feature.description}
                 </p>
               </motion.div>
@@ -228,8 +285,52 @@ export default function Index() {
         </div>
       </section>
 
+      {/* Use Cases Section */}
+      <section id="use-cases" className="py-28">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+              <Rocket className="h-3.5 w-3.5" />
+              Built for Every Team
+            </div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
+              Automate Any Workflow
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Whether you're a solo founder or an enterprise team, BiztoriBD adapts to your needs.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {useCases.map((uc, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.08 }}
+                className="flex gap-4 p-5 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors"
+              >
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <uc.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground mb-1">{uc.title}</h3>
+                  <p className="text-sm text-muted-foreground">{uc.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* API Section */}
-      <section id="api" className="py-24">
+      <section id="api" className="py-28 bg-muted/30">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -237,76 +338,42 @@ export default function Index() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <Code className="h-4 w-4" />
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+              <Code className="h-3.5 w-3.5" />
               Developer API v2
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Full Platform Access via REST API
+            <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
+              Programmatic Access to Everything
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              20+ endpoints to automate everything. Create workflows, execute them, 
-              manage credentials, batch operations, webhooks — all programmatically.
+              20+ RESTful endpoints. Execute workflows, manage credentials, batch operations, 
+              and webhooks — all from your code.
             </p>
           </motion.div>
 
-          {/* API Capabilities Grid */}
-          <div className="grid md:grid-cols-3 gap-4 mb-12">
-            {[
-              { icon: Workflow, title: 'Workflow CRUD', desc: 'Create, read, update, delete, clone workflows. Full lifecycle management via API.' },
-              { icon: Play, title: 'Remote Execution', desc: 'Execute any workflow with custom input. Get real-time results, logs, and output data.' },
-              { icon: Zap, title: 'Batch Operations', desc: 'Execute up to 10 workflows in a single API call. Parallel processing with error handling.' },
-              { icon: Globe, title: 'Webhook Events', desc: 'Register webhooks for execution.completed, execution.failed events with HMAC verification.' },
-              { icon: Database, title: 'Template Library', desc: 'Browse 50+ templates, search by category, and create workflows from templates via API.' },
-              { icon: Shield, title: 'Credential Management', desc: 'Securely create and manage integration credentials for your workflows.' },
-              { icon: Code, title: 'Execution Analytics', desc: 'Workflow stats, execution history, retry failed runs, and performance metrics.' },
-              { icon: Users, title: 'Usage Monitoring', desc: 'Track API calls, response times, error rates, and credit balance in real-time.' },
-              { icon: Bot, title: '8 SDK Languages', desc: 'Code examples in JavaScript, TypeScript, Python, PHP, Go, Ruby, Java, and cURL.' },
-            ].map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
-                className="p-4 rounded-lg bg-card border border-border hover:border-primary/40 transition-colors"
-              >
-                <item.icon className="h-5 w-5 text-primary mb-2" />
-                <h4 className="font-semibold text-foreground text-sm">{item.title}</h4>
-                <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 items-start">
+          <div className="grid md:grid-cols-2 gap-8 items-start max-w-5xl mx-auto">
             {/* Endpoint list */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h3 className="text-lg font-bold text-foreground mb-4">Available Endpoints</h3>
+              <h3 className="text-lg font-bold text-foreground mb-4">Endpoints</h3>
               <div className="space-y-1.5 text-sm font-mono">
                 {[
-                  { method: 'GET', path: '/health', color: 'text-emerald-500' },
-                  { method: 'GET', path: '/workflows', color: 'text-emerald-500' },
-                  { method: 'POST', path: '/workflows', color: 'text-blue-500' },
-                  { method: 'PUT', path: '/workflows/:id', color: 'text-amber-500' },
-                  { method: 'DELETE', path: '/workflows/:id', color: 'text-rose-500' },
-                  { method: 'POST', path: '/workflows/:id/execute', color: 'text-blue-500' },
-                  { method: 'POST', path: '/workflows/:id/clone', color: 'text-blue-500' },
-                  { method: 'GET', path: '/workflows/:id/stats', color: 'text-emerald-500' },
-                  { method: 'GET', path: '/executions', color: 'text-emerald-500' },
-                  { method: 'GET', path: '/executions/:id/logs', color: 'text-emerald-500' },
-                  { method: 'POST', path: '/executions/:id/retry', color: 'text-blue-500' },
-                  { method: 'GET', path: '/templates', color: 'text-emerald-500' },
-                  { method: 'POST', path: '/credentials', color: 'text-blue-500' },
-                  { method: 'POST', path: '/webhooks', color: 'text-blue-500' },
-                  { method: 'POST', path: '/batch/execute', color: 'text-blue-500' },
-                  { method: 'GET', path: '/usage/summary', color: 'text-emerald-500' },
+                  { method: 'GET', path: '/workflows', color: 'text-success' },
+                  { method: 'POST', path: '/workflows', color: 'text-primary' },
+                  { method: 'POST', path: '/workflows/:id/execute', color: 'text-primary' },
+                  { method: 'POST', path: '/batch/execute', color: 'text-primary' },
+                  { method: 'GET', path: '/executions', color: 'text-success' },
+                  { method: 'GET', path: '/executions/:id/logs', color: 'text-success' },
+                  { method: 'POST', path: '/executions/:id/retry', color: 'text-primary' },
+                  { method: 'GET', path: '/templates', color: 'text-success' },
+                  { method: 'POST', path: '/webhooks', color: 'text-primary' },
+                  { method: 'GET', path: '/usage/summary', color: 'text-success' },
                 ].map((ep, i) => (
-                  <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded bg-muted/50">
-                    <span className={`font-bold text-xs w-14 ${ep.color}`}>{ep.method}</span>
+                  <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border">
+                    <span className={`font-bold text-xs w-12 ${ep.color}`}>{ep.method}</span>
                     <span className="text-muted-foreground">{ep.path}</span>
                   </div>
                 ))}
@@ -332,19 +399,18 @@ export default function Index() {
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="space-y-4"
             >
               <div className="bg-card rounded-xl border border-border p-5 overflow-hidden">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="h-3 w-3 rounded-full bg-rose-500" />
-                  <div className="h-3 w-3 rounded-full bg-amber-500" />
-                  <div className="h-3 w-3 rounded-full bg-emerald-500" />
-                  <span className="ml-2 text-xs text-muted-foreground">Execute Workflow</span>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-3 w-3 rounded-full bg-destructive/60" />
+                  <div className="h-3 w-3 rounded-full bg-warning/60" />
+                  <div className="h-3 w-3 rounded-full bg-success/60" />
+                  <span className="ml-2 text-xs text-muted-foreground font-medium">Execute Workflow</span>
                 </div>
                 <pre className="text-xs overflow-x-auto leading-relaxed">
                   <code className="text-muted-foreground">
 {`curl -X POST \\
-  "${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-api/workflows/:id/execute" \\
+  "https://api.biztoribd.com/v1/workflows/:id/execute" \\
   -H "x-api-key: bz_your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{"input": {"email": "user@example.com"}}'
@@ -359,66 +425,51 @@ export default function Index() {
                   </code>
                 </pre>
               </div>
-              <div className="bg-card rounded-xl border border-border p-5 overflow-hidden">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="h-3 w-3 rounded-full bg-rose-500" />
-                  <div className="h-3 w-3 rounded-full bg-amber-500" />
-                  <div className="h-3 w-3 rounded-full bg-emerald-500" />
-                  <span className="ml-2 text-xs text-muted-foreground">Batch Execute</span>
-                </div>
-                <pre className="text-xs overflow-x-auto leading-relaxed">
-                  <code className="text-muted-foreground">
-{`curl -X POST \\
-  ".../public-api/batch/execute" \\
-  -H "x-api-key: bz_your_api_key" \\
-  -d '{
-    "operations": [
-      {"action":"execute","workflow_id":"wf-1","input":{}},
-      {"action":"execute","workflow_id":"wf-2","input":{}}
-    ]
-  }'`}
-                  </code>
-                </pre>
-              </div>
             </motion.div>
           </div>
         </div>
       </section>
       
       {/* CTA Section */}
-      <section className="py-24">
+      <section className="py-28">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-2xl p-8 md:p-16 text-center"
+            className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-3xl p-10 md:p-20 text-center border border-primary/10 overflow-hidden"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Ready to Automate?
-            </h2>
-            <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-              Join thousands of teams who use BiztoriBD to automate their workflows 
-              and save hours every week.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" asChild>
-                <Link to="/auth">
-                  Get Started Free
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Link>
-              </Button>
-            </div>
-            
-            <div className="flex items-center justify-center gap-6 mt-8 text-sm text-muted-foreground">
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary" />
-                Free forever plan
-              </span>
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary" />
-                No credit card required
-              </span>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary)/0.1),transparent_50%)]" />
+            <div className="relative">
+              <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
+                Ready to Automate Your Business?
+              </h2>
+              <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
+                Join thousands of teams shipping faster with BiztoriBD. 
+                Start free, scale without limits.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Button size="lg" asChild className="h-12 px-8 text-base shadow-xl shadow-primary/20">
+                  <Link to="/auth">
+                    Get Started Free
+                    <ArrowRight className="h-5 w-5 ml-2" />
+                  </Link>
+                </Button>
+                <Button size="lg" variant="outline" asChild className="h-12 px-8 text-base">
+                  <Link to="/pricing">View Pricing</Link>
+                </Button>
+              </div>
+              
+              <div className="flex items-center justify-center gap-6 mt-8 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  Free forever plan
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  No credit card required
+                </span>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -427,16 +478,22 @@ export default function Index() {
       {/* Footer */}
       <footer className="border-t border-border py-12">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
                 <Zap className="h-4 w-4 text-primary-foreground" />
               </div>
               <span className="font-bold text-foreground">BiztoriBD</span>
             </div>
             
+            <nav className="flex items-center gap-6 text-sm text-muted-foreground">
+              <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
+              <Link to="/docs" className="hover:text-foreground transition-colors">Documentation</Link>
+              <Link to="/api-docs" className="hover:text-foreground transition-colors">API</Link>
+            </nav>
+            
             <div className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} BiztoriBD. Made with ❤️ in Bangladesh
+              © {new Date().getFullYear()} BiztoriBD. Made with ❤️ in Bangladesh 🇧🇩
             </div>
           </div>
         </div>
