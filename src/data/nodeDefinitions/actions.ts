@@ -437,4 +437,419 @@ export const actionNodes: NodeDefinition[] = [
       { name: 'tags', label: 'Tags/Emojis', type: 'text' },
     ],
   },
+
+  // ============================================================
+  // FILE & BINARY OPERATIONS
+  // ============================================================
+  {
+    type: 'downloadFile',
+    displayName: 'Download File',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Download file from URL',
+    icon: 'Download',
+    color: CATEGORY_COLORS[NODE_CATEGORIES.ACTIONS],
+    inputs: [{ name: 'data', type: 'any' }],
+    outputs: [{ name: 'file', type: 'any' }],
+    configSchema: [
+      { name: 'url', label: 'File URL', type: 'text', required: true },
+      { name: 'fileName', label: 'File Name', type: 'text' },
+      { name: 'mimeType', label: 'MIME Type', type: 'text' },
+      { name: 'responseType', label: 'Response Type', type: 'select', options: [
+        { label: 'Auto Detect', value: 'auto' },
+        { label: 'Binary', value: 'arraybuffer' },
+        { label: 'Text', value: 'text' },
+        { label: 'JSON', value: 'json' },
+      ], defaultValue: 'auto' },
+    ],
+  },
+  {
+    type: 'uploadFile',
+    displayName: 'Upload File',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Upload file to destination',
+    icon: 'Upload',
+    color: CATEGORY_COLORS[NODE_CATEGORIES.ACTIONS],
+    inputs: [{ name: 'file', type: 'any' }],
+    outputs: [{ name: 'result', type: 'object' }],
+    configSchema: [
+      { name: 'destination', label: 'Destination', type: 'select', options: [
+        { label: 'HTTP Endpoint', value: 'http' },
+        { label: 'S3 Bucket', value: 's3' },
+        { label: 'Google Drive', value: 'gdrive' },
+        { label: 'Supabase Storage', value: 'supabase' },
+      ], defaultValue: 'http' },
+      { name: 'url', label: 'Upload URL', type: 'text' },
+      { name: 'fieldName', label: 'Form Field Name', type: 'text', defaultValue: 'file' },
+      { name: 'additionalFields', label: 'Additional Fields', type: 'json', defaultValue: {} },
+    ],
+  },
+  {
+    type: 'convertFile',
+    displayName: 'Convert File',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Convert between file formats',
+    icon: 'FileOutput',
+    color: CATEGORY_COLORS[NODE_CATEGORIES.ACTIONS],
+    inputs: [{ name: 'file', type: 'any' }],
+    outputs: [{ name: 'file', type: 'any' }],
+    configSchema: [
+      { name: 'operation', label: 'Operation', type: 'select', options: [
+        { label: 'To Base64', value: 'toBase64' },
+        { label: 'From Base64', value: 'fromBase64' },
+        { label: 'To Buffer', value: 'toBuffer' },
+        { label: 'To Text', value: 'toText' },
+        { label: 'To JSON', value: 'toJson' },
+      ], defaultValue: 'toBase64' },
+      { name: 'encoding', label: 'Encoding', type: 'text', defaultValue: 'utf-8' },
+    ],
+  },
+  {
+    type: 'compression',
+    displayName: 'Compression',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Compress/decompress files (zip, gzip)',
+    icon: 'Archive',
+    color: CATEGORY_COLORS[NODE_CATEGORIES.ACTIONS],
+    inputs: [{ name: 'data', type: 'any' }],
+    outputs: [{ name: 'result', type: 'any' }],
+    configSchema: [
+      { name: 'operation', label: 'Operation', type: 'select', options: [
+        { label: 'Compress (Zip)', value: 'zip' },
+        { label: 'Decompress (Unzip)', value: 'unzip' },
+        { label: 'Gzip', value: 'gzip' },
+        { label: 'Gunzip', value: 'gunzip' },
+      ], defaultValue: 'zip' },
+      { name: 'fileName', label: 'Output File Name', type: 'text' },
+    ],
+  },
+  {
+    type: 'readWriteFile',
+    displayName: 'Read/Write File',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Read or write local files',
+    icon: 'File',
+    color: CATEGORY_COLORS[NODE_CATEGORIES.ACTIONS],
+    inputs: [{ name: 'data', type: 'any' }],
+    outputs: [{ name: 'result', type: 'any' }],
+    configSchema: [
+      { name: 'operation', label: 'Operation', type: 'select', options: [
+        { label: 'Read File', value: 'read' },
+        { label: 'Write File', value: 'write' },
+        { label: 'Delete File', value: 'delete' },
+        { label: 'List Files', value: 'list' },
+      ], defaultValue: 'read' },
+      { name: 'filePath', label: 'File Path', type: 'text', required: true },
+      { name: 'encoding', label: 'Encoding', type: 'text', defaultValue: 'utf-8' },
+      { name: 'content', label: 'Content (for write)', type: 'textarea' },
+    ],
+  },
+
+  // ============================================================
+  // REMOTE ACCESS
+  // ============================================================
+  {
+    type: 'ssh',
+    displayName: 'SSH',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Execute commands via SSH',
+    icon: 'Terminal',
+    color: CATEGORY_COLORS[NODE_CATEGORIES.ACTIONS],
+    inputs: [{ name: 'data', type: 'any' }],
+    outputs: [{ name: 'result', type: 'object' }],
+    configSchema: [
+      { name: 'credential', label: 'SSH Credential', type: 'credential', required: true, description: 'ssh' },
+      { name: 'operation', label: 'Operation', type: 'select', options: [
+        { label: 'Execute Command', value: 'exec' },
+        { label: 'Upload File', value: 'upload' },
+        { label: 'Download File', value: 'download' },
+      ], defaultValue: 'exec' },
+      { name: 'command', label: 'Command', type: 'textarea' },
+      { name: 'cwd', label: 'Working Directory', type: 'text' },
+    ],
+  },
+  {
+    type: 'ftp',
+    displayName: 'FTP',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'File operations via FTP/SFTP',
+    icon: 'HardDrive',
+    color: CATEGORY_COLORS[NODE_CATEGORIES.ACTIONS],
+    inputs: [{ name: 'data', type: 'any' }],
+    outputs: [{ name: 'result', type: 'object' }],
+    configSchema: [
+      { name: 'credential', label: 'FTP Credential', type: 'credential', required: true },
+      { name: 'protocol', label: 'Protocol', type: 'select', options: [
+        { label: 'FTP', value: 'ftp' },
+        { label: 'SFTP', value: 'sftp' },
+      ], defaultValue: 'sftp' },
+      { name: 'operation', label: 'Operation', type: 'select', options: [
+        { label: 'Upload File', value: 'upload' },
+        { label: 'Download File', value: 'download' },
+        { label: 'List Files', value: 'list' },
+        { label: 'Delete File', value: 'delete' },
+        { label: 'Rename/Move', value: 'rename' },
+      ], defaultValue: 'list' },
+      { name: 'path', label: 'Remote Path', type: 'text', required: true },
+    ],
+  },
+  {
+    type: 'executeCommand',
+    displayName: 'Execute Command',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Run shell commands',
+    icon: 'Terminal',
+    color: CATEGORY_COLORS[NODE_CATEGORIES.ACTIONS],
+    inputs: [{ name: 'data', type: 'any' }],
+    outputs: [{ name: 'result', type: 'object' }],
+    configSchema: [
+      { name: 'command', label: 'Command', type: 'textarea', required: true },
+      { name: 'cwd', label: 'Working Directory', type: 'text' },
+      { name: 'timeout', label: 'Timeout (ms)', type: 'number', defaultValue: 60000 },
+    ],
+  },
+
+  // ============================================================
+  // RSS & FEEDS
+  // ============================================================
+  {
+    type: 'rssRead',
+    displayName: 'RSS Read',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Read RSS/Atom feed',
+    icon: 'Rss',
+    color: CATEGORY_COLORS[NODE_CATEGORIES.ACTIONS],
+    inputs: [{ name: 'data', type: 'any' }],
+    outputs: [{ name: 'items', type: 'array' }],
+    configSchema: [
+      { name: 'url', label: 'Feed URL', type: 'text', required: true },
+      { name: 'maxItems', label: 'Max Items', type: 'number', defaultValue: 10 },
+    ],
+  },
+  {
+    type: 'rssFeedTrigger',
+    displayName: 'RSS Feed Trigger',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Trigger on new RSS feed items',
+    icon: 'Rss',
+    color: CATEGORY_COLORS[NODE_CATEGORIES.ACTIONS],
+    inputs: [],
+    outputs: [{ name: 'item', type: 'object' }],
+    configSchema: [
+      { name: 'url', label: 'Feed URL', type: 'text', required: true },
+      { name: 'pollInterval', label: 'Poll Interval (mins)', type: 'number', defaultValue: 15 },
+    ],
+  },
+
+  // ============================================================
+  // APPROVAL / HUMAN-IN-THE-LOOP
+  // ============================================================
+  {
+    type: 'waitForApproval',
+    displayName: 'Wait for Approval',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Pause workflow until human approves',
+    icon: 'UserCheck',
+    color: '#F59E0B',
+    inputs: [{ name: 'data', type: 'any' }],
+    outputs: [{ name: 'approved', type: 'any' }, { name: 'rejected', type: 'any' }],
+    configSchema: [
+      { name: 'approvalType', label: 'Approval Type', type: 'select', options: [
+        { label: 'Email Approval', value: 'email' },
+        { label: 'Webhook Approval', value: 'webhook' },
+        { label: 'Dashboard Approval', value: 'dashboard' },
+      ], defaultValue: 'dashboard' },
+      { name: 'approverEmail', label: 'Approver Email', type: 'text' },
+      { name: 'message', label: 'Approval Message', type: 'textarea', defaultValue: 'Please review and approve this workflow step.' },
+      { name: 'timeout', label: 'Timeout (hours)', type: 'number', defaultValue: 24 },
+      { name: 'escalateAfter', label: 'Escalate After (hours)', type: 'number' },
+      { name: 'escalateEmail', label: 'Escalation Email', type: 'text' },
+    ],
+  },
+
+  // ============================================================
+  // MARKDOWN & TEXT
+  // ============================================================
+  {
+    type: 'markdown',
+    displayName: 'Markdown',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Convert markdown to HTML and back',
+    icon: 'FileType',
+    color: CATEGORY_COLORS[NODE_CATEGORIES.ACTIONS],
+    inputs: [{ name: 'data', type: 'any' }],
+    outputs: [{ name: 'result', type: 'any' }],
+    configSchema: [
+      { name: 'operation', label: 'Operation', type: 'select', options: [
+        { label: 'Markdown to HTML', value: 'toHtml' },
+        { label: 'HTML to Markdown', value: 'toMarkdown' },
+      ], defaultValue: 'toHtml' },
+      { name: 'content', label: 'Content', type: 'textarea' },
+    ],
+  },
+
+  // ============================================================
+  // PDF GENERATION
+  // ============================================================
+  {
+    type: 'generatePdf',
+    displayName: 'Generate PDF',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Generate PDF from HTML or data',
+    icon: 'FileText',
+    color: '#E53E3E',
+    inputs: [{ name: 'data', type: 'any' }],
+    outputs: [{ name: 'file', type: 'any' }],
+    configSchema: [
+      { name: 'source', label: 'Source', type: 'select', options: [
+        { label: 'HTML Content', value: 'html' },
+        { label: 'URL', value: 'url' },
+        { label: 'Template', value: 'template' },
+      ], defaultValue: 'html' },
+      { name: 'htmlContent', label: 'HTML Content', type: 'code' },
+      { name: 'url', label: 'URL', type: 'text' },
+      { name: 'paperSize', label: 'Paper Size', type: 'select', options: [
+        { label: 'A4', value: 'a4' },
+        { label: 'Letter', value: 'letter' },
+        { label: 'Legal', value: 'legal' },
+      ], defaultValue: 'a4' },
+      { name: 'orientation', label: 'Orientation', type: 'select', options: [
+        { label: 'Portrait', value: 'portrait' },
+        { label: 'Landscape', value: 'landscape' },
+      ], defaultValue: 'portrait' },
+      { name: 'margin', label: 'Margin (px)', type: 'number', defaultValue: 20 },
+    ],
+  },
+
+  // ============================================================
+  // SWITCH MIME TYPE
+  // ============================================================
+  {
+    type: 'switchMimeType',
+    displayName: 'Switch MIME Type',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Route by file MIME type',
+    icon: 'Split',
+    color: CATEGORY_COLORS[NODE_CATEGORIES.ACTIONS],
+    inputs: [{ name: 'file', type: 'any' }],
+    outputs: [{ name: 'image', type: 'any' }, { name: 'video', type: 'any' }, { name: 'audio', type: 'any' }, { name: 'document', type: 'any' }, { name: 'other', type: 'any' }],
+    configSchema: [
+      { name: 'mimeField', label: 'MIME Type Field', type: 'text', defaultValue: 'mimeType' },
+    ],
+  },
+
+  // ============================================================
+  // CRM ACTIONS
+  // ============================================================
+  {
+    type: 'hubspot',
+    displayName: 'HubSpot',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'HubSpot CRM operations',
+    icon: 'Users',
+    color: '#FF7A59',
+    inputs: [{ name: 'data', type: 'any' }],
+    outputs: [{ name: 'result', type: 'object' }],
+    configSchema: [
+      { name: 'credential', label: 'HubSpot API Key', type: 'credential', required: true },
+      { name: 'resource', label: 'Resource', type: 'select', options: [
+        { label: 'Contact', value: 'contact' },
+        { label: 'Company', value: 'company' },
+        { label: 'Deal', value: 'deal' },
+        { label: 'Ticket', value: 'ticket' },
+        { label: 'Task', value: 'task' },
+      ], defaultValue: 'contact' },
+      { name: 'operation', label: 'Operation', type: 'select', options: [
+        { label: 'Create', value: 'create' },
+        { label: 'Update', value: 'update' },
+        { label: 'Get', value: 'get' },
+        { label: 'Get All', value: 'getAll' },
+        { label: 'Delete', value: 'delete' },
+        { label: 'Search', value: 'search' },
+      ], defaultValue: 'create' },
+      { name: 'properties', label: 'Properties', type: 'json', defaultValue: {} },
+    ],
+  },
+  {
+    type: 'salesforce',
+    displayName: 'Salesforce',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Salesforce CRM operations',
+    icon: 'Cloud',
+    color: '#00A1E0',
+    inputs: [{ name: 'data', type: 'any' }],
+    outputs: [{ name: 'result', type: 'object' }],
+    configSchema: [
+      { name: 'credential', label: 'Salesforce Credential', type: 'credential', required: true },
+      { name: 'resource', label: 'Resource', type: 'select', options: [
+        { label: 'Account', value: 'account' },
+        { label: 'Contact', value: 'contact' },
+        { label: 'Lead', value: 'lead' },
+        { label: 'Opportunity', value: 'opportunity' },
+        { label: 'Case', value: 'case' },
+        { label: 'Task', value: 'task' },
+        { label: 'Custom Object', value: 'custom' },
+      ], defaultValue: 'contact' },
+      { name: 'operation', label: 'Operation', type: 'select', options: [
+        { label: 'Create', value: 'create' },
+        { label: 'Update', value: 'update' },
+        { label: 'Upsert', value: 'upsert' },
+        { label: 'Get', value: 'get' },
+        { label: 'Get All', value: 'getAll' },
+        { label: 'Delete', value: 'delete' },
+        { label: 'SOQL Query', value: 'query' },
+      ], defaultValue: 'create' },
+      { name: 'fields', label: 'Fields', type: 'json', defaultValue: {} },
+      { name: 'query', label: 'SOQL Query', type: 'textarea' },
+    ],
+  },
+
+  // ============================================================
+  // CALENDAR & SCHEDULING
+  // ============================================================
+  {
+    type: 'googleCalendar',
+    displayName: 'Google Calendar',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Create & manage calendar events',
+    icon: 'Calendar',
+    color: '#4285F4',
+    inputs: [{ name: 'data', type: 'any' }],
+    outputs: [{ name: 'result', type: 'object' }],
+    configSchema: [
+      { name: 'credential', label: 'Google Account', type: 'credential', required: true, description: 'google' },
+      { name: 'operation', label: 'Operation', type: 'select', options: [
+        { label: 'Create Event', value: 'create' },
+        { label: 'Update Event', value: 'update' },
+        { label: 'Delete Event', value: 'delete' },
+        { label: 'Get Event', value: 'get' },
+        { label: 'List Events', value: 'list' },
+      ], defaultValue: 'create' },
+      { name: 'calendarId', label: 'Calendar ID', type: 'text', defaultValue: 'primary' },
+      { name: 'summary', label: 'Event Title', type: 'text' },
+      { name: 'description', label: 'Description', type: 'textarea' },
+      { name: 'start', label: 'Start Time', type: 'text' },
+      { name: 'end', label: 'End Time', type: 'text' },
+      { name: 'attendees', label: 'Attendees (emails)', type: 'text' },
+    ],
+  },
+  {
+    type: 'calendly',
+    displayName: 'Calendly',
+    category: NODE_CATEGORIES.ACTIONS,
+    description: 'Manage Calendly scheduling',
+    icon: 'Calendar',
+    color: '#006BFF',
+    inputs: [{ name: 'data', type: 'any' }],
+    outputs: [{ name: 'result', type: 'object' }],
+    configSchema: [
+      { name: 'credential', label: 'Calendly API Key', type: 'credential', required: true },
+      { name: 'operation', label: 'Operation', type: 'select', options: [
+        { label: 'List Events', value: 'listEvents' },
+        { label: 'Get Event', value: 'getEvent' },
+        { label: 'List Event Types', value: 'listEventTypes' },
+        { label: 'Get Invitee', value: 'getInvitee' },
+        { label: 'Cancel Event', value: 'cancelEvent' },
+      ], defaultValue: 'listEvents' },
+    ],
+  },
 ];
