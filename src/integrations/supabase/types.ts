@@ -1646,6 +1646,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_campaign_clicks: {
+        Args: { p_campaign_id: string }
+        Returns: undefined
+      }
+      increment_campaign_opens: {
+        Args: { p_campaign_id: string }
+        Returns: undefined
+      }
       is_admin: { Args: never; Returns: boolean }
       is_workspace_member: {
         Args: { p_profile_id: string; p_workspace_id: string }

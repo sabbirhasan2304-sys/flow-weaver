@@ -63,6 +63,34 @@ function personalize(content: string, contact: any): string {
     .replace(/\{\{phone\}\}/g, contact.phone || "");
 }
 
+// Inject open tracking pixel and wrap links for click tracking
+function injectTracking(html: string, campaignId: string, recipientId: string, supabaseUrl: string): string {
+  const trackingBase = `${supabaseUrl}/functions/v1/email-tracking`;
+  
+  // Wrap all <a href="..."> links for click tracking
+  let trackedHtml = html.replace(
+    /<a\s([^>]*?)href=["']([^"']+)["']([^>]*?)>/gi,
+    (_match, before, url, after) => {
+      // Skip mailto: and tel: links and already-tracked links
+      if (url.startsWith("mailto:") || url.startsWith("tel:") || url.includes("email-tracking")) {
+        return `<a ${before}href="${url}"${after}>`;
+      }
+      const trackedUrl = `${trackingBase}?type=click&cid=${campaignId}&rid=${recipientId}&url=${encodeURIComponent(url)}`;
+      return `<a ${before}href="${trackedUrl}"${after}>`;
+    }
+  );
+
+  // Append open tracking pixel before </body> or at end
+  const pixel = `<img src="${trackingBase}?type=open&cid=${campaignId}&rid=${recipientId}" width="1" height="1" style="display:none;border:0;" alt="" />`;
+  if (trackedHtml.includes("</body>")) {
+    trackedHtml = trackedHtml.replace("</body>", `${pixel}</body>`);
+  } else {
+    trackedHtml += pixel;
+  }
+
+  return trackedHtml;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -72,6 +100,7 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const trackingEnabled = true;
 
     // Verify user
     const authHeader = req.headers.get("Authorization");
@@ -162,8 +191,20 @@ serve(async (req) => {
       if (!contact || contact.status !== "subscribed") continue;
 
       try {
-        const personalizedHtml = personalize(campaign.html_content || "", contact);
+        let personalizedHtml = personalize(campaign.html_content || "", contact);
         const personalizedSubject = personalize(campaign.subject || "No Subject", contact);
+
+        // Create recipient record first to get the ID for tracking
+        const { data: recipientRecord } = await supabase.from("email_campaign_recipients").upsert({
+          campaign_id,
+          contact_id: contact.id,
+          status: "sending",
+        }, { onConflict: "campaign_id,contact_id" }).select("id").single();
+
+        // Inject tracking pixel and link wrappers
+        if (trackingEnabled && recipientRecord) {
+          personalizedHtml = injectTracking(personalizedHtml, campaign_id, recipientRecord.id, supabaseUrl);
+        }
 
         if (config.provider === "cpanel") {
           await sendViaSMTP(config, contact.email, personalizedSubject, personalizedHtml, campaign.text_content || undefined);
@@ -172,13 +213,11 @@ serve(async (req) => {
           await sendViaResend(config.api_key, fromStr, contact.email, personalizedSubject, personalizedHtml);
         }
 
-        // Record recipient
-        await supabase.from("email_campaign_recipients").upsert({
-          campaign_id,
-          contact_id: contact.id,
+        // Update recipient status to sent
+        await supabase.from("email_campaign_recipients").update({
           status: "sent",
           sent_at: new Date().toISOString(),
-        }, { onConflict: "campaign_id,contact_id" });
+        }).eq("id", recipientRecord?.id);
 
         // Update contact stats
         await supabase.from("email_contacts").update({
