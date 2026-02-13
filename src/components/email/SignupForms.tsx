@@ -153,10 +153,10 @@ export function SignupForms() {
 
               <div>
                 <Label className="text-xs">Add to List</Label>
-                <Select value={config.listId} onValueChange={v => update('listId', v)}>
+                <Select value={config.listId || "none"} onValueChange={v => update('listId', v === "none" ? "" : v)}>
                   <SelectTrigger className="mt-1"><SelectValue placeholder="Select list (optional)" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No list</SelectItem>
+                    <SelectItem value="none">No list</SelectItem>
                     {lists.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
