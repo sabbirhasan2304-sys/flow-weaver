@@ -20,6 +20,7 @@ import Documentation from "./pages/Documentation";
 import SelectPlan from "./pages/SelectPlan";
 import ApiKeys from "./pages/ApiKeys";
 import ApiDocs from "./pages/ApiDocs";
+import EmailMarketing from "./pages/EmailMarketing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -118,6 +119,14 @@ const App = () => (
             }
           />
           <Route path="/api-docs" element={<ApiDocs />} />
+          <Route
+            path="/email-marketing"
+            element={
+              <ProtectedRoute>
+                <EmailMarketing />
+              </ProtectedRoute>
+            }
+          />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

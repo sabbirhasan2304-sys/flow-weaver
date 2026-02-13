@@ -203,6 +203,610 @@ export type Database = {
           },
         ]
       }
+      email_campaign_recipients: {
+        Row: {
+          bounced_at: string | null
+          campaign_id: string
+          click_count: number | null
+          clicked_at: string | null
+          contact_id: string
+          error_message: string | null
+          id: string
+          open_count: number | null
+          opened_at: string | null
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          bounced_at?: string | null
+          campaign_id: string
+          click_count?: number | null
+          clicked_at?: string | null
+          contact_id: string
+          error_message?: string | null
+          id?: string
+          open_count?: number | null
+          opened_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          bounced_at?: string | null
+          campaign_id?: string
+          click_count?: number | null
+          clicked_at?: string | null
+          contact_id?: string
+          error_message?: string | null
+          id?: string
+          open_count?: number | null
+          opened_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_campaign_recipients_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "email_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_campaigns: {
+        Row: {
+          campaign_type: string | null
+          completed_at: string | null
+          created_at: string
+          from_email: string | null
+          from_name: string | null
+          html_content: string | null
+          id: string
+          list_id: string | null
+          name: string
+          profile_id: string
+          scheduled_at: string | null
+          sent_at: string | null
+          settings: Json | null
+          smtp_config_id: string | null
+          status: string
+          subject: string | null
+          template_id: string | null
+          text_content: string | null
+          total_bounces: number | null
+          total_clicks: number | null
+          total_complaints: number | null
+          total_delivered: number | null
+          total_opens: number | null
+          total_recipients: number | null
+          total_sent: number | null
+          total_unsubscribes: number | null
+          updated_at: string
+        }
+        Insert: {
+          campaign_type?: string | null
+          completed_at?: string | null
+          created_at?: string
+          from_email?: string | null
+          from_name?: string | null
+          html_content?: string | null
+          id?: string
+          list_id?: string | null
+          name: string
+          profile_id: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          settings?: Json | null
+          smtp_config_id?: string | null
+          status?: string
+          subject?: string | null
+          template_id?: string | null
+          text_content?: string | null
+          total_bounces?: number | null
+          total_clicks?: number | null
+          total_complaints?: number | null
+          total_delivered?: number | null
+          total_opens?: number | null
+          total_recipients?: number | null
+          total_sent?: number | null
+          total_unsubscribes?: number | null
+          updated_at?: string
+        }
+        Update: {
+          campaign_type?: string | null
+          completed_at?: string | null
+          created_at?: string
+          from_email?: string | null
+          from_name?: string | null
+          html_content?: string | null
+          id?: string
+          list_id?: string | null
+          name?: string
+          profile_id?: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          settings?: Json | null
+          smtp_config_id?: string | null
+          status?: string
+          subject?: string | null
+          template_id?: string | null
+          text_content?: string | null
+          total_bounces?: number | null
+          total_clicks?: number | null
+          total_complaints?: number | null
+          total_delivered?: number | null
+          total_opens?: number | null
+          total_recipients?: number | null
+          total_sent?: number | null
+          total_unsubscribes?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaigns_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "email_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_campaigns_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_campaigns_smtp_config_id_fkey"
+            columns: ["smtp_config_id"]
+            isOneToOne: false
+            referencedRelation: "email_smtp_configs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_contact_tags: {
+        Row: {
+          contact_id: string
+          id: string
+          tag_id: string
+        }
+        Insert: {
+          contact_id: string
+          id?: string
+          tag_id: string
+        }
+        Update: {
+          contact_id?: string
+          id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_contact_tags_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "email_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_contact_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "email_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_contacts: {
+        Row: {
+          company: string | null
+          created_at: string
+          custom_fields: Json | null
+          email: string
+          first_name: string | null
+          id: string
+          last_emailed_at: string | null
+          last_name: string | null
+          phone: string | null
+          profile_id: string
+          source: string | null
+          status: string
+          total_clicks: number | null
+          total_emails_sent: number | null
+          total_opens: number | null
+          updated_at: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          custom_fields?: Json | null
+          email: string
+          first_name?: string | null
+          id?: string
+          last_emailed_at?: string | null
+          last_name?: string | null
+          phone?: string | null
+          profile_id: string
+          source?: string | null
+          status?: string
+          total_clicks?: number | null
+          total_emails_sent?: number | null
+          total_opens?: number | null
+          updated_at?: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          custom_fields?: Json | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_emailed_at?: string | null
+          last_name?: string | null
+          phone?: string | null
+          profile_id?: string
+          source?: string | null
+          status?: string
+          total_clicks?: number | null
+          total_emails_sent?: number | null
+          total_opens?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_list_members: {
+        Row: {
+          contact_id: string
+          id: string
+          list_id: string
+          status: string | null
+          subscribed_at: string | null
+          unsubscribed_at: string | null
+        }
+        Insert: {
+          contact_id: string
+          id?: string
+          list_id: string
+          status?: string | null
+          subscribed_at?: string | null
+          unsubscribed_at?: string | null
+        }
+        Update: {
+          contact_id?: string
+          id?: string
+          list_id?: string
+          status?: string | null
+          subscribed_at?: string | null
+          unsubscribed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_list_members_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "email_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_list_members_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "email_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_lists: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          profile_id: string
+          subscriber_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          profile_id: string
+          subscriber_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          profile_id?: string
+          subscriber_count?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_lists_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_send_queue: {
+        Row: {
+          attempts: number | null
+          campaign_id: string | null
+          contact_email: string
+          created_at: string
+          error_message: string | null
+          from_email: string
+          from_name: string | null
+          html_content: string
+          id: string
+          max_attempts: number | null
+          priority: number | null
+          processed_at: string | null
+          recipient_id: string | null
+          scheduled_for: string | null
+          smtp_config_id: string | null
+          status: string | null
+          subject: string
+          text_content: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          campaign_id?: string | null
+          contact_email: string
+          created_at?: string
+          error_message?: string | null
+          from_email: string
+          from_name?: string | null
+          html_content: string
+          id?: string
+          max_attempts?: number | null
+          priority?: number | null
+          processed_at?: string | null
+          recipient_id?: string | null
+          scheduled_for?: string | null
+          smtp_config_id?: string | null
+          status?: string | null
+          subject: string
+          text_content?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          campaign_id?: string | null
+          contact_email?: string
+          created_at?: string
+          error_message?: string | null
+          from_email?: string
+          from_name?: string | null
+          html_content?: string
+          id?: string
+          max_attempts?: number | null
+          priority?: number | null
+          processed_at?: string | null
+          recipient_id?: string | null
+          scheduled_for?: string | null
+          smtp_config_id?: string | null
+          status?: string | null
+          subject?: string
+          text_content?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_send_queue_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_send_queue_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaign_recipients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_send_queue_smtp_config_id_fkey"
+            columns: ["smtp_config_id"]
+            isOneToOne: false
+            referencedRelation: "email_smtp_configs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_smtp_configs: {
+        Row: {
+          api_key: string | null
+          created_at: string
+          daily_limit: number | null
+          emails_sent_today: number | null
+          encryption: string | null
+          from_email: string
+          from_name: string | null
+          host: string | null
+          hourly_limit: number | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          last_reset_at: string | null
+          name: string
+          password: string | null
+          port: number | null
+          profile_id: string
+          provider: string
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          api_key?: string | null
+          created_at?: string
+          daily_limit?: number | null
+          emails_sent_today?: number | null
+          encryption?: string | null
+          from_email: string
+          from_name?: string | null
+          host?: string | null
+          hourly_limit?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          last_reset_at?: string | null
+          name: string
+          password?: string | null
+          port?: number | null
+          profile_id: string
+          provider?: string
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          api_key?: string | null
+          created_at?: string
+          daily_limit?: number | null
+          emails_sent_today?: number | null
+          encryption?: string | null
+          from_email?: string
+          from_name?: string | null
+          host?: string | null
+          hourly_limit?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          last_reset_at?: string | null
+          name?: string
+          password?: string | null
+          port?: number | null
+          profile_id?: string
+          provider?: string
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_smtp_configs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_tags: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          name: string
+          profile_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          profile_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_tags_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          category: string | null
+          created_at: string
+          html_content: string | null
+          id: string
+          is_public: boolean | null
+          json_content: Json | null
+          name: string
+          profile_id: string
+          subject: string | null
+          text_content: string | null
+          thumbnail_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          is_public?: boolean | null
+          json_content?: Json | null
+          name: string
+          profile_id: string
+          subject?: string | null
+          text_content?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          is_public?: boolean | null
+          json_content?: Json | null
+          name?: string
+          profile_id?: string
+          subject?: string | null
+          text_content?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       executions: {
         Row: {
           created_at: string

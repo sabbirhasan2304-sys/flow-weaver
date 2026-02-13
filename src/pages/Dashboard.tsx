@@ -37,7 +37,7 @@ import {
   LayoutGrid, List, Filter,
   LogOut, Settings, User, ChevronDown,
   Folder, FileCode, Sparkles, Store,
-  CreditCard, Lock, Shield
+  CreditCard, Lock, Shield, Mail
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -247,6 +247,12 @@ export default function Dashboard() {
                 <Button variant="ghost" size="sm" className="text-muted-foreground">
                   <Settings className="h-4 w-4 mr-2" />
                   Credentials
+                </Button>
+              </Link>
+              <Link to="/email-marketing">
+                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email
                 </Button>
               </Link>
               {isAdmin && (
