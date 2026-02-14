@@ -132,8 +132,7 @@ serve(async (req) => {
 
   const { apiKeyId, profileId, permissions } = validation;
 
-  // Parse URL path
-  const url = new URL(req.url);
+  // Parse URL path (reuse url from above)
   const pathParts = url.pathname.split('/').filter(Boolean);
   if (pathParts[0] === 'public-api') pathParts.shift();
   
