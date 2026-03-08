@@ -8,6 +8,7 @@ import {
   BackgroundVariant,
   useReactFlow,
   Panel,
+  ConnectionLineType,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useWorkflowStore, WorkflowNode as WorkflowNodeType, NodeData } from '@/stores/workflowStore';
