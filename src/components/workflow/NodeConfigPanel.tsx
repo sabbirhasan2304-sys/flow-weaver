@@ -894,6 +894,94 @@ export function NodeConfigPanel() {
             Duplicate
           </Button>
         </div>
+
+        {/* Error Handling Settings - n8n style */}
+        <div className="border-t border-border pt-3 mt-3">
+          <p className="text-xs font-semibold text-muted-foreground mb-2">Error Handling</p>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">Continue on Fail</Label>
+              <Checkbox
+                checked={!!selectedNode.data.errorHandling?.continueOnFail}
+                onCheckedChange={(checked) => {
+                  updateNode(selectedNode.id, {
+                    errorHandling: {
+                      ...selectedNode.data.errorHandling,
+                      continueOnFail: !!checked,
+                    },
+                  });
+                }}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">Retry on Fail</Label>
+              <Checkbox
+                checked={!!selectedNode.data.errorHandling?.retryOnFail}
+                onCheckedChange={(checked) => {
+                  updateNode(selectedNode.id, {
+                    errorHandling: {
+                      ...selectedNode.data.errorHandling,
+                      retryOnFail: !!checked,
+                    },
+                  });
+                }}
+              />
+            </div>
+            {selectedNode.data.errorHandling?.retryOnFail && (
+              <>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Max Retries</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={10}
+                    className="w-16 h-7 text-xs"
+                    value={selectedNode.data.errorHandling?.maxRetries ?? 3}
+                    onChange={(e) => {
+                      updateNode(selectedNode.id, {
+                        errorHandling: {
+                          ...selectedNode.data.errorHandling,
+                          maxRetries: parseInt(e.target.value) || 3,
+                        },
+                      });
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Retry Delay (ms)</Label>
+                  <Input
+                    type="number"
+                    min={100}
+                    step={100}
+                    className="w-20 h-7 text-xs"
+                    value={selectedNode.data.errorHandling?.retryDelayMs ?? 1000}
+                    onChange={(e) => {
+                      updateNode(selectedNode.id, {
+                        errorHandling: {
+                          ...selectedNode.data.errorHandling,
+                          retryDelayMs: parseInt(e.target.value) || 1000,
+                        },
+                      });
+                    }}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+          {/* Notes */}
+          <div className="mt-3">
+            <Label className="text-xs">Node Notes</Label>
+            <Textarea
+              className="mt-1 text-xs h-16"
+              placeholder="Add notes about this node..."
+              value={(selectedNode.data.notes as string) || ''}
+              onChange={(e) => {
+                updateNode(selectedNode.id, { notes: e.target.value });
+              }}
+            />
+          </div>
+        </div>
+
         <Button
           variant="destructive"
           size="sm"
