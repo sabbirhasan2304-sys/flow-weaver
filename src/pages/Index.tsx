@@ -444,10 +444,10 @@ export default function Index() {
               <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
                 Ready to Automate Your Business?
               </h2>
-              <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-                Join thousands of teams shipping faster with BiztoriBD. 
-                Start free, scale without limits.
-              </p>
+               <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
+                 Join thousands of businesses in Bangladesh automating with BiztoriBD. 
+                 Start free, scale without limits.
+               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Button size="lg" asChild className="h-12 px-8 text-base shadow-xl shadow-primary/20">
                   <Link to="/auth">
