@@ -31,6 +31,7 @@ import { cn } from '@/lib/utils';
 
 const nodeTypes = {
   workflowNode: memo(WorkflowNode),
+  stickyNote: memo(StickyNote),
 };
 
 interface WorkflowCanvasProps {
