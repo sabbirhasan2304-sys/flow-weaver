@@ -39,15 +39,15 @@ export function WorkflowEditor({ workflowId, workflowName, initialData, onSave }
   return (
     <ReactFlowProvider>
       <div className="h-full w-full relative bg-canvas-background">
-        {/* Top toolbar for import/export and execution */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
+        {/* Top toolbar */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 bg-card/90 backdrop-blur-xl rounded-xl border border-border/50 px-2 py-1.5 shadow-xl shadow-black/10">
           <AIWorkflowBuilder />
           <WorkflowImportExport workflowName={workflowName} />
           {workflowId && <ExecutionPanel workflowId={workflowId} />}
           {workflowId && <VersionHistory workflowId={workflowId} />}
           {workflowId && <ScheduleDialog workflowId={workflowId} />}
           <ApiTestPanel />
-          <div className="h-8 w-px bg-border" />
+          <div className="h-6 w-px bg-border/40 mx-0.5" />
           <ThemeToggle />
         </div>
 
