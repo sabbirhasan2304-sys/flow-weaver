@@ -419,7 +419,7 @@ serve(async (req) => {
           input = inputs.length === 1 ? inputs[0] : inputs;
         }
 
-        const output = await executeNode(node, input, logs);
+        const { output } = await executeNode(node, input, logs);
         nodeOutputs.set(nodeId, output);
 
         // Stream logs after each node completes
