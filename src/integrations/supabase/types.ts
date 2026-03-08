@@ -1439,6 +1439,57 @@ export type Database = {
         }
         Relationships: []
       }
+      workflow_schedules: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          cron_expression: string
+          id: string
+          is_active: boolean
+          last_run_at: string | null
+          next_run_at: string | null
+          updated_at: string
+          workflow_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          cron_expression?: string
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          next_run_at?: string | null
+          updated_at?: string
+          workflow_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          cron_expression?: string
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          next_run_at?: string | null
+          updated_at?: string
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_schedules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_schedules_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: true
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workflow_shares: {
         Row: {
           created_at: string
@@ -1523,6 +1574,51 @@ export type Database = {
           use_count?: number
         }
         Relationships: []
+      }
+      workflow_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data: Json
+          description: string | null
+          id: string
+          version_number: number
+          workflow_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data: Json
+          description?: string | null
+          id?: string
+          version_number: number
+          workflow_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          description?: string | null
+          id?: string
+          version_number?: number
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_versions_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workflows: {
         Row: {
