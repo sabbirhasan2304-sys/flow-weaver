@@ -175,11 +175,11 @@ export default function Index() {
               <span className="gradient-text">Build Anything.</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-              The all-in-one automation platform for modern teams. 
-              Visual workflows, AI agents, email marketing, and a powerful API — 
-              no coding required.
-            </p>
+             <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
+               The all-in-one automation platform built for Bangladesh. 
+               375+ nodes, AI agents, bKash/Nagad integration, email marketing, and a powerful API — 
+               no coding required.
+             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button size="lg" asChild className="h-12 px-8 text-base shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-shadow">
