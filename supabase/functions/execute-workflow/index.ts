@@ -234,41 +234,73 @@ const nodeExecutors: Record<string, (node: WorkflowNode, input: unknown, config:
   },
 };
 
-// Execute a single node
+// Execute a single node with retry and continue-on-fail support
 async function executeNode(
   node: WorkflowNode,
   input: unknown,
   logs: ExecutionLog[]
-): Promise<unknown> {
+): Promise<{ output: unknown; error?: string }> {
   const executor = nodeExecutors[node.data.type] || nodeExecutors['default'];
   const config = node.data.config || {};
+  const errorHandling = (node.data as any).errorHandling || {};
+  const maxRetries = errorHandling.retryOnFail ? (errorHandling.maxRetries || 3) : 1;
+  const retryDelay = errorHandling.retryDelayMs || 1000;
 
   logs.push({
     nodeId: node.id,
     timestamp: new Date().toISOString(),
     message: `Starting execution of ${node.data.label}`,
     level: 'info',
+    data: { input: typeof input === 'object' ? input : { value: input } },
   });
 
-  try {
-    const result = await executor(node, input, config);
-    logs.push({
-      nodeId: node.id,
-      timestamp: new Date().toISOString(),
-      message: `Completed ${node.data.label}`,
-      level: 'success',
-      data: result,
-    });
-    return result;
-  } catch (error) {
-    logs.push({
-      nodeId: node.id,
-      timestamp: new Date().toISOString(),
-      message: `Error in ${node.data.label}: ${error.message}`,
-      level: 'error',
-    });
-    throw error;
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await executor(node, input, config);
+      logs.push({
+        nodeId: node.id,
+        timestamp: new Date().toISOString(),
+        message: `Completed ${node.data.label}${attempt > 1 ? ` (attempt ${attempt})` : ''}`,
+        level: 'success',
+        data: result,
+      });
+      return { output: result };
+    } catch (error) {
+      lastError = error;
+      if (attempt < maxRetries) {
+        logs.push({
+          nodeId: node.id,
+          timestamp: new Date().toISOString(),
+          message: `Retry ${attempt}/${maxRetries} for ${node.data.label}: ${error.message}`,
+          level: 'info',
+        });
+        await new Promise(r => setTimeout(r, retryDelay));
+      }
+    }
   }
+
+  // All retries exhausted
+  logs.push({
+    nodeId: node.id,
+    timestamp: new Date().toISOString(),
+    message: `Error in ${node.data.label}: ${lastError!.message}`,
+    level: 'error',
+    data: { error: lastError!.message, stack: lastError!.stack?.slice(0, 200) },
+  });
+
+  if (errorHandling.continueOnFail) {
+    logs.push({
+      nodeId: node.id,
+      timestamp: new Date().toISOString(),
+      message: `Continuing despite error (continueOnFail enabled)`,
+      level: 'info',
+    });
+    return { output: { error: lastError!.message, _continueOnFail: true }, error: lastError!.message };
+  }
+
+  throw lastError!;
 }
 
 // Build execution order using topological sort
@@ -387,7 +419,7 @@ serve(async (req) => {
           input = inputs.length === 1 ? inputs[0] : inputs;
         }
 
-        const output = await executeNode(node, input, logs);
+        const { output } = await executeNode(node, input, logs);
         nodeOutputs.set(nodeId, output);
 
         // Stream logs after each node completes
