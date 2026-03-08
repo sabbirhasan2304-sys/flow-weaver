@@ -41,6 +41,8 @@ export function WorkflowEditor({ workflowId, workflowName, initialData, onSave }
           <AIWorkflowBuilder />
           <WorkflowImportExport workflowName={workflowName} />
           {workflowId && <ExecutionPanel workflowId={workflowId} />}
+          {workflowId && <VersionHistory workflowId={workflowId} />}
+          {workflowId && <ScheduleDialog workflowId={workflowId} />}
           <ApiTestPanel />
           <div className="h-8 w-px bg-border" />
           <ThemeToggle />

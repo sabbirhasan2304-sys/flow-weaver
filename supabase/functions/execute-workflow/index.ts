@@ -362,6 +362,16 @@ serve(async (req) => {
     const nodeOutputs = new Map<string, unknown>();
     const executionOrder = getExecutionOrder(nodes, edges);
 
+    // Helper to stream logs to realtime via DB update
+    const streamLogs = async () => {
+      if (execution) {
+        await supabase
+          .from('executions')
+          .update({ logs: logs as any })
+          .eq('id', execution.id);
+      }
+    };
+
     try {
       // Execute nodes in order
       for (const nodeId of executionOrder) {
@@ -379,6 +389,9 @@ serve(async (req) => {
 
         const output = await executeNode(node, input, logs);
         nodeOutputs.set(nodeId, output);
+
+        // Stream logs after each node completes
+        await streamLogs();
       }
 
       // Get final output (from nodes with no outgoing edges)
