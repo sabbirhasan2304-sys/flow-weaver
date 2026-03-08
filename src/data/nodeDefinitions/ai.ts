@@ -471,10 +471,10 @@ export const aiNodes: NodeDefinition[] = [
       { name: 'credential', label: 'OpenAI API Key', type: 'credential', description: 'openai', required: false },
       { name: 'usePlatformCredentials', label: 'Use Platform Credits', type: 'checkbox', defaultValue: true },
       { name: 'model', label: 'Model', type: 'select', options: [
+        { label: 'GPT-5.2 (Latest)', value: 'openai/gpt-5.2' },
         { label: 'GPT-5', value: 'openai/gpt-5' },
         { label: 'GPT-5-mini', value: 'openai/gpt-5-mini' },
         { label: 'GPT-5-nano', value: 'openai/gpt-5-nano' },
-        { label: 'GPT-5.2', value: 'openai/gpt-5.2' },
         { label: 'GPT-4o (Own Key)', value: 'gpt-4o' },
         { label: 'GPT-4o-mini (Own Key)', value: 'gpt-4o-mini' },
       ], defaultValue: 'openai/gpt-5-mini' },
