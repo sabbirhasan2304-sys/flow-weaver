@@ -87,6 +87,7 @@ export const aiNodes: NodeDefinition[] = [
       { name: 'credential', label: 'Google AI API Key', type: 'credential', description: 'googleai', required: false },
       { name: 'usePlatformCredentials', label: 'Use Platform Credits', type: 'checkbox', defaultValue: true, description: 'Use platform AI credits instead of your own API key' },
       { name: 'model', label: 'Model', type: 'select', options: [
+        { label: 'Gemini 3.1 Pro (Latest)', value: 'google/gemini-3.1-pro-preview' },
         { label: 'Gemini 3 Pro Preview', value: 'google/gemini-3-pro-preview' },
         { label: 'Gemini 3 Flash Preview', value: 'google/gemini-3-flash-preview' },
         { label: 'Gemini 2.5 Pro', value: 'google/gemini-2.5-pro' },
