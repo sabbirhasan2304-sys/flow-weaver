@@ -62,12 +62,12 @@ const stats = [
 ];
 
 const useCases = [
-  { icon: Cpu, title: 'IT Ops & DevOps', desc: 'Automate deployments, monitoring alerts, incident response workflows.' },
-  { icon: BarChart3, title: 'Sales & CRM', desc: 'Lead scoring, pipeline automation, email sequences, and deal tracking.' },
-  { icon: Mail, title: 'Marketing', desc: 'Multi-channel campaigns, A/B testing, segmentation, and analytics.' },
-  { icon: Lock, title: 'Security', desc: 'Threat detection, compliance checks, vulnerability scanning automation.' },
-  { icon: Rocket, title: 'Startups', desc: 'Ship faster with pre-built templates. Scale from MVP to millions of users.' },
-  { icon: Users, title: 'Teams', desc: 'Collaborate on workflows, share credentials, manage permissions.' },
+  { icon: Cpu, title: 'E-Commerce & Daraz', desc: 'Order sync, inventory management, courier dispatch with Pathao, eCourier, Steadfast, and RedX.' },
+  { icon: BarChart3, title: 'Sales & CRM', desc: 'Lead scoring, pipeline automation, email sequences, deal tracking, and bKash payment alerts.' },
+  { icon: Mail, title: 'Marketing', desc: 'Multi-channel campaigns, A/B testing, segmentation, SMS marketing, and social scheduling.' },
+  { icon: Lock, title: 'Fintech & Payments', desc: 'bKash, Nagad, SSLCommerz integration. Payment verification, reconciliation, and alerts.' },
+  { icon: Rocket, title: 'Startups & SMEs', desc: 'Ship faster with pre-built templates. BD NID verification, TIN lookup, and local APIs.' },
+  { icon: Users, title: 'Digital Agencies', desc: 'Client workflow management, team collaboration, shared credentials, and white-label reports.' },
 ];
 
 const fadeUp = {
