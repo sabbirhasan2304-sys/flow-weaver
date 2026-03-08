@@ -220,26 +220,30 @@ const NodeItem = memo(({ node, onDragStart, locked }: {
       draggable
       onDragStart={(e) => onDragStart(e, node.type)}
       className={cn(
-        'flex items-center gap-2 p-2 rounded-md cursor-grab',
-        'hover:bg-muted/50 transition-colors',
-        'active:cursor-grabbing group'
+        'flex items-center gap-2.5 p-2.5 rounded-lg cursor-grab',
+        'hover:bg-muted/60 transition-all duration-200',
+        'active:cursor-grabbing active:scale-[0.98] group',
+        'border border-transparent hover:border-border/40'
       )}
     >
-      <GripVertical className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      <GripVertical className="h-3 w-3 text-muted-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity" />
       <div
-        className="flex h-7 w-7 items-center justify-center rounded-md flex-shrink-0"
-        style={{ backgroundColor: `${node.color}20` }}
+        className="flex h-8 w-8 items-center justify-center rounded-lg flex-shrink-0 shadow-sm"
+        style={{ 
+          backgroundColor: `${node.color}15`,
+          boxShadow: `0 1px 4px ${node.color}10`
+        }}
       >
         <IconComponent 
-          className="h-3.5 w-3.5" 
+          className="h-4 w-4" 
           style={{ color: node.color }}
         />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium truncate">
+        <div className="text-[13px] font-medium truncate leading-tight">
           {node.displayName}
         </div>
-        <div className="text-xs text-muted-foreground truncate">
+        <div className="text-[11px] text-muted-foreground/70 truncate leading-tight mt-0.5">
           {node.description}
         </div>
       </div>
