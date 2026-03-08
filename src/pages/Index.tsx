@@ -15,59 +15,59 @@ const features = [
   {
     icon: Workflow,
     title: 'Visual Workflow Engine',
-    description: 'Build sophisticated automations with our drag-and-drop canvas. 230+ nodes, zero code required.',
+    description: 'Build sophisticated automations with our drag-and-drop canvas. 375+ nodes across 20+ categories, zero code required.',
   },
   {
     icon: Bot,
     title: 'AI Agent Builder',
-    description: 'Create intelligent agents with OpenAI, Claude, Gemini & LangChain. RAG, chat memory, and more.',
+    description: 'Create intelligent agents with GPT-5, Gemini 3, Claude & LangChain. RAG, chat memory, tool use, and more.',
   },
   {
     icon: Database,
     title: 'Data & Database',
-    description: 'Native connectors for PostgreSQL, MongoDB, Redis, Supabase, Firebase, and 20+ databases.',
+    description: 'Native connectors for PostgreSQL, MongoDB, Redis, Supabase, Firebase, Airtable, and 20+ databases.',
   },
   {
     icon: Globe,
     title: 'API & Webhooks',
-    description: 'REST/GraphQL calls, real-time webhooks, cron schedules, and event-driven triggers.',
+    description: 'REST/GraphQL calls, real-time webhooks, cron schedules, version history, and event-driven triggers.',
   },
   {
     icon: Mail,
     title: 'Email Marketing Suite',
-    description: 'Full email platform: campaigns, automation, A/B testing, SMTP, analytics — all built in.',
+    description: 'Full email platform: campaigns, automation, A/B testing, SMTP, drag-and-drop builder, analytics — all built in.',
   },
   {
     icon: Shield,
     title: 'Enterprise Security',
-    description: 'Encrypted credentials, RBAC, API keys with rate limiting, and audit logging.',
+    description: 'Encrypted credentials, RBAC, API keys with rate limiting, audit logging, and retry-on-fail error handling.',
   },
   {
     icon: Layers,
-    title: 'Plugin Marketplace',
-    description: 'Extend with 50+ official plugins. AI, blockchain, IoT, payments, e-commerce and more.',
+    title: 'Bangladesh-First Integrations',
+    description: 'bKash, Nagad, Pathao, eCourier, Steadfast, RedX, Daraz, BD NID verification — 25+ local nodes.',
   },
   {
     icon: Code,
     title: 'Developer API',
-    description: 'Full REST API with 20+ endpoints. Batch execution, webhooks, 8 SDK languages.',
+    description: 'Full REST API with 20+ endpoints. Batch execution, webhooks, real-time logs, 8 SDK languages.',
   },
 ];
 
 const stats = [
-  { value: '230+', label: 'Automation Nodes' },
-  { value: '50+', label: 'Plugins & Integrations' },
-  { value: '99.9%', label: 'Uptime SLA' },
-  { value: '24/7', label: 'Expert Support' },
+  { value: '375+', label: 'Automation Nodes' },
+  { value: '20+', label: 'Node Categories' },
+  { value: '25+', label: 'BD Integrations' },
+  { value: '24/7', label: 'Real-time Execution' },
 ];
 
 const useCases = [
-  { icon: Cpu, title: 'IT Ops & DevOps', desc: 'Automate deployments, monitoring alerts, incident response workflows.' },
-  { icon: BarChart3, title: 'Sales & CRM', desc: 'Lead scoring, pipeline automation, email sequences, and deal tracking.' },
-  { icon: Mail, title: 'Marketing', desc: 'Multi-channel campaigns, A/B testing, segmentation, and analytics.' },
-  { icon: Lock, title: 'Security', desc: 'Threat detection, compliance checks, vulnerability scanning automation.' },
-  { icon: Rocket, title: 'Startups', desc: 'Ship faster with pre-built templates. Scale from MVP to millions of users.' },
-  { icon: Users, title: 'Teams', desc: 'Collaborate on workflows, share credentials, manage permissions.' },
+  { icon: Cpu, title: 'E-Commerce & Daraz', desc: 'Order sync, inventory management, courier dispatch with Pathao, eCourier, Steadfast, and RedX.' },
+  { icon: BarChart3, title: 'Sales & CRM', desc: 'Lead scoring, pipeline automation, email sequences, deal tracking, and bKash payment alerts.' },
+  { icon: Mail, title: 'Marketing', desc: 'Multi-channel campaigns, A/B testing, segmentation, SMS marketing, and social scheduling.' },
+  { icon: Lock, title: 'Fintech & Payments', desc: 'bKash, Nagad, SSLCommerz integration. Payment verification, reconciliation, and alerts.' },
+  { icon: Rocket, title: 'Startups & SMEs', desc: 'Ship faster with pre-built templates. BD NID verification, TIN lookup, and local APIs.' },
+  { icon: Users, title: 'Digital Agencies', desc: 'Client workflow management, team collaboration, shared credentials, and white-label reports.' },
 ];
 
 const fadeUp = {
@@ -165,8 +165,8 @@ export default function Index() {
               transition={{ delay: 0.1, duration: 0.5 }}
               className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-4 py-1.5 rounded-full text-sm font-medium mb-8"
             >
-              <Zap className="h-3.5 w-3.5" />
-              Built for the Future of Work 🚀
+               <Zap className="h-3.5 w-3.5" />
+               Bangladesh's #1 Automation Platform 🇧🇩
             </motion.div>
             
             <h1 className="text-5xl md:text-7xl font-extrabold text-foreground mb-6 leading-[1.1] tracking-tight">
@@ -175,11 +175,11 @@ export default function Index() {
               <span className="gradient-text">Build Anything.</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-              The all-in-one automation platform for modern teams. 
-              Visual workflows, AI agents, email marketing, and a powerful API — 
-              no coding required.
-            </p>
+             <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
+               The all-in-one automation platform built for Bangladesh. 
+               375+ nodes, AI agents, bKash/Nagad integration, email marketing, and a powerful API — 
+               no coding required.
+             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button size="lg" asChild className="h-12 px-8 text-base shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-shadow">
@@ -345,10 +345,10 @@ export default function Index() {
             <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
               Programmatic Access to Everything
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              20+ RESTful endpoints. Execute workflows, manage credentials, batch operations, 
-              and webhooks — all from your code.
-            </p>
+             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+               20+ RESTful endpoints. Execute workflows, manage credentials, real-time streaming logs, 
+               batch operations, and webhooks — all from your code.
+             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-8 items-start max-w-5xl mx-auto">
@@ -444,10 +444,10 @@ export default function Index() {
               <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
                 Ready to Automate Your Business?
               </h2>
-              <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
-                Join thousands of teams shipping faster with BiztoriBD. 
-                Start free, scale without limits.
-              </p>
+               <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
+                 Join thousands of businesses in Bangladesh automating with BiztoriBD. 
+                 Start free, scale without limits.
+               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Button size="lg" asChild className="h-12 px-8 text-base shadow-xl shadow-primary/20">
                   <Link to="/auth">
