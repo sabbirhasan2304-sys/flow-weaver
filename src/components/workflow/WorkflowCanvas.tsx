@@ -8,6 +8,7 @@ import {
   BackgroundVariant,
   useReactFlow,
   Panel,
+  ConnectionLineType,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useWorkflowStore, WorkflowNode as WorkflowNodeType, NodeData } from '@/stores/workflowStore';
@@ -30,8 +31,8 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 const nodeTypes = {
-  workflowNode: memo(WorkflowNode),
-  stickyNote: memo(StickyNote),
+  workflowNode: WorkflowNode,
+  stickyNote: StickyNote,
 };
 
 interface WorkflowCanvasProps {
@@ -206,6 +207,8 @@ export function WorkflowCanvas({ workflowId, initialData, onSave }: WorkflowCanv
         fitView
         snapToGrid
         snapGrid={[15, 15]}
+        connectionLineType={ConnectionLineType.SmoothStep}
+        defaultEdgeOptions={{ type: 'smoothstep', animated: true }}
         proOptions={{ hideAttribution: true }}
         className="bg-canvas-background"
       >
