@@ -7,6 +7,9 @@ import { AIWorkflowBuilder } from './AIWorkflowBuilder';
 import { ExecutionPanel } from './ExecutionPanel';
 import { WorkflowImportExport } from './WorkflowImportExport';
 import { ApiTestPanel } from './ApiTestPanel';
+import { VersionHistory } from './VersionHistory';
+import { ScheduleDialog } from './ScheduleDialog';
+import { WebhookUrlCard } from './WebhookUrlCard';
 import { useWorkflowStore } from '@/stores/workflowStore';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import {
