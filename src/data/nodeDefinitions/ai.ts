@@ -141,10 +141,12 @@ export const aiNodes: NodeDefinition[] = [
     outputs: [{ name: 'response', type: 'object' }],
     configSchema: [
       { name: 'model', label: 'Model', type: 'select', options: [
+        { label: 'GPT-5.2 (Latest)', value: 'openai/gpt-5.2' },
         { label: 'GPT-5', value: 'openai/gpt-5' },
         { label: 'GPT-5-mini', value: 'openai/gpt-5-mini' },
+        { label: 'Gemini 3.1 Pro', value: 'google/gemini-3.1-pro-preview' },
         { label: 'Gemini 2.5 Pro', value: 'google/gemini-2.5-pro' },
-        { label: 'Gemini 3 Pro', value: 'google/gemini-3-pro-preview' },
+        { label: 'Gemini 3 Flash', value: 'google/gemini-3-flash-preview' },
       ], defaultValue: 'openai/gpt-5-mini' },
       { name: 'systemPrompt', label: 'System Prompt', type: 'textarea', defaultValue: 'You are a helpful AI assistant.' },
       { name: 'userPrompt', label: 'User Prompt', type: 'textarea', required: true },
