@@ -88,6 +88,22 @@ export default function WorkflowPage() {
     if (!workflow) return;
     
     setSaving(true);
+
+    // Save version snapshot before updating
+    try {
+      await supabase
+        .from('workflow_versions')
+        .insert({
+          workflow_id: workflow.id,
+          version_number: workflow.version,
+          data: workflow.data,
+          created_by: user ? undefined : undefined, // profile_id handled via RLS
+          description: `Auto-save v${workflow.version}`,
+        } as any);
+    } catch (e) {
+      console.warn('Failed to save version snapshot:', e);
+    }
+
     const { error } = await supabase
       .from('workflows')
       .update({
@@ -100,6 +116,7 @@ export default function WorkflowPage() {
     if (error) {
       toast.error('Failed to save workflow');
     } else {
+      setWorkflow({ ...workflow, version: workflow.version + 1, data: data as unknown as Json });
       setLastSaved(new Date());
       toast.success('Workflow saved');
     }

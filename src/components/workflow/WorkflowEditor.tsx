@@ -7,6 +7,9 @@ import { AIWorkflowBuilder } from './AIWorkflowBuilder';
 import { ExecutionPanel } from './ExecutionPanel';
 import { WorkflowImportExport } from './WorkflowImportExport';
 import { ApiTestPanel } from './ApiTestPanel';
+import { VersionHistory } from './VersionHistory';
+import { ScheduleDialog } from './ScheduleDialog';
+import { WebhookUrlCard } from './WebhookUrlCard';
 import { useWorkflowStore } from '@/stores/workflowStore';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import {
@@ -23,8 +26,11 @@ interface WorkflowEditorProps {
 }
 
 export function WorkflowEditor({ workflowId, workflowName, initialData, onSave }: WorkflowEditorProps) {
-  const { selectedNode } = useWorkflowStore();
+  const { selectedNode, nodes } = useWorkflowStore();
   
+  // Check if workflow has a webhook trigger node
+  const hasWebhookTrigger = nodes.some(n => n.data?.type === 'webhook');
+
   const handleDragStart = (event: React.DragEvent, nodeType: string) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.effectAllowed = 'move';
@@ -38,6 +44,8 @@ export function WorkflowEditor({ workflowId, workflowName, initialData, onSave }
           <AIWorkflowBuilder />
           <WorkflowImportExport workflowName={workflowName} />
           {workflowId && <ExecutionPanel workflowId={workflowId} />}
+          {workflowId && <VersionHistory workflowId={workflowId} />}
+          {workflowId && <ScheduleDialog workflowId={workflowId} />}
           <ApiTestPanel />
           <div className="h-8 w-px bg-border" />
           <ThemeToggle />
@@ -67,6 +75,13 @@ export function WorkflowEditor({ workflowId, workflowName, initialData, onSave }
             </>
           )}
         </ResizablePanelGroup>
+
+        {/* Webhook URL Card */}
+        {workflowId && hasWebhookTrigger && (
+          <div className="absolute bottom-4 right-4 z-10 w-[360px]">
+            <WebhookUrlCard workflowId={workflowId} />
+          </div>
+        )}
 
         {/* AI Assistant */}
         <AIAssistant />

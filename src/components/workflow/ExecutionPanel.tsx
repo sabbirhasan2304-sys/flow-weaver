@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -18,25 +18,28 @@ import {
   Clock,
   Activity,
   FileJson,
-  Terminal
+  Terminal,
+  Radio
 } from 'lucide-react';
 import { useWorkflowStore } from '@/stores/workflowStore';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
+interface ExecutionLog {
+  nodeId: string;
+  timestamp: string;
+  message: string;
+  level: 'info' | 'error' | 'success';
+  data?: unknown;
+}
+
 interface ExecutionResult {
   success: boolean;
   executionId?: string;
   output?: unknown;
   error?: string;
-  logs: Array<{
-    nodeId: string;
-    timestamp: string;
-    message: string;
-    level: 'info' | 'error' | 'success';
-    data?: unknown;
-  }>;
+  logs: ExecutionLog[];
 }
 
 interface ExecutionPanelProps {
@@ -47,13 +50,66 @@ export function ExecutionPanel({ workflowId }: ExecutionPanelProps) {
   const [isExecuting, setIsExecuting] = useState(false);
   const [result, setResult] = useState<ExecutionResult | null>(null);
   const [inputData, setInputData] = useState('{}');
+  const [streamingLogs, setStreamingLogs] = useState<ExecutionLog[]>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
   const { nodes, updateNode } = useWorkflowStore();
+  const channelRef = useRef<any>(null);
+
+  // Cleanup realtime subscription
+  useEffect(() => {
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+    };
+  }, []);
+
+  const subscribeToExecution = (executionId: string) => {
+    setIsStreaming(true);
+    setStreamingLogs([]);
+
+    const channel = supabase
+      .channel(`execution-${executionId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'executions',
+          filter: `id=eq.${executionId}`,
+        },
+        (payload) => {
+          const newLogs = (payload.new as any).logs as ExecutionLog[] || [];
+          setStreamingLogs(newLogs);
+
+          // Update node visual states for new logs
+          newLogs.forEach((log) => {
+            const status = log.level === 'success' ? 'success' : 
+                          log.level === 'error' ? 'error' : 'pending';
+            updateNode(log.nodeId, {
+              isExecuting: log.level === 'info',
+              executionResult: { status, data: log.data, error: log.level === 'error' ? log.message : undefined },
+            });
+          });
+
+          // If execution finished, stop streaming
+          const newStatus = (payload.new as any).status;
+          if (newStatus === 'success' || newStatus === 'error') {
+            setIsStreaming(false);
+          }
+        }
+      )
+      .subscribe();
+
+    channelRef.current = channel;
+  };
 
   const executeWorkflow = async () => {
     if (isExecuting) return;
 
     setIsExecuting(true);
     setResult(null);
+    setStreamingLogs([]);
 
     // Clear previous execution states
     nodes.forEach(node => {
@@ -80,11 +136,16 @@ export function ExecutionPanel({ workflowId }: ExecutionPanelProps) {
 
       if (error) throw error;
 
+      // Subscribe to realtime updates for this execution
+      if (data.executionId) {
+        subscribeToExecution(data.executionId);
+      }
+
       setResult(data);
 
       // Update node visual states based on execution logs
       if (data.logs) {
-        data.logs.forEach((log: any) => {
+        data.logs.forEach((log: ExecutionLog) => {
           const status = log.level === 'success' ? 'success' : 
                         log.level === 'error' ? 'error' : 'pending';
           updateNode(log.nodeId, {
@@ -112,6 +173,8 @@ export function ExecutionPanel({ workflowId }: ExecutionPanelProps) {
     }
   };
 
+  const displayLogs = streamingLogs.length > 0 ? streamingLogs : (result?.logs || []);
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -130,6 +193,12 @@ export function ExecutionPanel({ workflowId }: ExecutionPanelProps) {
             <span className="flex items-center gap-2">
               <Activity className="h-5 w-5" />
               Execution Panel
+              {isStreaming && (
+                <Badge variant="default" className="bg-success text-success-foreground animate-pulse gap-1">
+                  <Radio className="h-3 w-3" />
+                  Live
+                </Badge>
+              )}
             </span>
             <Button
               size="sm"
@@ -155,7 +224,12 @@ export function ExecutionPanel({ workflowId }: ExecutionPanelProps) {
           <TabsList className="mx-4 mt-4">
             <TabsTrigger value="input">Input</TabsTrigger>
             <TabsTrigger value="output">Output</TabsTrigger>
-            <TabsTrigger value="logs">Logs</TabsTrigger>
+            <TabsTrigger value="logs" className="relative">
+              Logs
+              {isStreaming && (
+                <span className="absolute -top-1 -right-1 h-2 w-2 bg-success rounded-full animate-pulse" />
+              )}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="input" className="flex-1 p-4">
@@ -217,16 +291,17 @@ export function ExecutionPanel({ workflowId }: ExecutionPanelProps) {
 
           <TabsContent value="logs" className="flex-1">
             <ScrollArea className="h-[400px]">
-              {result?.logs && result.logs.length > 0 ? (
+              {displayLogs.length > 0 ? (
                 <div className="p-4 space-y-2">
-                  {result.logs.map((log, index) => (
+                  {displayLogs.map((log, index) => (
                     <div
                       key={index}
                       className={cn(
-                        'p-3 rounded-md border text-sm',
+                        'p-3 rounded-md border text-sm transition-all',
                         log.level === 'success' && 'bg-success/10 border-success/20',
                         log.level === 'error' && 'bg-destructive/10 border-destructive/20',
-                        log.level === 'info' && 'bg-muted border-border'
+                        log.level === 'info' && 'bg-muted border-border',
+                        isStreaming && index === displayLogs.length - 1 && 'ring-2 ring-primary/50'
                       )}
                     >
                       <div className="flex items-center justify-between mb-1">
