@@ -165,8 +165,8 @@ export default function Index() {
               transition={{ delay: 0.1, duration: 0.5 }}
               className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-4 py-1.5 rounded-full text-sm font-medium mb-8"
             >
-              <Zap className="h-3.5 w-3.5" />
-              Built for the Future of Work 🚀
+               <Zap className="h-3.5 w-3.5" />
+               Bangladesh's #1 Automation Platform 🇧🇩
             </motion.div>
             
             <h1 className="text-5xl md:text-7xl font-extrabold text-foreground mb-6 leading-[1.1] tracking-tight">
