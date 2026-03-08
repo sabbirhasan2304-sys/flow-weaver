@@ -12,6 +12,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { useWorkflowStore, WorkflowNode as WorkflowNodeType, NodeData } from '@/stores/workflowStore';
 import { WorkflowNode } from './WorkflowNode';
+import { StickyNote } from './StickyNote';
 import { getNodeDefinition, nodeDefinitions } from '@/data/nodeDefinitions';
 import { Button } from '@/components/ui/button';
 import { 
