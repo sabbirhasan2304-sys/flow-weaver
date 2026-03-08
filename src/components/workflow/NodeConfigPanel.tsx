@@ -24,8 +24,13 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { X, Settings, Trash2, Copy, Play, Plus, Key, ExternalLink, Loader2, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { X, Settings, Trash2, Copy, Play, Plus, Key, ExternalLink, Loader2, CheckCircle2, XCircle, Clock, ChevronDown, AlertTriangle, RotateCcw, SkipForward, FileText, Zap, Shield, StickyNote } from 'lucide-react';
 import { CATEGORY_COLORS } from '@/types/nodes';
 import { toast } from 'sonner';
 import { ExpressionEditor } from './ExpressionEditor';
@@ -36,6 +41,7 @@ import { CredentialForm } from '@/components/credentials/CredentialForm';
 import { getCredentialTypeConfig } from '@/components/credentials/CredentialFieldsConfig';
 import type { Json } from '@/integrations/supabase/types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 // AI/ML node types that support credential testing
 const AI_ML_NODE_TYPES = [
@@ -57,6 +63,38 @@ interface CredentialTestStatus {
   status: 'idle' | 'testing' | 'success' | 'error';
   message?: string;
   testedAt?: Date;
+}
+
+// ─── Collapsible Section Component ───
+function Section({ title, icon: Icon, defaultOpen = true, children, badge }: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+  badge?: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className="flex items-center gap-2 w-full py-2 group">
+        <ChevronDown className={cn(
+          "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
+          !open && "-rotate-90"
+        )} />
+        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">
+          {title}
+        </span>
+        {badge}
+        <div className="flex-1" />
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="pb-1 pt-1">
+          {children}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
 }
 
 export function NodeConfigPanel() {
@@ -86,7 +124,6 @@ export function NodeConfigPanel() {
   // Credential auto-test state
   const [credentialTestStatuses, setCredentialTestStatuses] = useState<Map<string, CredentialTestStatus>>(new Map());
   
-  // Fetch credentials when workspace is available
   useEffect(() => {
     if (activeWorkspace) {
       fetchCredentials();
@@ -100,10 +137,7 @@ export function NodeConfigPanel() {
       .from('credentials')
       .select('id, name, type')
       .eq('workspace_id', activeWorkspace.id);
-    
-    if (!error && data) {
-      setCredentials(data);
-    }
+    if (!error && data) setCredentials(data);
     setCredentialsLoading(false);
   };
   
@@ -112,20 +146,14 @@ export function NodeConfigPanel() {
       toast.error('Please fill in name and type');
       return;
     }
-    
-    // Validate required fields
     const config = getCredentialTypeConfig(newCredType);
     if (config) {
-      const missingRequired = config.fields
-        .filter(f => f.required)
-        .filter(f => !newCredSettings[f.name]);
-      
+      const missingRequired = config.fields.filter(f => f.required).filter(f => !newCredSettings[f.name]);
       if (missingRequired.length > 0) {
         toast.error(`Please fill in: ${missingRequired.map(f => f.label).join(', ')}`);
         return;
       }
     }
-    
     setCreating(true);
     const { data, error } = await supabase
       .from('credentials')
@@ -138,21 +166,16 @@ export function NodeConfigPanel() {
       })
       .select('id, name, type')
       .single();
-    
     if (error) {
       toast.error('Failed to create credential');
       setCreating(false);
       return;
     }
-    
     toast.success('Credential created');
     setCredentials(prev => [...prev, data]);
-    
-    // Auto-select the new credential for the field
     if (addingCredentialForField && selectedNode) {
       handleConfigChange(addingCredentialForField, data.id);
     }
-    
     setShowAddCredential(false);
     setNewCredName('');
     setNewCredType('');
@@ -163,11 +186,13 @@ export function NodeConfigPanel() {
   
   if (!selectedNode) {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-        <Settings className="h-12 w-12 text-muted-foreground/50 mb-4" />
-        <h3 className="text-lg font-medium text-foreground mb-2">No Node Selected</h3>
-        <p className="text-sm text-muted-foreground">
-          Click on a node in the canvas to configure it
+      <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-card/50 backdrop-blur-xl">
+        <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-5">
+          <Settings className="h-7 w-7 text-muted-foreground/40" />
+        </div>
+        <h3 className="text-base font-semibold text-foreground/80 mb-1.5">No Node Selected</h3>
+        <p className="text-sm text-muted-foreground/60 max-w-[200px]">
+          Click on a node in the canvas to view and edit its settings
         </p>
       </div>
     );
@@ -179,10 +204,7 @@ export function NodeConfigPanel() {
   
   const handleConfigChange = (field: string, value: unknown) => {
     updateNode(selectedNode.id, {
-      config: {
-        ...(selectedNode.data.config || {}),
-        [field]: value,
-      },
+      config: { ...(selectedNode.data.config || {}), [field]: value },
     });
   };
   
@@ -202,34 +224,22 @@ export function NodeConfigPanel() {
   
   const handleTestNode = async () => {
     if (!selectedNode) return;
-    
     const nodeType = selectedNode.data.type;
     const config = selectedNode.data.config || {};
-    
     setIsTesting(true);
     setTestResult(null);
     const startTime = Date.now();
-    
     try {
-      // Handle HTTP Request node testing
       if (nodeType === 'httpRequest') {
         const method = String(config.method || 'GET');
         const url = String(config.url || '');
-        
-        if (!url) {
-          throw new Error('URL is required');
-        }
-        
-        // Build headers
+        if (!url) throw new Error('URL is required');
         const configHeaders = typeof config.headers === 'object' && config.headers !== null
-          ? config.headers as Record<string, string>
-          : {};
+          ? config.headers as Record<string, string> : {};
         const headers: Record<string, string> = {
           'Content-Type': String(config.bodyContentType || 'application/json'),
           ...configHeaders
         };
-        
-        // Handle authentication
         if (config.authentication === 'bearer' && config.credential) {
           const cred = credentials.find(c => c.id === config.credential);
           if (cred) {
@@ -239,26 +249,17 @@ export function NodeConfigPanel() {
             }
           }
         }
-        
-        // Build request options
         const options: RequestInit = { method, headers };
-        
         if (['POST', 'PUT', 'PATCH'].includes(method) && config.body) {
-          options.body = typeof config.body === 'string' 
-            ? config.body 
-            : JSON.stringify(config.body);
+          options.body = typeof config.body === 'string' ? config.body : JSON.stringify(config.body);
         }
-        
-        // Add query params
         let finalUrl = url;
         if (config.queryParams && typeof config.queryParams === 'object') {
           const params = new URLSearchParams(config.queryParams as Record<string, string>);
           finalUrl = `${url}${url.includes('?') ? '&' : '?'}${params.toString()}`;
         }
-        
         const response = await fetch(finalUrl, options);
         const endTime = Date.now();
-        
         let data: any;
         const contentType = response.headers.get('content-type') || '';
         if (contentType.includes('application/json')) {
@@ -266,37 +267,17 @@ export function NodeConfigPanel() {
         } else {
           data = await response.text();
         }
-        
-        setTestResult({
-          success: response.ok,
-          status: response.status,
-          statusText: response.statusText,
-          data,
-          time: endTime - startTime,
-        });
-        
-        if (response.ok) {
-          toast.success(`Test successful (${response.status})`);
-        } else {
-          toast.warning(`Test returned ${response.status}`);
-        }
+        setTestResult({ success: response.ok, status: response.status, statusText: response.statusText, data, time: endTime - startTime });
+        if (response.ok) toast.success(`Test successful (${response.status})`);
+        else toast.warning(`Test returned ${response.status}`);
         setShowTestResult(true);
       } else {
-        // For other node types, show a placeholder
         toast.info('Testing for this node type coming soon');
-        setTestResult({
-          success: true,
-          data: { message: 'Node configuration looks valid', config },
-          time: Date.now() - startTime,
-        });
+        setTestResult({ success: true, data: { message: 'Node configuration looks valid', config }, time: Date.now() - startTime });
         setShowTestResult(true);
       }
     } catch (err: any) {
-      setTestResult({
-        success: false,
-        error: err.message || 'Test failed',
-        time: Date.now() - startTime,
-      });
+      setTestResult({ success: false, error: err.message || 'Test failed', time: Date.now() - startTime });
       toast.error(err.message || 'Test failed');
       setShowTestResult(true);
     } finally {
@@ -305,173 +286,86 @@ export function NodeConfigPanel() {
   };
   
   const getCredentialSettings = async (credentialId: string) => {
-    const { data } = await supabase
-      .from('credentials')
-      .select('settings')
-      .eq('id', credentialId)
-      .maybeSingle();
+    const { data } = await supabase.from('credentials').select('settings').eq('id', credentialId).maybeSingle();
     return data?.settings as Record<string, any> | null;
   };
   
-  // Auto-test credential when selected for AI/ML nodes
   const testCredentialForAINode = async (credentialId: string, nodeType: string) => {
     if (!AI_ML_NODE_TYPES.includes(nodeType) || !selectedNode) return;
-    
-    // Update status to testing (both local state and node data)
     setCredentialTestStatuses(prev => {
       const newMap = new Map(prev);
       newMap.set(credentialId, { credentialId, status: 'testing' });
       return newMap;
     });
-    
-    // Update node data to show testing status on canvas
-    updateNode(selectedNode.id, {
-      credentialStatus: { status: 'testing', message: 'Testing credential...' }
-    });
-    
+    updateNode(selectedNode.id, { credentialStatus: { status: 'testing', message: 'Testing credential...' } });
     try {
       const credSettings = await getCredentialSettings(credentialId);
-      if (!credSettings) {
-        throw new Error('Credential settings not found');
-      }
-      
-      // Determine the API key field based on credential type
+      if (!credSettings) throw new Error('Credential settings not found');
       const apiKey = credSettings.apiKey || credSettings.token || credSettings.accessToken;
-      
-      if (!apiKey) {
-        throw new Error('No API key found in credential');
-      }
-      
-      // Test the credential based on node type
+      if (!apiKey) throw new Error('No API key found in credential');
       let testResponse: Response | null = null;
       let testMessage = '';
-      
-      // Check if node is configured to use platform credentials
       const nodeConfig = selectedNode.data.config || {};
       const usePlatformCredentials = nodeConfig.usePlatformCredentials !== false;
-      
-      // Platform AI nodes using Lovable AI gateway (when usePlatformCredentials is true)
       if (['aiAgent', 'langchainAgent', 'geminiVision'].includes(nodeType) || 
           ((['openai', 'gemini'].includes(nodeType)) && usePlatformCredentials)) {
         testMessage = 'Using platform AI gateway';
         setCredentialTestStatuses(prev => {
           const newMap = new Map(prev);
-          newMap.set(credentialId, { 
-            credentialId, 
-            status: 'success', 
-            message: testMessage,
-            testedAt: new Date()
-          });
+          newMap.set(credentialId, { credentialId, status: 'success', message: testMessage, testedAt: new Date() });
           return newMap;
         });
-        updateNode(selectedNode.id, {
-          credentialStatus: { status: 'success', message: testMessage }
-        });
+        updateNode(selectedNode.id, { credentialStatus: { status: 'success', message: testMessage } });
         toast.success('Credential validated');
         return;
       }
-      
-      // OpenAI with own API key
       if (nodeType === 'openai') {
-        testResponse = await fetch('https://api.openai.com/v1/models', {
-          headers: { 'Authorization': `Bearer ${apiKey}` }
-        });
+        testResponse = await fetch('https://api.openai.com/v1/models', { headers: { 'Authorization': `Bearer ${apiKey}` } });
         testMessage = testResponse.ok ? 'OpenAI API key valid' : 'Invalid OpenAI API key';
-      }
-      
-      // Google AI with own API key
-      else if (nodeType === 'gemini') {
+      } else if (nodeType === 'gemini') {
         testResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
         testMessage = testResponse.ok ? 'Google AI API key valid' : 'Invalid Google AI API key';
-      }
-      
-      // HuggingFace
-      if (nodeType === 'huggingface') {
-        testResponse = await fetch('https://huggingface.co/api/whoami', {
-          headers: { 'Authorization': `Bearer ${apiKey}` }
-        });
+      } else if (nodeType === 'huggingface') {
+        testResponse = await fetch('https://huggingface.co/api/whoami', { headers: { 'Authorization': `Bearer ${apiKey}` } });
         testMessage = testResponse.ok ? 'HuggingFace token valid' : 'Invalid HuggingFace token';
-      }
-      
-      // Stability AI
-      else if (nodeType === 'stabilityAI') {
-        testResponse = await fetch('https://api.stability.ai/v1/user/account', {
-          headers: { 'Authorization': `Bearer ${apiKey}` }
-        });
+      } else if (nodeType === 'stabilityAI') {
+        testResponse = await fetch('https://api.stability.ai/v1/user/account', { headers: { 'Authorization': `Bearer ${apiKey}` } });
         testMessage = testResponse.ok ? 'Stability AI key valid' : 'Invalid Stability AI key';
-      }
-      
-      // ElevenLabs
-      else if (nodeType === 'elevenLabs') {
-        testResponse = await fetch('https://api.elevenlabs.io/v1/user', {
-          headers: { 'xi-api-key': apiKey }
-        });
+      } else if (nodeType === 'elevenLabs') {
+        testResponse = await fetch('https://api.elevenlabs.io/v1/user', { headers: { 'xi-api-key': apiKey } });
         testMessage = testResponse.ok ? 'ElevenLabs key valid' : 'Invalid ElevenLabs key';
-      }
-      
-      // Replicate
-      else if (nodeType === 'replicate') {
-        testResponse = await fetch('https://api.replicate.com/v1/account', {
-          headers: { 'Authorization': `Token ${apiKey}` }
-        });
+      } else if (nodeType === 'replicate') {
+        testResponse = await fetch('https://api.replicate.com/v1/account', { headers: { 'Authorization': `Token ${apiKey}` } });
         testMessage = testResponse.ok ? 'Replicate token valid' : 'Invalid Replicate token';
-      }
-      
-      // Perplexity
-      else if (nodeType === 'perplexity') {
+      } else if (nodeType === 'perplexity') {
         testResponse = await fetch('https://api.perplexity.ai/chat/completions', {
           method: 'POST',
-          headers: { 
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: 'sonar-small-chat',
-            messages: [{ role: 'user', content: 'test' }],
-            max_tokens: 1
-          })
+          headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'sonar-small-chat', messages: [{ role: 'user', content: 'test' }], max_tokens: 1 })
         });
         testMessage = testResponse.ok ? 'Perplexity key valid' : 'Invalid Perplexity key';
-      }
-      
-      // Generic API key test for other nodes
-      else {
+      } else {
         if (apiKey.length >= 10) {
           testMessage = 'API key format validated';
           setCredentialTestStatuses(prev => {
             const newMap = new Map(prev);
-            newMap.set(credentialId, { 
-              credentialId, 
-              status: 'success', 
-              message: testMessage,
-              testedAt: new Date()
-            });
+            newMap.set(credentialId, { credentialId, status: 'success', message: testMessage, testedAt: new Date() });
             return newMap;
           });
-          updateNode(selectedNode.id, {
-            credentialStatus: { status: 'success', message: testMessage }
-          });
+          updateNode(selectedNode.id, { credentialStatus: { status: 'success', message: testMessage } });
           toast.success('Credential validated');
           return;
         } else {
           throw new Error('API key appears too short');
         }
       }
-      
       if (testResponse && testResponse.ok) {
         setCredentialTestStatuses(prev => {
           const newMap = new Map(prev);
-          newMap.set(credentialId, { 
-            credentialId, 
-            status: 'success', 
-            message: testMessage,
-            testedAt: new Date()
-          });
+          newMap.set(credentialId, { credentialId, status: 'success', message: testMessage, testedAt: new Date() });
           return newMap;
         });
-        updateNode(selectedNode.id, {
-          credentialStatus: { status: 'success', message: testMessage }
-        });
+        updateNode(selectedNode.id, { credentialStatus: { status: 'success', message: testMessage } });
         toast.success(testMessage);
       } else {
         throw new Error(testMessage || 'Credential test failed');
@@ -480,32 +374,21 @@ export function NodeConfigPanel() {
       const errorMessage = err.message || 'Test failed';
       setCredentialTestStatuses(prev => {
         const newMap = new Map(prev);
-        newMap.set(credentialId, { 
-          credentialId, 
-          status: 'error', 
-          message: errorMessage,
-          testedAt: new Date()
-        });
+        newMap.set(credentialId, { credentialId, status: 'error', message: errorMessage, testedAt: new Date() });
         return newMap;
       });
-      updateNode(selectedNode.id, {
-        credentialStatus: { status: 'error', message: errorMessage }
-      });
+      updateNode(selectedNode.id, { credentialStatus: { status: 'error', message: errorMessage } });
       toast.error(errorMessage);
     }
   };
   
-  // Handle credential selection with auto-test for AI nodes
   const handleCredentialSelect = (fieldName: string, credentialId: string) => {
     handleConfigChange(fieldName, credentialId);
-    
-    // Auto-test if it's an AI/ML node
     if (selectedNode && AI_ML_NODE_TYPES.includes(selectedNode.data.type)) {
       testCredentialForAINode(credentialId, selectedNode.data.type);
     }
   };
   
-  // Get test status for a credential
   const getCredentialTestStatus = (credentialId: string): CredentialTestStatus | undefined => {
     return credentialTestStatuses.get(credentialId);
   };
@@ -521,6 +404,7 @@ export function NodeConfigPanel() {
             value={String(value)}
             onChange={(e) => handleConfigChange(field.name, e.target.value)}
             placeholder={field.placeholder}
+            className="h-9 bg-background/60 border-border/50 focus:border-primary/50 transition-colors"
           />
         );
         
@@ -546,6 +430,7 @@ export function NodeConfigPanel() {
             value={Number(value)}
             onChange={(e) => handleConfigChange(field.name, Number(e.target.value))}
             placeholder={field.placeholder}
+            className="h-9 bg-background/60 border-border/50 focus:border-primary/50 transition-colors"
           />
         );
         
@@ -555,15 +440,12 @@ export function NodeConfigPanel() {
             value={String(value) || undefined}
             onValueChange={(v) => handleConfigChange(field.name, v === '__none__' ? '' : v)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-9 bg-background/60 border-border/50">
               <SelectValue placeholder={`Select ${field.label}`} />
             </SelectTrigger>
             <SelectContent>
               {field.options?.map((option) => (
-                <SelectItem 
-                  key={option.value || '__none__'} 
-                  value={option.value || '__none__'}
-                >
+                <SelectItem key={option.value || '__none__'} value={option.value || '__none__'}>
                   {option.label}
                 </SelectItem>
               ))}
@@ -573,13 +455,13 @@ export function NodeConfigPanel() {
         
       case 'checkbox':
         return (
-          <div className="flex items-center space-x-2">
-            <Checkbox
+          <div className="flex items-center gap-3 py-1">
+            <Switch
               id={field.name}
               checked={Boolean(value)}
               onCheckedChange={(checked) => handleConfigChange(field.name, checked)}
             />
-            <Label htmlFor={field.name} className="text-sm font-normal">
+            <Label htmlFor={field.name} className="text-sm font-normal text-muted-foreground cursor-pointer">
               {field.description || 'Enable'}
             </Label>
           </div>
@@ -600,7 +482,7 @@ export function NodeConfigPanel() {
             }}
             placeholder="{ }"
             rows={4}
-            className="font-mono text-xs"
+            className="font-mono text-xs bg-background/60 border-border/50 resize-y"
           />
         );
         
@@ -612,12 +494,11 @@ export function NodeConfigPanel() {
             onChange={(e) => handleConfigChange(field.name, e.target.value)}
             placeholder={field.placeholder}
             rows={6}
-            className="font-mono text-xs"
+            className="font-mono text-xs bg-background/60 border-border/50 resize-y"
           />
         );
         
       case 'credential':
-        // Auto-detect credential type from field's description OR infer from label
         const inferTypeFromLabel = (label: string): string => {
           const labelLower = label.toLowerCase();
           const typeMap: Record<string, string> = {
@@ -641,29 +522,25 @@ export function NodeConfigPanel() {
           }
           return '';
         };
-        
         const credentialType = field.description || inferTypeFromLabel(field.label);
-        const filteredCredentials = credentialType 
-          ? credentials.filter(c => c.type === credentialType)
-          : credentials;
+        const filteredCredentials = credentialType ? credentials.filter(c => c.type === credentialType) : credentials;
         const selectedCred = credentials.find(c => c.id === value);
         const typeConfig = getCredentialTypeConfig(credentialType);
-        
         const isAINode = selectedNode && AI_ML_NODE_TYPES.includes(selectedNode.data.type);
         const testStatus = value ? getCredentialTestStatus(String(value)) : undefined;
         
         return (
           <div className="space-y-2">
             {credentialType && typeConfig && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                 <Key className="h-3 w-3" />
-                {typeConfig.label} credentials
+                <span>{typeConfig.label} credentials</span>
                 {isAINode && (
-                  <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">
+                  <Badge variant="outline" className="ml-auto text-[9px] px-1.5 py-0 border-primary/30 text-primary">
                     Auto-test
                   </Badge>
                 )}
-              </p>
+              </div>
             )}
             <Select
               value={String(value) || undefined}
@@ -676,13 +553,12 @@ export function NodeConfigPanel() {
                   }
                   setShowAddCredential(true);
                 } else {
-                  // Use auto-test handler for AI nodes
                   handleCredentialSelect(field.name, v);
                 }
               }}
               disabled={credentialsLoading}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-9 bg-background/60 border-border/50">
                 <SelectValue placeholder={credentialsLoading ? "Loading..." : `Select ${typeConfig?.label || 'credential'}`} />
               </SelectTrigger>
               <SelectContent>
@@ -709,24 +585,23 @@ export function NodeConfigPanel() {
               </SelectContent>
             </Select>
             
-            {/* Credential test status indicator */}
             {selectedCred && (
               <AnimatePresence mode="wait">
                 <motion.div
                   key={testStatus?.status || 'idle'}
-                  initial={{ opacity: 0, y: -5 }}
+                  initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 5 }}
-                  className="flex items-center gap-2"
+                  exit={{ opacity: 0, y: 4 }}
+                  className="rounded-lg border p-2"
                 >
                   {testStatus?.status === 'testing' && (
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <Loader2 className="h-3 w-3 animate-spin text-primary" />
                       Testing credential...
                     </div>
                   )}
                   {testStatus?.status === 'success' && (
-                    <div className="flex items-center gap-2 text-xs text-emerald-600">
+                    <div className="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
                       <CheckCircle2 className="h-3 w-3" />
                       {testStatus.message || 'Credential verified'}
                     </div>
@@ -734,31 +609,22 @@ export function NodeConfigPanel() {
                   {testStatus?.status === 'error' && (
                     <div className="flex items-center gap-2 text-xs text-destructive">
                       <XCircle className="h-3 w-3" />
-                      {testStatus.message || 'Credential test failed'}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-5 px-2 text-[10px]"
+                      <span className="flex-1">{testStatus.message || 'Credential test failed'}</span>
+                      <Button variant="ghost" size="sm" className="h-5 px-2 text-[10px]"
                         onClick={() => testCredentialForAINode(String(value), selectedNode?.data.type || '')}
-                      >
-                        Retry
-                      </Button>
+                      >Retry</Button>
                     </div>
                   )}
                   {!testStatus && (
-                    <div className="flex items-center justify-between w-full">
-                      <p className="text-xs text-muted-foreground">
-                        Connected: {selectedCred.name}
-                      </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">
+                        Connected: <span className="text-foreground font-medium">{selectedCred.name}</span>
+                      </span>
                       {isAINode && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-5 px-2 text-[10px]"
+                        <Button variant="ghost" size="sm" className="h-5 px-2 text-[10px]"
                           onClick={() => testCredentialForAINode(String(value), selectedNode?.data.type || '')}
                         >
-                          <Play className="h-3 w-3 mr-1" />
-                          Test
+                          <Play className="h-3 w-3 mr-1" /> Test
                         </Button>
                       )}
                     </div>
@@ -775,225 +641,258 @@ export function NodeConfigPanel() {
             id={field.name}
             value={String(value)}
             onChange={(e) => handleConfigChange(field.name, e.target.value)}
+            className="h-9 bg-background/60 border-border/50"
           />
         );
     }
   };
   
+  // Count configured fields
+  const configuredCount = definition?.configSchema?.filter(
+    f => selectedNode.data.config?.[f.name] !== undefined && selectedNode.data.config?.[f.name] !== ''
+  ).length || 0;
+  const totalFields = definition?.configSchema?.length || 0;
+  
   return (
-    <div className="h-full flex flex-col border-l border-border bg-card">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          <div
-            className="h-3 w-3 rounded-full"
-            style={{ backgroundColor: categoryColor }}
-          />
-          <div>
-            <h3 className="font-medium text-foreground">{selectedNode.data.label}</h3>
-            <p className="text-xs text-muted-foreground">{selectedNode.data.category}</p>
+    <div className="h-full flex flex-col bg-card/80 backdrop-blur-xl">
+      {/* ─── Header ─── */}
+      <div className="px-4 py-4 border-b border-border/40">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <div 
+              className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+              style={{ 
+                backgroundColor: `${categoryColor}15`,
+                boxShadow: `0 2px 8px ${categoryColor}15`,
+              }}
+            >
+              <div 
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: categoryColor, boxShadow: `0 0 8px ${categoryColor}50` }}
+              />
+            </div>
+            <div className="min-w-0">
+              <Input
+                value={selectedNode.data.label}
+                onChange={(e) => handleLabelChange(e.target.value)}
+                className="h-7 text-sm font-semibold border-transparent bg-transparent px-0 hover:bg-muted/40 focus:bg-muted/40 focus:border-border/50 rounded-md transition-all"
+              />
+              <p 
+                className="text-[10px] font-semibold uppercase tracking-wider mt-0.5 pl-0.5"
+                style={{ color: categoryColor }}
+              >
+                {selectedNode.data.category}
+              </p>
+            </div>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground shrink-0"
+            onClick={() => selectNode(null)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => selectNode(null)}
-        >
-          <X className="h-4 w-4" />
-        </Button>
+        
+        {/* Quick actions */}
+        <div className="flex gap-1.5 mt-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 h-8 text-xs gap-1.5 bg-background/60 border-border/50 hover:border-primary/40 hover:bg-primary/5"
+            onClick={handleTestNode}
+            disabled={isTesting}
+          >
+            {isTesting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
+            {isTesting ? 'Testing...' : 'Test Node'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 w-8 p-0 bg-background/60 border-border/50 hover:border-border"
+            onClick={handleDuplicate}
+          >
+            <Copy className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 w-8 p-0 bg-background/60 border-border/50 hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive"
+            onClick={handleDelete}
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
+        </div>
       </div>
       
-      {/* Content */}
+      {/* ─── Content ─── */}
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-6">
-          {/* Node name */}
-          <div className="space-y-2">
-            <Label htmlFor="node-name">Node Name</Label>
-            <Input
-              id="node-name"
-              value={selectedNode.data.label}
-              onChange={(e) => handleLabelChange(e.target.value)}
-            />
-          </div>
-          
-          <Separator />
-          
-          {/* Node description */}
+        <div className="p-4 space-y-1">
+          {/* Description */}
           {definition && (
-            <div className="rounded-lg bg-muted/50 p-3">
-              <p className="text-sm text-muted-foreground">
+            <div className="rounded-xl bg-muted/30 border border-border/30 p-3 mb-3">
+              <p className="text-[13px] text-muted-foreground leading-relaxed">
                 {definition.description}
               </p>
             </div>
           )}
           
-          {/* Configuration fields */}
+          {/* ─── Configuration Section ─── */}
           {definition?.configSchema && definition.configSchema.length > 0 && (
-            <div className="space-y-4">
-              <h4 className="text-sm font-medium text-foreground">Configuration</h4>
-              
-              {definition.configSchema.map((field) => (
-                <div key={field.name} className="space-y-2">
-                  <Label htmlFor={field.name} className="flex items-center gap-1">
-                    {field.label}
-                    {field.required && (
-                      <span className="text-destructive">*</span>
+            <Section 
+              title="Configuration" 
+              icon={Settings}
+              badge={
+                <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 ml-auto font-mono">
+                  {configuredCount}/{totalFields}
+                </Badge>
+              }
+            >
+              <div className="space-y-4 pt-1">
+                {definition.configSchema.map((field) => (
+                  <div key={field.name} className="space-y-1.5">
+                    <Label htmlFor={field.name} className="text-xs font-medium flex items-center gap-1.5">
+                      {field.label}
+                      {field.required && (
+                        <span className="text-destructive text-[10px]">●</span>
+                      )}
+                    </Label>
+                    {renderConfigField(field)}
+                    {field.description && field.type !== 'checkbox' && field.type !== 'credential' && (
+                      <p className="text-[11px] text-muted-foreground/60 leading-relaxed">
+                        {field.description}
+                      </p>
                     )}
-                  </Label>
-                  {renderConfigField(field)}
-                  {field.description && field.type !== 'checkbox' && (
-                    <p className="text-xs text-muted-foreground">
-                      {field.description}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
+                  </div>
+                ))}
+              </div>
+            </Section>
           )}
           
-          <Separator />
+          {/* ─── Error Handling Section ─── */}
+          <Section title="Error Handling" icon={Shield} defaultOpen={false}>
+            <div className="space-y-3 pt-1">
+              <div className="flex items-center justify-between py-1">
+                <div className="flex items-center gap-2">
+                  <SkipForward className="h-3.5 w-3.5 text-muted-foreground" />
+                  <Label className="text-xs font-medium cursor-pointer">Continue on Fail</Label>
+                </div>
+                <Switch
+                  checked={!!selectedNode.data.errorHandling?.continueOnFail}
+                  onCheckedChange={(checked) => {
+                    updateNode(selectedNode.id, {
+                      errorHandling: { ...selectedNode.data.errorHandling, continueOnFail: !!checked },
+                    });
+                  }}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between py-1">
+                <div className="flex items-center gap-2">
+                  <RotateCcw className="h-3.5 w-3.5 text-muted-foreground" />
+                  <Label className="text-xs font-medium cursor-pointer">Retry on Fail</Label>
+                </div>
+                <Switch
+                  checked={!!selectedNode.data.errorHandling?.retryOnFail}
+                  onCheckedChange={(checked) => {
+                    updateNode(selectedNode.id, {
+                      errorHandling: { ...selectedNode.data.errorHandling, retryOnFail: !!checked },
+                    });
+                  }}
+                />
+              </div>
+              
+              <AnimatePresence>
+                {selectedNode.data.errorHandling?.retryOnFail && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="rounded-xl bg-muted/30 border border-border/30 p-3 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs text-muted-foreground">Max Retries</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={10}
+                          className="w-16 h-7 text-xs text-center bg-background/60 border-border/50"
+                          value={selectedNode.data.errorHandling?.maxRetries ?? 3}
+                          onChange={(e) => {
+                            updateNode(selectedNode.id, {
+                              errorHandling: { ...selectedNode.data.errorHandling, maxRetries: parseInt(e.target.value) || 3 },
+                            });
+                          }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs text-muted-foreground">Delay (ms)</Label>
+                        <Input
+                          type="number"
+                          min={100}
+                          step={100}
+                          className="w-20 h-7 text-xs text-center bg-background/60 border-border/50"
+                          value={selectedNode.data.errorHandling?.retryDelayMs ?? 1000}
+                          onChange={(e) => {
+                            updateNode(selectedNode.id, {
+                              errorHandling: { ...selectedNode.data.errorHandling, retryDelayMs: parseInt(e.target.value) || 1000 },
+                            });
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </Section>
           
-          {/* Expression hint */}
-          <div className="rounded-lg border border-border p-3 bg-muted/30">
-            <h5 className="text-sm font-medium mb-1">Expressions</h5>
-            <p className="text-xs text-muted-foreground mb-2">
-              Use expressions to reference data from previous nodes:
-            </p>
-            <code className="text-xs bg-muted px-2 py-1 rounded font-mono">
-              {'{{ $json["field"] }}'}
-            </code>
-          </div>
+          {/* ─── Expressions Help ─── */}
+          <Section title="Expressions" icon={Zap} defaultOpen={false}>
+            <div className="rounded-xl bg-muted/30 border border-border/30 p-3">
+              <p className="text-[11px] text-muted-foreground mb-2 leading-relaxed">
+                Reference data from previous nodes using expressions:
+              </p>
+              <code className="text-[11px] bg-background/60 px-2.5 py-1.5 rounded-lg font-mono block border border-border/30 text-primary/80">
+                {'{{ $json["field"] }}'}
+              </code>
+            </div>
+          </Section>
+
+          {/* ─── Notes Section ─── */}
+          <Section title="Notes" icon={StickyNote} defaultOpen={false}>
+            <Textarea
+              className="text-xs bg-background/60 border-border/50 resize-y min-h-[60px]"
+              placeholder="Add notes about this node..."
+              value={(selectedNode.data.notes as string) || ''}
+              onChange={(e) => updateNode(selectedNode.id, { notes: e.target.value })}
+            />
+          </Section>
         </div>
       </ScrollArea>
       
-      {/* Footer actions */}
-      <div className="p-4 border-t border-border space-y-2">
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={handleTestNode}
-            disabled={isTesting}
-          >
-            {isTesting ? (
-              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-            ) : (
-              <Play className="h-3 w-3 mr-1" />
-            )}
-            {isTesting ? 'Testing...' : 'Test'}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={handleDuplicate}
-          >
-            <Copy className="h-3 w-3 mr-1" />
-            Duplicate
-          </Button>
-        </div>
-
-        {/* Error Handling Settings - n8n style */}
-        <div className="border-t border-border pt-3 mt-3">
-          <p className="text-xs font-semibold text-muted-foreground mb-2">Error Handling</p>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs">Continue on Fail</Label>
-              <Checkbox
-                checked={!!selectedNode.data.errorHandling?.continueOnFail}
-                onCheckedChange={(checked) => {
-                  updateNode(selectedNode.id, {
-                    errorHandling: {
-                      ...selectedNode.data.errorHandling,
-                      continueOnFail: !!checked,
-                    },
-                  });
-                }}
-              />
+      {/* ─── I/O Info Footer ─── */}
+      {definition && (
+        <div className="px-4 py-2.5 border-t border-border/30 bg-muted/10">
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary/60" />
+                {definition.inputs.length} input{definition.inputs.length !== 1 ? 's' : ''}
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary/60" />
+                {definition.outputs.length} output{definition.outputs.length !== 1 ? 's' : ''}
+              </span>
             </div>
-            <div className="flex items-center justify-between">
-              <Label className="text-xs">Retry on Fail</Label>
-              <Checkbox
-                checked={!!selectedNode.data.errorHandling?.retryOnFail}
-                onCheckedChange={(checked) => {
-                  updateNode(selectedNode.id, {
-                    errorHandling: {
-                      ...selectedNode.data.errorHandling,
-                      retryOnFail: !!checked,
-                    },
-                  });
-                }}
-              />
-            </div>
-            {selectedNode.data.errorHandling?.retryOnFail && (
-              <>
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs">Max Retries</Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={10}
-                    className="w-16 h-7 text-xs"
-                    value={selectedNode.data.errorHandling?.maxRetries ?? 3}
-                    onChange={(e) => {
-                      updateNode(selectedNode.id, {
-                        errorHandling: {
-                          ...selectedNode.data.errorHandling,
-                          maxRetries: parseInt(e.target.value) || 3,
-                        },
-                      });
-                    }}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs">Retry Delay (ms)</Label>
-                  <Input
-                    type="number"
-                    min={100}
-                    step={100}
-                    className="w-20 h-7 text-xs"
-                    value={selectedNode.data.errorHandling?.retryDelayMs ?? 1000}
-                    onChange={(e) => {
-                      updateNode(selectedNode.id, {
-                        errorHandling: {
-                          ...selectedNode.data.errorHandling,
-                          retryDelayMs: parseInt(e.target.value) || 1000,
-                        },
-                      });
-                    }}
-                  />
-                </div>
-              </>
-            )}
-          </div>
-          {/* Notes */}
-          <div className="mt-3">
-            <Label className="text-xs">Node Notes</Label>
-            <Textarea
-              className="mt-1 text-xs h-16"
-              placeholder="Add notes about this node..."
-              value={(selectedNode.data.notes as string) || ''}
-              onChange={(e) => {
-                updateNode(selectedNode.id, { notes: e.target.value });
-              }}
-            />
+            <span className="font-mono opacity-60">{selectedNode.data.type}</span>
           </div>
         </div>
-
-        <Button
-          variant="destructive"
-          size="sm"
-          className="w-full"
-          onClick={handleDelete}
-        >
-          <Trash2 className="h-3 w-3 mr-1" />
-          Delete Node
-        </Button>
-      </div>
+      )}
       
-      {/* Add Credential Dialog - Type is auto-detected from node */}
+      {/* ─── Add Credential Dialog ─── */}
       <Dialog open={showAddCredential} onOpenChange={(open) => {
         setShowAddCredential(open);
         if (!open) {
@@ -1020,17 +919,12 @@ export function NodeConfigPanel() {
             type={newCredType}
             settings={newCredSettings}
             onNameChange={setNewCredName}
-            onTypeChange={(type) => {
-              setNewCredType(type);
-              setNewCredSettings({});
-            }}
+            onTypeChange={(type) => { setNewCredType(type); setNewCredSettings({}); }}
             onSettingsChange={setNewCredSettings}
-            showTypeSelector={!newCredType} // Hide type selector when auto-detected
+            showTypeSelector={!newCredType}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddCredential(false)}>
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={() => setShowAddCredential(false)}>Cancel</Button>
             <Button onClick={createCredential} disabled={creating || !newCredName || !newCredType}>
               {creating ? 'Creating...' : 'Create Credential'}
             </Button>
@@ -1038,7 +932,7 @@ export function NodeConfigPanel() {
         </DialogContent>
       </Dialog>
       
-      {/* Test Result Dialog */}
+      {/* ─── Test Result Dialog ─── */}
       <Dialog open={showTestResult} onOpenChange={setShowTestResult}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
@@ -1052,11 +946,11 @@ export function NodeConfigPanel() {
               {testResult?.status && (
                 <Badge 
                   variant="outline" 
-                  className={`ml-2 ${
+                  className={cn("ml-2",
                     testResult.status >= 200 && testResult.status < 300 
                       ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' 
                       : 'bg-rose-500/10 text-rose-600 border-rose-500/30'
-                  }`}
+                  )}
                 >
                   {testResult.status} {testResult.statusText}
                 </Badge>
@@ -1075,7 +969,7 @@ export function NodeConfigPanel() {
           
           <ScrollArea className="flex-1 -mx-6 px-6">
             {testResult?.error ? (
-              <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-4">
+              <div className="rounded-xl bg-destructive/10 border border-destructive/30 p-4">
                 <p className="text-sm text-destructive font-medium">Error</p>
                 <p className="text-sm text-muted-foreground mt-1">{testResult.error}</p>
               </div>
@@ -1083,36 +977,24 @@ export function NodeConfigPanel() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="text-sm font-medium">Response Body</Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        typeof testResult.data === 'object' 
-                          ? JSON.stringify(testResult.data, null, 2) 
-                          : testResult.data
-                      );
-                      toast.success('Copied to clipboard');
-                    }}
-                  >
-                    <Copy className="h-3 w-3 mr-1" />
-                    Copy
+                  <Button variant="ghost" size="sm" onClick={() => {
+                    navigator.clipboard.writeText(
+                      typeof testResult.data === 'object' ? JSON.stringify(testResult.data, null, 2) : testResult.data
+                    );
+                    toast.success('Copied to clipboard');
+                  }}>
+                    <Copy className="h-3 w-3 mr-1" /> Copy
                   </Button>
                 </div>
-                <pre className="text-xs font-mono bg-muted/50 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-[400px]">
-                  {typeof testResult.data === 'object' 
-                    ? JSON.stringify(testResult.data, null, 2)
-                    : testResult.data
-                  }
+                <pre className="text-xs font-mono bg-muted/40 p-4 rounded-xl overflow-x-auto whitespace-pre-wrap max-h-[400px] border border-border/30">
+                  {typeof testResult.data === 'object' ? JSON.stringify(testResult.data, null, 2) : testResult.data}
                 </pre>
               </div>
             ) : null}
           </ScrollArea>
           
           <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setShowTestResult(false)}>
-              Close
-            </Button>
+            <Button variant="outline" onClick={() => setShowTestResult(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
