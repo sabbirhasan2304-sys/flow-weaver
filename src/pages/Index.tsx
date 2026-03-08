@@ -345,10 +345,10 @@ export default function Index() {
             <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
               Programmatic Access to Everything
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              20+ RESTful endpoints. Execute workflows, manage credentials, batch operations, 
-              and webhooks — all from your code.
-            </p>
+             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+               20+ RESTful endpoints. Execute workflows, manage credentials, real-time streaming logs, 
+               batch operations, and webhooks — all from your code.
+             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-8 items-start max-w-5xl mx-auto">
