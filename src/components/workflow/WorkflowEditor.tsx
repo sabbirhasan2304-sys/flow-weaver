@@ -26,8 +26,11 @@ interface WorkflowEditorProps {
 }
 
 export function WorkflowEditor({ workflowId, workflowName, initialData, onSave }: WorkflowEditorProps) {
-  const { selectedNode } = useWorkflowStore();
+  const { selectedNode, nodes } = useWorkflowStore();
   
+  // Check if workflow has a webhook trigger node
+  const hasWebhookTrigger = nodes.some(n => n.data?.type === 'webhook');
+
   const handleDragStart = (event: React.DragEvent, nodeType: string) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.effectAllowed = 'move';
