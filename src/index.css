@@ -198,90 +198,105 @@
 
 /* ─── Edge / Connection Styling ─── */
 .react-flow__edge-path {
-  stroke: hsl(var(--primary) / 0.35) !important;
-  stroke-width: 2 !important;
-  transition: stroke 0.3s ease, stroke-width 0.3s ease, filter 0.3s ease;
+  stroke: hsl(var(--primary) / 0.3) !important;
+  stroke-width: 2px !important;
+  transition: stroke 0.25s ease, stroke-width 0.25s ease, filter 0.25s ease;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .react-flow__edge:hover .react-flow__edge-path {
-  stroke: hsl(var(--primary) / 0.85) !important;
-  stroke-width: 2.5 !important;
-  filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.35));
+  stroke: hsl(var(--primary)) !important;
+  stroke-width: 2.5px !important;
+  filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.4));
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
   stroke: hsl(var(--primary)) !important;
-  stroke-width: 3 !important;
-  filter: drop-shadow(0 0 10px hsl(var(--primary) / 0.45));
+  stroke-width: 3px !important;
+  filter: drop-shadow(0 0 12px hsl(var(--primary) / 0.5));
 }
 
 /* Animated edge for executing flows */
 .react-flow__edge.animated .react-flow__edge-path {
-  stroke-dasharray: 8 4 !important;
-  animation: edge-flow 0.8s linear infinite;
-  stroke: hsl(var(--primary) / 0.7) !important;
+  stroke-dasharray: 6 3 !important;
+  animation: edge-flow 0.6s linear infinite;
+  stroke: hsl(var(--primary) / 0.65) !important;
+  stroke-width: 2px !important;
 }
 
 @keyframes edge-flow {
-  to { stroke-dashoffset: -12; }
+  to { stroke-dashoffset: -9; }
 }
 
 /* ─── Handle Styling ─── */
 .react-flow__handle {
-  width: 14px !important;
-  height: 14px !important;
-  border: 2.5px solid hsl(var(--card)) !important;
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  width: 12px !important;
+  height: 12px !important;
+  border: 2px solid hsl(var(--card)) !important;
+  border-radius: 50% !important;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 10;
 }
 
 .react-flow__handle:hover {
-  transform: scale(1.35) !important;
+  transform: scale(1.4) !important;
+  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.15), 0 0 12px hsl(var(--primary) / 0.3) !important;
 }
 
 .react-flow__handle.connecting {
-  animation: handle-pulse 1s ease infinite;
+  animation: handle-pulse 0.8s ease infinite;
 }
 
 @keyframes handle-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 hsl(var(--primary) / 0.3); }
+  50% { transform: scale(1.15); box-shadow: 0 0 0 6px hsl(var(--primary) / 0); }
 }
 
 /* ─── Connection Line (while dragging) ─── */
 .react-flow__connection-path {
-  stroke: hsl(var(--primary) / 0.6) !important;
-  stroke-width: 2.5 !important;
-  stroke-dasharray: 6 4;
-  animation: dash-flow 0.6s linear infinite;
-  filter: drop-shadow(0 0 4px hsl(var(--primary) / 0.3));
+  stroke: hsl(var(--primary) / 0.5) !important;
+  stroke-width: 2px !important;
+  stroke-dasharray: 5 3;
+  animation: dash-flow 0.5s linear infinite;
+  stroke-linecap: round;
 }
 
 @keyframes dash-flow {
-  to { stroke-dashoffset: -10; }
+  to { stroke-dashoffset: -8; }
+}
+
+/* ─── Bezier edge marker ─── */
+.react-flow__edge .react-flow__edge-interaction {
+  stroke-width: 20px;
 }
 
 /* ─── Node Execution Animations ─── */
 @keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.35); }
-  50% { box-shadow: 0 0 0 10px hsl(var(--primary) / 0); }
+  0% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.3); }
+  50% { box-shadow: 0 0 0 8px hsl(var(--primary) / 0); }
   100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
 }
 
 .node-executing {
-  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: pulse-ring 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* ─── Workflow Node hover lift ─── */
 .workflow-node {
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 /* ─── Selection box ─── */
 .react-flow__selection {
-  background: hsl(var(--primary) / 0.06) !important;
-  border: 1.5px solid hsl(var(--primary) / 0.4) !important;
-  border-radius: 12px;
+  background: hsl(var(--primary) / 0.05) !important;
+  border: 1.5px solid hsl(var(--primary) / 0.3) !important;
+  border-radius: 8px;
+}
+
+/* ─── Smooth step edges ─── */
+.react-flow__edge-smoothstep {
+  cursor: pointer;
 }
 
 /* Glass morphism */

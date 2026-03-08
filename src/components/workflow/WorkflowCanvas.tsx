@@ -206,9 +206,13 @@ export function WorkflowCanvas({ workflowId, initialData, onSave }: WorkflowCanv
         nodeTypes={nodeTypes}
         fitView
         snapToGrid
-        snapGrid={[15, 15]}
-        connectionLineType={ConnectionLineType.SmoothStep}
-        defaultEdgeOptions={{ type: 'smoothstep', animated: true }}
+        snapGrid={[20, 20]}
+        connectionLineType={ConnectionLineType.Bezier}
+        defaultEdgeOptions={{ 
+          type: 'default',
+          animated: true,
+          style: { strokeWidth: 2, stroke: 'hsl(var(--primary) / 0.35)' },
+        }}
         proOptions={{ hideAttribution: true }}
         className="bg-canvas-background"
       >
