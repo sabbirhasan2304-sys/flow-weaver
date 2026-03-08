@@ -15,50 +15,50 @@ const features = [
   {
     icon: Workflow,
     title: 'Visual Workflow Engine',
-    description: 'Build sophisticated automations with our drag-and-drop canvas. 230+ nodes, zero code required.',
+    description: 'Build sophisticated automations with our drag-and-drop canvas. 375+ nodes across 20+ categories, zero code required.',
   },
   {
     icon: Bot,
     title: 'AI Agent Builder',
-    description: 'Create intelligent agents with OpenAI, Claude, Gemini & LangChain. RAG, chat memory, and more.',
+    description: 'Create intelligent agents with GPT-5, Gemini 3, Claude & LangChain. RAG, chat memory, tool use, and more.',
   },
   {
     icon: Database,
     title: 'Data & Database',
-    description: 'Native connectors for PostgreSQL, MongoDB, Redis, Supabase, Firebase, and 20+ databases.',
+    description: 'Native connectors for PostgreSQL, MongoDB, Redis, Supabase, Firebase, Airtable, and 20+ databases.',
   },
   {
     icon: Globe,
     title: 'API & Webhooks',
-    description: 'REST/GraphQL calls, real-time webhooks, cron schedules, and event-driven triggers.',
+    description: 'REST/GraphQL calls, real-time webhooks, cron schedules, version history, and event-driven triggers.',
   },
   {
     icon: Mail,
     title: 'Email Marketing Suite',
-    description: 'Full email platform: campaigns, automation, A/B testing, SMTP, analytics — all built in.',
+    description: 'Full email platform: campaigns, automation, A/B testing, SMTP, drag-and-drop builder, analytics — all built in.',
   },
   {
     icon: Shield,
     title: 'Enterprise Security',
-    description: 'Encrypted credentials, RBAC, API keys with rate limiting, and audit logging.',
+    description: 'Encrypted credentials, RBAC, API keys with rate limiting, audit logging, and retry-on-fail error handling.',
   },
   {
     icon: Layers,
-    title: 'Plugin Marketplace',
-    description: 'Extend with 50+ official plugins. AI, blockchain, IoT, payments, e-commerce and more.',
+    title: 'Bangladesh-First Integrations',
+    description: 'bKash, Nagad, Pathao, eCourier, Steadfast, RedX, Daraz, BD NID verification — 25+ local nodes.',
   },
   {
     icon: Code,
     title: 'Developer API',
-    description: 'Full REST API with 20+ endpoints. Batch execution, webhooks, 8 SDK languages.',
+    description: 'Full REST API with 20+ endpoints. Batch execution, webhooks, real-time logs, 8 SDK languages.',
   },
 ];
 
 const stats = [
-  { value: '230+', label: 'Automation Nodes' },
-  { value: '50+', label: 'Plugins & Integrations' },
-  { value: '99.9%', label: 'Uptime SLA' },
-  { value: '24/7', label: 'Expert Support' },
+  { value: '375+', label: 'Automation Nodes' },
+  { value: '20+', label: 'Node Categories' },
+  { value: '25+', label: 'BD Integrations' },
+  { value: '24/7', label: 'Real-time Execution' },
 ];
 
 const useCases = [
