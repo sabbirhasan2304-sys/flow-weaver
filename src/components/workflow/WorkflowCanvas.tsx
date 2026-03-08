@@ -30,8 +30,8 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 const nodeTypes = {
-  workflowNode: memo(WorkflowNode),
-  stickyNote: memo(StickyNote),
+  workflowNode: WorkflowNode,
+  stickyNote: StickyNote,
 };
 
 interface WorkflowCanvasProps {

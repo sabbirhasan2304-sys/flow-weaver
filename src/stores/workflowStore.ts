@@ -98,12 +98,22 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   },
   
   onConnect: (connection) => {
+    const categoryColor = (() => {
+      const sourceNode = get().nodes.find(n => n.id === connection.source);
+      if (sourceNode?.data?.category) {
+        // Dynamic import would be heavy; use primary as fallback
+        return 'hsl(var(--primary))';
+      }
+      return 'hsl(var(--primary))';
+    })();
+    
     set({
       edges: addEdge(
         { 
           ...connection, 
           animated: true,
-          style: { stroke: 'hsl(var(--primary))' }
+          type: 'smoothstep',
+          style: { stroke: categoryColor, strokeWidth: 2 }
         }, 
         get().edges
       ),
