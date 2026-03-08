@@ -76,6 +76,13 @@ export function WorkflowEditor({ workflowId, workflowName, initialData, onSave }
           )}
         </ResizablePanelGroup>
 
+        {/* Webhook URL Card */}
+        {workflowId && hasWebhookTrigger && (
+          <div className="absolute bottom-4 right-4 z-10 w-[360px]">
+            <WebhookUrlCard workflowId={workflowId} />
+          </div>
+        )}
+
         {/* AI Assistant */}
         <AIAssistant />
       </div>
