@@ -235,77 +235,43 @@ export function WorkflowCanvas({ workflowId, initialData, onSave }: WorkflowCanv
         
         {/* Toolbar */}
         <Panel position="top-right" className="flex gap-2">
-          <div className="flex items-center gap-1 bg-card/95 backdrop-blur-sm rounded-lg border border-border p-1 shadow-lg">
+          <div className="flex items-center gap-0.5 bg-card/90 backdrop-blur-xl rounded-xl border border-border/50 p-1 shadow-xl shadow-black/10">
             <Button
               variant={isExecuting ? "default" : "ghost"}
               size="icon"
-              className={cn("h-8 w-8", isExecuting && "bg-success hover:bg-success/90")}
+              className={cn("h-8 w-8 rounded-lg", isExecuting && "bg-emerald-500 hover:bg-emerald-600 text-white")}
               onClick={handleRun}
             >
-              {isExecuting ? (
-                <Pause className="h-4 w-4" />
-              ) : (
-                <Play className="h-4 w-4" />
-              )}
+              {isExecuting ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </Button>
-            <div className="w-px h-6 bg-border" />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={handleSave}
-            >
+            <div className="w-px h-5 bg-border/30" />
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={handleSave}>
               <Save className="h-4 w-4" />
             </Button>
-            <div className="w-px h-6 bg-border" />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              disabled={!canUndo}
-            >
+            <div className="w-px h-5 bg-border/30" />
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" disabled={!canUndo}>
               <Undo className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              disabled={!canRedo}
-            >
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" disabled={!canRedo}>
               <Redo className="h-4 w-4" />
             </Button>
-            <div className="w-px h-6 bg-border" />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => zoomIn()}
-            >
+            <div className="w-px h-5 bg-border/30" />
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => zoomIn()}>
               <ZoomIn className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => zoomOut()}
-            >
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => zoomOut()}>
               <ZoomOut className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => fitView()}
-            >
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => fitView()}>
               <Maximize2 className="h-4 w-4" />
             </Button>
             {selectedNode && (
               <>
-                <div className="w-px h-6 bg-border" />
+                <div className="w-px h-5 bg-border/30" />
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-destructive"
+                  className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10"
                   onClick={handleDelete}
                 >
                   <Trash2 className="h-4 w-4" />
