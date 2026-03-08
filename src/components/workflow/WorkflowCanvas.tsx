@@ -284,8 +284,8 @@ export function WorkflowCanvas({ workflowId, initialData, onSave }: WorkflowCanv
         {/* Execution status */}
         {isExecuting && (
           <Panel position="bottom-center">
-            <div className="bg-card rounded-lg border border-border px-4 py-2 shadow-lg flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
+            <div className="bg-card/90 backdrop-blur-xl rounded-xl border border-border/50 px-5 py-2.5 shadow-xl flex items-center gap-2.5">
+              <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
               <span className="text-sm font-medium">Running workflow...</span>
             </div>
           </Panel>
