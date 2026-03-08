@@ -521,6 +521,7 @@ export const aiNodes: NodeDefinition[] = [
       { name: 'model', label: 'Model', type: 'select', options: [
         { label: 'Claude 4 Opus', value: 'claude-4-opus' },
         { label: 'Claude 4 Sonnet', value: 'claude-4-sonnet' },
+        { label: 'Claude 3.7 Sonnet', value: 'claude-3-7-sonnet' },
         { label: 'Claude 3.5 Sonnet', value: 'claude-3-5-sonnet' },
         { label: 'Claude 3.5 Haiku', value: 'claude-3-5-haiku' },
       ], defaultValue: 'claude-4-sonnet' },
