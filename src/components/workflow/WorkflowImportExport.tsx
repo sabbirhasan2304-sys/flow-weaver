@@ -181,7 +181,6 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
       '@n8n/n8n-nodes-langchain.lmChatGoogleGemini': { type: 'google-gemini', category: 'AI & Machine Learning' },
       '@n8n/n8n-nodes-langchain.lmChatAnthropic': { type: 'anthropic-claude', category: 'AI & Machine Learning' },
       '@n8n/n8n-nodes-langchain.outputParserStructured': { type: 'json-parse', category: 'Data Manipulation' },
-      'n8n-nodes-base.stickyNote': { type: 'sticky-note', category: 'Custom Nodes' },
     };
 
     if (typeMap[n8nType]) return typeMap[n8nType];
