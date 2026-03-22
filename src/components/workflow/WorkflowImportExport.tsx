@@ -34,6 +34,12 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
 
   const { nodes, edges, loadWorkflow } = useWorkflowStore();
 
+  type ImportedWorkflow = {
+    nodes: any[];
+    edges: any[];
+    detectedFormat: 'n8n' | 'internal';
+  };
+
   const exportWorkflow = (format: 'json' | 'yaml') => {
     const workflowData = {
       name: workflowName,
@@ -191,13 +197,32 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
   };
 
   const isN8nFormat = (data: any): boolean => {
-    // n8n exports have nodes with "type" like "n8n-nodes-base.xxx" and "connections" object
-    return (
-      data.nodes?.some?.((n: any) => 
-        typeof n.type === 'string' && (n.type.includes('n8n-nodes-base') || n.type.includes('n8n-nodes-langchain'))
-      ) || 
-      data.connections !== undefined
-    );
+    if (!data || !Array.isArray(data.nodes)) return false;
+
+    return data.nodes.some((n: any) => {
+      const hasN8nTypePrefix = typeof n.type === 'string' && (n.type.includes('n8n-') || n.type.startsWith('@'));
+      const hasN8nNodeShape = n?.parameters !== undefined || Array.isArray(n?.position) || n?.typeVersion !== undefined;
+      return hasN8nTypePrefix && hasN8nNodeShape;
+    }) || data.connections !== undefined;
+  };
+
+  const normalizeNodesToViewport = (importedNodes: any[]) => {
+    if (importedNodes.length === 0) return importedNodes;
+
+    const minX = Math.min(...importedNodes.map((n) => n.position?.x ?? 0));
+    const minY = Math.min(...importedNodes.map((n) => n.position?.y ?? 0));
+
+    const targetPadding = 100;
+    const offsetX = targetPadding - minX;
+    const offsetY = targetPadding - minY;
+
+    return importedNodes.map((node) => ({
+      ...node,
+      position: {
+        x: (node.position?.x ?? 0) + offsetX,
+        y: (node.position?.y ?? 0) + offsetY,
+      },
+    }));
   };
 
   const convertN8nWorkflow = (data: any) => {
@@ -207,7 +232,7 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
     const importedNodes = visibleNodes.map((n: any, index: number) => {
       const mapped = mapN8nType(n.type);
       return {
-        id: n.id || `imported-${index}-${Date.now()}`,
+        id: String(n.id || `imported-${index}-${Date.now()}`),
         type: 'workflowNode',
         position: n.position 
           ? { x: n.position[0] ?? n.position.x ?? 100 + index * 250, y: n.position[1] ?? n.position.y ?? 100 }
@@ -225,7 +250,7 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
     const importedEdges: any[] = [];
     const nodeNameToId: Record<string, string> = {};
     visibleNodes.forEach((n: any, i: number) => {
-      nodeNameToId[n.name] = n.id || `imported-${i}-${Date.now()}`;
+      nodeNameToId[n.name] = String(n.id || `imported-${i}-${Date.now()}`);
     });
 
     if (data.connections) {
@@ -243,8 +268,8 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
               if (targetId) {
                 importedEdges.push({
                   id: `edge-${importedEdges.length}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-                  source: sourceId,
-                  target: targetId,
+                  source: String(sourceId),
+                  target: String(targetId),
                   type: 'default',
                   animated: true,
                   style: { strokeWidth: 2, stroke: 'hsl(var(--primary) / 0.5)' },
@@ -256,7 +281,77 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
       });
     }
 
-    return { nodes: importedNodes, edges: importedEdges };
+    return {
+      nodes: normalizeNodesToViewport(importedNodes),
+      edges: importedEdges,
+    };
+  };
+
+  const buildImportedWorkflow = (rawData: any): ImportedWorkflow => {
+    if (isN8nFormat(rawData)) {
+      const converted = convertN8nWorkflow(rawData);
+      return {
+        nodes: converted.nodes,
+        edges: converted.edges,
+        detectedFormat: 'n8n',
+      };
+    }
+
+    if (!rawData.nodes || !Array.isArray(rawData.nodes)) {
+      throw new Error('Invalid workflow format: missing nodes array');
+    }
+
+    const importedNodes = rawData.nodes.map((n: any, index: number) => {
+      const resolvedPosition = Array.isArray(n.position)
+        ? { x: n.position[0] ?? 100 + index * 200, y: n.position[1] ?? 100 }
+        : n.position || { x: 100 + index * 200, y: 100 };
+
+      return {
+        id: String(n.id || `imported-${index}-${Date.now()}`),
+        type: 'workflowNode',
+        position: resolvedPosition,
+        data: {
+          label: n.label || n.name || n.type,
+          type: n.type,
+          category: n.category || 'Actions',
+          config: n.config || n.parameters || {},
+        },
+      };
+    });
+
+    const importedEdges = (rawData.edges || []).map((e: any, index: number) => ({
+      id: `edge-${index}-${Date.now()}`,
+      source: String(e.source),
+      target: String(e.target),
+      type: 'default',
+      animated: true,
+      style: { strokeWidth: 2, stroke: 'hsl(var(--primary) / 0.5)' },
+    }));
+
+    return { nodes: importedNodes, edges: importedEdges, detectedFormat: 'internal' };
+  };
+
+  const parseWorkflowContent = (content: string): ImportedWorkflow => {
+    let parsedData: any;
+    try {
+      parsedData = JSON.parse(content);
+    } catch {
+      parsedData = parseYaml(content);
+    }
+
+    return buildImportedWorkflow(parsedData);
+  };
+
+  const applyImportedWorkflow = (imported: ImportedWorkflow) => {
+    loadWorkflow({ nodes: imported.nodes, edges: imported.edges });
+
+    if (imported.detectedFormat === 'n8n') {
+      toast.info(`Detected n8n format — converted ${imported.nodes.length} nodes`);
+    }
+
+    toast.success(`Imported ${imported.nodes.length} nodes and ${imported.edges.length} connections`);
+    setImportDialogOpen(false);
+    setImportData('');
   };
 
   const importWorkflow = () => {
@@ -266,56 +361,8 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
     }
 
     try {
-      let data: any;
-      
-      // Try JSON first, then YAML
-      try {
-        data = JSON.parse(importData);
-      } catch {
-        data = parseYaml(importData);
-      }
-
-      let importedNodes: any[];
-      let importedEdges: any[];
-
-      if (isN8nFormat(data)) {
-        // n8n workflow format
-        const converted = convertN8nWorkflow(data);
-        importedNodes = converted.nodes;
-        importedEdges = converted.edges;
-        toast.info(`Detected n8n format — converted ${importedNodes.length} nodes`);
-      } else {
-        // Internal format
-        if (!data.nodes || !Array.isArray(data.nodes)) {
-          throw new Error('Invalid workflow format: missing nodes array');
-        }
-
-        importedNodes = data.nodes.map((n: any, index: number) => ({
-          id: n.id || `imported-${index}-${Date.now()}`,
-          type: 'workflowNode',
-          position: n.position || { x: 100 + index * 200, y: 100 },
-          data: {
-            label: n.label || n.type,
-            type: n.type,
-            category: n.category || 'Actions',
-            config: n.config || {},
-          },
-        }));
-
-        importedEdges = (data.edges || []).map((e: any, index: number) => ({
-          id: `edge-${index}-${Date.now()}`,
-          source: e.source,
-          target: e.target,
-          type: 'default',
-          animated: true,
-          style: { strokeWidth: 2, stroke: 'hsl(var(--primary) / 0.5)' },
-        }));
-      }
-
-      loadWorkflow({ nodes: importedNodes, edges: importedEdges });
-      toast.success(`Imported ${importedNodes.length} nodes and ${importedEdges.length} connections`);
-      setImportDialogOpen(false);
-      setImportData('');
+      const imported = parseWorkflowContent(importData);
+      applyImportedWorkflow(imported);
     } catch (error: any) {
       toast.error(`Import failed: ${error.message}`);
     }
@@ -329,57 +376,15 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setImportData(content);
-      // Auto-import after file is loaded
-      setTimeout(() => {
-        try {
-          let data: any;
-          try {
-            data = JSON.parse(content);
-          } catch {
-            data = parseYaml(content);
-          }
 
-          let importedNodes: any[];
-          let importedEdges: any[];
+      try {
+        const imported = parseWorkflowContent(content);
+        applyImportedWorkflow(imported);
+      } catch (error: any) {
+        toast.error(`Import failed: ${error.message}`);
+      }
 
-          if (isN8nFormat(data)) {
-            const converted = convertN8nWorkflow(data);
-            importedNodes = converted.nodes;
-            importedEdges = converted.edges;
-            toast.info(`Detected n8n format — converted ${importedNodes.length} nodes`);
-          } else {
-            if (!data.nodes || !Array.isArray(data.nodes)) {
-              throw new Error('Invalid workflow format: missing nodes array');
-            }
-            importedNodes = data.nodes.map((n: any, index: number) => ({
-              id: n.id || `imported-${index}-${Date.now()}`,
-              type: 'workflowNode',
-              position: n.position || { x: 100 + index * 200, y: 100 },
-              data: {
-                label: n.label || n.type,
-                type: n.type,
-                category: n.category || 'Actions',
-                config: n.config || {},
-              },
-            }));
-            importedEdges = (data.edges || []).map((e: any, index: number) => ({
-              id: `edge-${index}-${Date.now()}`,
-              source: e.source,
-              target: e.target,
-              type: 'default',
-              animated: true,
-              style: { strokeWidth: 2, stroke: 'hsl(var(--primary) / 0.5)' },
-            }));
-          }
-
-          loadWorkflow({ nodes: importedNodes, edges: importedEdges });
-          toast.success(`Imported ${importedNodes.length} nodes and ${importedEdges.length} connections`);
-          setImportDialogOpen(false);
-          setImportData('');
-        } catch (error: any) {
-          toast.error(`Import failed: ${error.message}`);
-        }
-      }, 100);
+      event.target.value = '';
     };
     reader.readAsText(file);
   };
