@@ -143,6 +143,118 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
     }
   };
 
+  // Map n8n node types to internal node types
+  const mapN8nType = (n8nType: string): { type: string; category: string } => {
+    const typeMap: Record<string, { type: string; category: string }> = {
+      'n8n-nodes-base.formTrigger': { type: 'form-trigger', category: 'Triggers' },
+      'n8n-nodes-base.webhook': { type: 'webhook-trigger', category: 'Triggers' },
+      'n8n-nodes-base.scheduleTrigger': { type: 'schedule-trigger', category: 'Triggers' },
+      'n8n-nodes-base.manualTrigger': { type: 'manual-trigger', category: 'Triggers' },
+      'n8n-nodes-base.emailTrigger': { type: 'email-trigger', category: 'Triggers' },
+      'n8n-nodes-base.httpRequest': { type: 'http-request', category: 'Actions' },
+      'n8n-nodes-base.if': { type: 'if-condition', category: 'Logic & Flow' },
+      'n8n-nodes-base.switch': { type: 'switch', category: 'Logic & Flow' },
+      'n8n-nodes-base.splitInBatches': { type: 'loop', category: 'Logic & Flow' },
+      'n8n-nodes-base.merge': { type: 'merge', category: 'Logic & Flow' },
+      'n8n-nodes-base.set': { type: 'set-data', category: 'Data Manipulation' },
+      'n8n-nodes-base.code': { type: 'code-node', category: 'Actions' },
+      'n8n-nodes-base.function': { type: 'code-node', category: 'Actions' },
+      'n8n-nodes-base.googleSheets': { type: 'google-sheets', category: 'Productivity' },
+      'n8n-nodes-base.slack': { type: 'slack-message', category: 'Communication' },
+      'n8n-nodes-base.gmail': { type: 'gmail-send', category: 'Communication' },
+      'n8n-nodes-base.sendEmail': { type: 'send-email', category: 'Actions' },
+      'n8n-nodes-base.discord': { type: 'discord-message', category: 'Communication' },
+      'n8n-nodes-base.telegram': { type: 'telegram-message', category: 'Communication' },
+      'n8n-nodes-base.notion': { type: 'notion-page', category: 'Productivity' },
+      'n8n-nodes-base.airtable': { type: 'airtable-record', category: 'Productivity' },
+      'n8n-nodes-base.postgres': { type: 'postgres-query', category: 'Databases' },
+      'n8n-nodes-base.mysql': { type: 'mysql-query', category: 'Databases' },
+      'n8n-nodes-base.mongoDb': { type: 'mongodb-query', category: 'Databases' },
+      'n8n-nodes-base.redis': { type: 'redis-command', category: 'Databases' },
+      'n8n-nodes-base.stripe': { type: 'stripe-charge', category: 'Payments' },
+      'n8n-nodes-base.wait': { type: 'delay', category: 'Logic & Flow' },
+      'n8n-nodes-base.noOp': { type: 'no-op', category: 'Logic & Flow' },
+      'n8n-nodes-base.stickyNote': { type: 'sticky-note', category: 'Custom Nodes' },
+      'n8n-nodes-base.respondToWebhook': { type: 'webhook-response', category: 'Actions' },
+      '@n8n/n8n-nodes-langchain.agent': { type: 'openai-gpt', category: 'AI & Machine Learning' },
+      '@n8n/n8n-nodes-langchain.lmChatOpenAi': { type: 'openai-gpt', category: 'AI & Machine Learning' },
+      '@n8n/n8n-nodes-langchain.lmChatGoogleGemini': { type: 'google-gemini', category: 'AI & Machine Learning' },
+      '@n8n/n8n-nodes-langchain.lmChatAnthropic': { type: 'anthropic-claude', category: 'AI & Machine Learning' },
+      '@n8n/n8n-nodes-langchain.outputParserStructured': { type: 'json-parse', category: 'Data Manipulation' },
+    };
+
+    if (typeMap[n8nType]) return typeMap[n8nType];
+
+    // Fallback: try to derive a reasonable type
+    const shortName = n8nType.replace('n8n-nodes-base.', '').replace('@n8n/n8n-nodes-langchain.', '');
+    return { type: shortName, category: 'Actions' };
+  };
+
+  const isN8nFormat = (data: any): boolean => {
+    // n8n exports have nodes with "type" like "n8n-nodes-base.xxx" and "connections" object
+    return (
+      data.nodes?.some?.((n: any) => 
+        typeof n.type === 'string' && (n.type.includes('n8n-nodes-base') || n.type.includes('n8n-nodes-langchain'))
+      ) || 
+      data.connections !== undefined
+    );
+  };
+
+  const convertN8nWorkflow = (data: any) => {
+    // Filter out sticky notes and hidden sub-nodes
+    const visibleNodes = (data.nodes || []).filter((n: any) => n.type !== 'n8n-nodes-base.stickyNote');
+
+    const importedNodes = visibleNodes.map((n: any, index: number) => {
+      const mapped = mapN8nType(n.type);
+      return {
+        id: n.id || `imported-${index}-${Date.now()}`,
+        type: 'workflowNode',
+        position: n.position 
+          ? { x: n.position[0] ?? n.position.x ?? 100 + index * 250, y: n.position[1] ?? n.position.y ?? 100 }
+          : { x: 100 + index * 250, y: 100 },
+        data: {
+          label: n.name || mapped.type,
+          type: mapped.type,
+          category: mapped.category,
+          config: n.parameters || {},
+        },
+      };
+    });
+
+    // Convert n8n connections format: { "NodeName": { "main": [[{ "node": "TargetName", "type": "main", "index": 0 }]] } }
+    const importedEdges: any[] = [];
+    const nodeNameToId: Record<string, string> = {};
+    visibleNodes.forEach((n: any, i: number) => {
+      nodeNameToId[n.name] = n.id || `imported-${i}-${Date.now()}`;
+    });
+
+    if (data.connections) {
+      Object.entries(data.connections).forEach(([sourceName, outputs]: [string, any]) => {
+        const sourceId = nodeNameToId[sourceName];
+        if (!sourceId || !outputs?.main) return;
+
+        outputs.main.forEach((connections: any[]) => {
+          if (!Array.isArray(connections)) return;
+          connections.forEach((conn: any) => {
+            const targetId = nodeNameToId[conn.node];
+            if (targetId) {
+              importedEdges.push({
+                id: `edge-${importedEdges.length}-${Date.now()}`,
+                source: sourceId,
+                target: targetId,
+                type: 'default',
+                animated: true,
+                style: { strokeWidth: 2, stroke: 'hsl(var(--primary) / 0.5)' },
+              });
+            }
+          });
+        });
+      });
+    }
+
+    return { nodes: importedNodes, edges: importedEdges };
+  };
+
   const importWorkflow = () => {
     if (!importData.trim()) {
       toast.error('Please paste workflow data');
@@ -159,30 +271,42 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
         data = parseYaml(importData);
       }
 
-      if (!data.nodes || !Array.isArray(data.nodes)) {
-        throw new Error('Invalid workflow format: missing nodes array');
+      let importedNodes: any[];
+      let importedEdges: any[];
+
+      if (isN8nFormat(data)) {
+        // n8n workflow format
+        const converted = convertN8nWorkflow(data);
+        importedNodes = converted.nodes;
+        importedEdges = converted.edges;
+        toast.info(`Detected n8n format — converted ${importedNodes.length} nodes`);
+      } else {
+        // Internal format
+        if (!data.nodes || !Array.isArray(data.nodes)) {
+          throw new Error('Invalid workflow format: missing nodes array');
+        }
+
+        importedNodes = data.nodes.map((n: any, index: number) => ({
+          id: n.id || `imported-${index}-${Date.now()}`,
+          type: 'workflowNode',
+          position: n.position || { x: 100 + index * 200, y: 100 },
+          data: {
+            label: n.label || n.type,
+            type: n.type,
+            category: n.category || 'Actions',
+            config: n.config || {},
+          },
+        }));
+
+        importedEdges = (data.edges || []).map((e: any, index: number) => ({
+          id: `edge-${index}-${Date.now()}`,
+          source: e.source,
+          target: e.target,
+          type: 'default',
+          animated: true,
+          style: { strokeWidth: 2, stroke: 'hsl(var(--primary) / 0.5)' },
+        }));
       }
-
-      // Convert to internal format
-      const importedNodes = data.nodes.map((n: any, index: number) => ({
-        id: n.id || `imported-${index}-${Date.now()}`,
-        type: 'workflowNode',
-        position: n.position || { x: 100 + index * 200, y: 100 },
-        data: {
-          label: n.label || n.type,
-          type: n.type,
-          category: n.category || 'Actions',
-          config: n.config || {},
-        },
-      }));
-
-      const importedEdges = (data.edges || []).map((e: any, index: number) => ({
-        id: `edge-${index}-${Date.now()}`,
-        source: e.source,
-        target: e.target,
-        animated: true,
-        style: { stroke: 'hsl(var(--primary))' },
-      }));
 
       loadWorkflow({ nodes: importedNodes, edges: importedEdges });
       toast.success(`Imported ${importedNodes.length} nodes and ${importedEdges.length} connections`);
