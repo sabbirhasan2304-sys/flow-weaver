@@ -58,6 +58,7 @@ export function WorkflowCanvas({ workflowId, initialData, onSave }: WorkflowCanv
     isExecuting,
     setExecuting,
     loadWorkflow,
+    lastLoadedAt,
   } = useWorkflowStore();
   
   const [canUndo, setCanUndo] = useState(false);
@@ -105,6 +106,16 @@ export function WorkflowCanvas({ workflowId, initialData, onSave }: WorkflowCanv
       }
     }
   }, [initialData, hasLoaded, loadWorkflow, fitView]);
+
+  useEffect(() => {
+    if (!lastLoadedAt) return;
+
+    const timer = setTimeout(() => {
+      fitView({ padding: 0.2, duration: 250 });
+    }, 80);
+
+    return () => clearTimeout(timer);
+  }, [lastLoadedAt, fitView]);
 
   const onDragOver = useCallback((event: DragEvent) => {
     event.preventDefault();
