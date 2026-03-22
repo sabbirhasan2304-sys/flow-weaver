@@ -47,6 +47,7 @@ interface WorkflowState {
   edges: WorkflowEdge[];
   selectedNode: WorkflowNode | null;
   isExecuting: boolean;
+  lastLoadedAt: number | null;
   executionLogs: Array<{
     nodeId: string;
     timestamp: Date;
@@ -80,6 +81,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   edges: [],
   selectedNode: null,
   isExecuting: false,
+  lastLoadedAt: null,
   executionLogs: [],
   
   setNodes: (nodes) => set({ nodes }),
@@ -164,5 +166,5 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   
   clearWorkflow: () => set({ nodes: [], edges: [], selectedNode: null, executionLogs: [] }),
   
-  loadWorkflow: (data) => set({ nodes: data.nodes, edges: data.edges }),
+  loadWorkflow: (data) => set({ nodes: data.nodes, edges: data.edges, lastLoadedAt: Date.now() }),
 }));
