@@ -27,8 +27,8 @@ import { emailMarketingNodes } from './emailMarketing';
 import { integrationNodes } from './integrations';
 import { bangladeshNodes } from './bangladesh';
 
-// Combine all node definitions
-export const nodeDefinitions: NodeDefinition[] = [
+// Combine all node definitions and deduplicate by type (first occurrence wins)
+const allNodes: NodeDefinition[] = [
   ...triggerNodes,
   ...actionNodes,
   ...dataNodes,
@@ -51,6 +51,13 @@ export const nodeDefinitions: NodeDefinition[] = [
   ...integrationNodes,
   ...bangladeshNodes,
 ];
+
+const seen = new Set<string>();
+export const nodeDefinitions: NodeDefinition[] = allNodes.filter((node) => {
+  if (seen.has(node.type)) return false;
+  seen.add(node.type);
+  return true;
+});
 
 // Helper function to get node by type
 export function getNodeDefinition(type: string): NodeDefinition | undefined {

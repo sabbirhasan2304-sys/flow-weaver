@@ -371,11 +371,11 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
                 
                 <CollapsibleContent>
                   <div className="ml-3 space-y-0.5 pb-1">
-                    {allowedInCat.map((node) => (
-                      <NodeItem key={node.type} node={node} onDragStart={onDragStart} />
+                    {allowedInCat.map((node, idx) => (
+                      <NodeItem key={`${node.type}-${idx}`} node={node} onDragStart={onDragStart} />
                     ))}
-                    {lockedInCat.map((node) => (
-                      <NodeItem key={node.type} node={node} onDragStart={onDragStart} locked />
+                    {lockedInCat.map((node, idx) => (
+                      <NodeItem key={`locked-${node.type}-${idx}`} node={node} onDragStart={onDragStart} locked />
                     ))}
                   </div>
                 </CollapsibleContent>

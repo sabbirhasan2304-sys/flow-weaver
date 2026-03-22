@@ -231,22 +231,26 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
     if (data.connections) {
       Object.entries(data.connections).forEach(([sourceName, outputs]: [string, any]) => {
         const sourceId = nodeNameToId[sourceName];
-        if (!sourceId || !outputs?.main) return;
+        if (!sourceId) return;
 
-        outputs.main.forEach((connections: any[]) => {
-          if (!Array.isArray(connections)) return;
-          connections.forEach((conn: any) => {
-            const targetId = nodeNameToId[conn.node];
-            if (targetId) {
-              importedEdges.push({
-                id: `edge-${importedEdges.length}-${Date.now()}`,
-                source: sourceId,
-                target: targetId,
-                type: 'default',
-                animated: true,
-                style: { strokeWidth: 2, stroke: 'hsl(var(--primary) / 0.5)' },
-              });
-            }
+        // Handle all connection types: main, ai_outputParser, ai_languageModel, etc.
+        Object.values(outputs).forEach((outputArrays: any) => {
+          if (!Array.isArray(outputArrays)) return;
+          outputArrays.forEach((connections: any) => {
+            if (!Array.isArray(connections)) return;
+            connections.forEach((conn: any) => {
+              const targetId = nodeNameToId[conn.node];
+              if (targetId) {
+                importedEdges.push({
+                  id: `edge-${importedEdges.length}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                  source: sourceId,
+                  target: targetId,
+                  type: 'default',
+                  animated: true,
+                  style: { strokeWidth: 2, stroke: 'hsl(var(--primary) / 0.5)' },
+                });
+              }
+            });
           });
         });
       });
@@ -325,6 +329,57 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setImportData(content);
+      // Auto-import after file is loaded
+      setTimeout(() => {
+        try {
+          let data: any;
+          try {
+            data = JSON.parse(content);
+          } catch {
+            data = parseYaml(content);
+          }
+
+          let importedNodes: any[];
+          let importedEdges: any[];
+
+          if (isN8nFormat(data)) {
+            const converted = convertN8nWorkflow(data);
+            importedNodes = converted.nodes;
+            importedEdges = converted.edges;
+            toast.info(`Detected n8n format — converted ${importedNodes.length} nodes`);
+          } else {
+            if (!data.nodes || !Array.isArray(data.nodes)) {
+              throw new Error('Invalid workflow format: missing nodes array');
+            }
+            importedNodes = data.nodes.map((n: any, index: number) => ({
+              id: n.id || `imported-${index}-${Date.now()}`,
+              type: 'workflowNode',
+              position: n.position || { x: 100 + index * 200, y: 100 },
+              data: {
+                label: n.label || n.type,
+                type: n.type,
+                category: n.category || 'Actions',
+                config: n.config || {},
+              },
+            }));
+            importedEdges = (data.edges || []).map((e: any, index: number) => ({
+              id: `edge-${index}-${Date.now()}`,
+              source: e.source,
+              target: e.target,
+              type: 'default',
+              animated: true,
+              style: { strokeWidth: 2, stroke: 'hsl(var(--primary) / 0.5)' },
+            }));
+          }
+
+          loadWorkflow({ nodes: importedNodes, edges: importedEdges });
+          toast.success(`Imported ${importedNodes.length} nodes and ${importedEdges.length} connections`);
+          setImportDialogOpen(false);
+          setImportData('');
+        } catch (error: any) {
+          toast.error(`Import failed: ${error.message}`);
+        }
+      }, 100);
     };
     reader.readAsText(file);
   };
