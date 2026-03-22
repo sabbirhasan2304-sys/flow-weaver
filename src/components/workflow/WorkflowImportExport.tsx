@@ -184,9 +184,12 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
       'n8n-nodes-base.respondToWebhook': { type: 'webhook-response', category: 'Actions' },
       '@n8n/n8n-nodes-langchain.agent': { type: 'openai-gpt', category: 'AI & Machine Learning' },
       '@n8n/n8n-nodes-langchain.lmChatOpenAi': { type: 'openai-gpt', category: 'AI & Machine Learning' },
+      '@n8n/n8n-nodes-langchain.lmChatOpenRouter': { type: 'openai-gpt', category: 'AI & Machine Learning' },
       '@n8n/n8n-nodes-langchain.lmChatGoogleGemini': { type: 'google-gemini', category: 'AI & Machine Learning' },
       '@n8n/n8n-nodes-langchain.lmChatAnthropic': { type: 'anthropic-claude', category: 'AI & Machine Learning' },
       '@n8n/n8n-nodes-langchain.outputParserStructured': { type: 'json-parse', category: 'Data Manipulation' },
+      '@apify/n8n-nodes-apify.apify': { type: 'http-request', category: 'Actions' },
+      'n8n-nodes-base.removeDuplicates': { type: 'remove-duplicates', category: 'Data Manipulation' },
     };
 
     if (typeMap[n8nType]) return typeMap[n8nType];
