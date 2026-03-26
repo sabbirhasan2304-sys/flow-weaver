@@ -32,7 +32,7 @@ import {
   Search, ChevronRight, GripVertical,
   Tag, FlaskConical, TrendingUp, ClipboardList,
   Link2, Phone, QrCode, Copy, Flame, Rss, BarChart2, Bug, FileInput,
-  Reply, ShoppingBag,
+  Reply, ShoppingBag, Star,
 } from 'lucide-react';
 import {
   OpenAIIcon, AnthropicIcon, GoogleIcon, SlackIcon, DiscordIcon,
