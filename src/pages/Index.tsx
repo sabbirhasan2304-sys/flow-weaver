@@ -81,6 +81,7 @@ const fadeUp = {
 export default function Index() {
   const { user, loading } = useAuth();
   const { isAdmin } = useAdmin();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
