@@ -361,7 +361,7 @@ export default function Index() {
       </section>
 
       {/* Use Cases Section */}
-      <section id="use-cases" className="py-28">
+      <section id="use-cases" className="py-16 md:py-28">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
