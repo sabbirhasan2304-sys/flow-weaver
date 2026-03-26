@@ -258,7 +258,40 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
     new Set(['Triggers', 'Actions'])
   );
   const { isNodeAllowed, requiresPlugin } = useInstalledPlugins();
-  
+
+  // Favorites & Recents from localStorage
+  const [favorites, setFavorites] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('biztori-favorite-nodes') || '[]')); }
+    catch { return new Set(); }
+  });
+  const [recents, setRecents] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('biztori-recent-nodes') || '[]'); }
+    catch { return []; }
+  });
+
+  const toggleFavorite = useCallback((nodeType: string) => {
+    setFavorites(prev => {
+      const next = new Set(prev);
+      if (next.has(nodeType)) next.delete(nodeType);
+      else next.add(nodeType);
+      localStorage.setItem('biztori-favorite-nodes', JSON.stringify([...next]));
+      return next;
+    });
+  }, []);
+
+  const trackRecent = useCallback((nodeType: string) => {
+    setRecents(prev => {
+      const next = [nodeType, ...prev.filter(t => t !== nodeType)].slice(0, 8);
+      localStorage.setItem('biztori-recent-nodes', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const handleDragStartWithTracking = useCallback((e: React.DragEvent, nodeType: string) => {
+    trackRecent(nodeType);
+    onDragStart(e, nodeType);
+  }, [onDragStart, trackRecent]);
+
   const categorizedNodes = useMemo(() => getNodesByCategory(), []);
   
   // Split nodes into allowed and locked per category
@@ -294,6 +327,19 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
     
     return { filteredNodes: allowed, lockedNodes: locked };
   }, [categorizedNodes, search, isNodeAllowed]);
+
+  // Favorite nodes
+  const favoriteNodes = useMemo(() => {
+    return nodeDefinitions.filter(n => favorites.has(n.type) && isNodeAllowed(n.type));
+  }, [favorites, isNodeAllowed]);
+
+  // Recent nodes
+  const recentNodes = useMemo(() => {
+    return recents
+      .map(type => nodeDefinitions.find(n => n.type === type))
+      .filter((n): n is typeof nodeDefinitions[0] => !!n && isNodeAllowed(n.type))
+      .slice(0, 5);
+  }, [recents, isNodeAllowed]);
   
   const toggleCategory = useCallback((category: string) => {
     setExpandedCategories(prev => {
