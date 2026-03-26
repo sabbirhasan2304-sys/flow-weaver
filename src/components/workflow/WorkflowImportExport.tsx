@@ -209,22 +209,90 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
     }) || data.connections !== undefined;
   };
 
-  const normalizeNodesToViewport = (importedNodes: any[]) => {
+  /**
+   * Auto-layout: arranges nodes in a clean left-to-right DAG layout
+   * using topological layering (Sugiyama-style).
+   */
+  const autoLayoutNodes = (importedNodes: any[], importedEdges: any[]) => {
     if (importedNodes.length === 0) return importedNodes;
+    if (importedNodes.length === 1) {
+      return [{ ...importedNodes[0], position: { x: 100, y: 200 } }];
+    }
 
-    const minX = Math.min(...importedNodes.map((n) => n.position?.x ?? 0));
-    const minY = Math.min(...importedNodes.map((n) => n.position?.y ?? 0));
+    const NODE_WIDTH = 220;
+    const NODE_HEIGHT = 80;
+    const H_GAP = 120; // horizontal gap between layers
+    const V_GAP = 100; // vertical gap between nodes in same layer
 
-    const targetPadding = 100;
-    const offsetX = targetPadding - minX;
-    const offsetY = targetPadding - minY;
+    // Build adjacency list and in-degree map
+    const idSet = new Set(importedNodes.map((n: any) => n.id));
+    const adj: Record<string, string[]> = {};
+    const inDegree: Record<string, number> = {};
+    
+    importedNodes.forEach((n: any) => {
+      adj[n.id] = [];
+      inDegree[n.id] = 0;
+    });
 
-    return importedNodes.map((node) => ({
+    importedEdges.forEach((e: any) => {
+      if (idSet.has(e.source) && idSet.has(e.target)) {
+        adj[e.source].push(e.target);
+        inDegree[e.target] = (inDegree[e.target] || 0) + 1;
+      }
+    });
+
+    // Topological sort using Kahn's algorithm → assign layers
+    const layers: string[][] = [];
+    let queue = importedNodes
+      .filter((n: any) => (inDegree[n.id] || 0) === 0)
+      .map((n: any) => n.id);
+
+    const assigned = new Set<string>();
+
+    while (queue.length > 0) {
+      layers.push([...queue]);
+      queue.forEach((id) => assigned.add(id));
+
+      const nextQueue: string[] = [];
+      queue.forEach((id) => {
+        (adj[id] || []).forEach((target) => {
+          inDegree[target]--;
+          if (inDegree[target] === 0 && !assigned.has(target)) {
+            nextQueue.push(target);
+          }
+        });
+      });
+      queue = nextQueue;
+    }
+
+    // Handle any remaining nodes (cycles or disconnected)
+    const unassigned = importedNodes
+      .filter((n: any) => !assigned.has(n.id))
+      .map((n: any) => n.id);
+    if (unassigned.length > 0) {
+      layers.push(unassigned);
+    }
+
+    // Assign positions: left-to-right layers, vertically centered
+    const nodePositions: Record<string, { x: number; y: number }> = {};
+    const maxLayerHeight = Math.max(...layers.map((l) => l.length));
+    const totalHeight = maxLayerHeight * (NODE_HEIGHT + V_GAP);
+
+    layers.forEach((layer, layerIndex) => {
+      const layerHeight = layer.length * (NODE_HEIGHT + V_GAP) - V_GAP;
+      const startY = (totalHeight - layerHeight) / 2;
+
+      layer.forEach((nodeId, nodeIndex) => {
+        nodePositions[nodeId] = {
+          x: 100 + layerIndex * (NODE_WIDTH + H_GAP),
+          y: startY + nodeIndex * (NODE_HEIGHT + V_GAP),
+        };
+      });
+    });
+
+    return importedNodes.map((node: any) => ({
       ...node,
-      position: {
-        x: (node.position?.x ?? 0) + offsetX,
-        y: (node.position?.y ?? 0) + offsetY,
-      },
+      position: nodePositions[node.id] || node.position || { x: 100, y: 100 },
     }));
   };
 
@@ -285,7 +353,7 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
     }
 
     return {
-      nodes: normalizeNodesToViewport(importedNodes),
+      nodes: autoLayoutNodes(importedNodes, importedEdges),
       edges: importedEdges,
     };
   };
@@ -331,7 +399,7 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
       style: { strokeWidth: 2, stroke: 'hsl(var(--primary) / 0.5)' },
     }));
 
-    return { nodes: importedNodes, edges: importedEdges, detectedFormat: 'internal' };
+    return { nodes: autoLayoutNodes(importedNodes, importedEdges), edges: importedEdges, detectedFormat: 'internal' };
   };
 
   const parseWorkflowContent = (content: string): ImportedWorkflow => {
