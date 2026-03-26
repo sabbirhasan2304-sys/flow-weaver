@@ -378,13 +378,44 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
         </div>
       </div>
       
+      {/* Favorites Section */}
+      {!search && favoriteNodes.length > 0 && (
+        <div className="px-3 pt-2">
+          <div className="flex items-center gap-1.5 mb-1.5 px-1">
+            <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Favorites</span>
+          </div>
+          <div className="space-y-0.5 pb-2 border-b border-border/30">
+            {favoriteNodes.map((node, idx) => (
+              <NodeItem key={`fav-${node.type}-${idx}`} node={node} onDragStart={handleDragStartWithTracking} 
+                isFavorite onToggleFavorite={() => toggleFavorite(node.type)} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Recents Section */}
+      {!search && recentNodes.length > 0 && (
+        <div className="px-3 pt-2">
+          <div className="flex items-center gap-1.5 mb-1.5 px-1">
+            <Clock className="h-3 w-3 text-muted-foreground" />
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Recent</span>
+          </div>
+          <div className="space-y-0.5 pb-2 border-b border-border/30">
+            {recentNodes.map((node, idx) => (
+              <NodeItem key={`recent-${node.type}-${idx}`} node={node} onDragStart={handleDragStartWithTracking}
+                isFavorite={favorites.has(node.type)} onToggleFavorite={() => toggleFavorite(node.type)} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Node list */}
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-0.5">
           {allCategories.map((category) => {
             const allowedInCat = filteredNodes[category] || [];
             const lockedInCat = lockedNodes[category] || [];
-            const totalInCat = allowedInCat.length + lockedInCat.length;
             
             return (
               <Collapsible
@@ -418,10 +449,11 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
                 <CollapsibleContent>
                   <div className="ml-3 space-y-0.5 pb-1">
                     {allowedInCat.map((node, idx) => (
-                      <NodeItem key={`${node.type}-${idx}`} node={node} onDragStart={onDragStart} />
+                      <NodeItem key={`${node.type}-${idx}`} node={node} onDragStart={handleDragStartWithTracking}
+                        isFavorite={favorites.has(node.type)} onToggleFavorite={() => toggleFavorite(node.type)} />
                     ))}
                     {lockedInCat.map((node, idx) => (
-                      <NodeItem key={`locked-${node.type}-${idx}`} node={node} onDragStart={onDragStart} locked />
+                      <NodeItem key={`locked-${node.type}-${idx}`} node={node} onDragStart={handleDragStartWithTracking} locked />
                     ))}
                   </div>
                 </CollapsibleContent>
