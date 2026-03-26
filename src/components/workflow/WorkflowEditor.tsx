@@ -10,6 +10,7 @@ import { ApiTestPanel } from './ApiTestPanel';
 import { VersionHistory } from './VersionHistory';
 import { ScheduleDialog } from './ScheduleDialog';
 import { WebhookUrlCard } from './WebhookUrlCard';
+import { NodeDashboard } from './NodeDashboard';
 import { useWorkflowStore } from '@/stores/workflowStore';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import {
