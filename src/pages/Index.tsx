@@ -244,7 +244,7 @@ export default function Index() {
                Bangladesh's #1 Automation Platform 🇧🇩
             </motion.div>
             
-            <h1 className="text-5xl md:text-7xl font-extrabold text-foreground mb-6 leading-[1.1] tracking-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-extrabold text-foreground mb-6 leading-[1.1] tracking-tight">
               Automate Everything.
               <br />
               <span className="gradient-text">Build Anything.</span>
