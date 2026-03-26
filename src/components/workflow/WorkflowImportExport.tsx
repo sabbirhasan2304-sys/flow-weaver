@@ -353,7 +353,7 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
     }
 
     return {
-      nodes: normalizeNodesToViewport(importedNodes),
+      nodes: autoLayoutNodes(importedNodes, importedEdges),
       edges: importedEdges,
     };
   };
