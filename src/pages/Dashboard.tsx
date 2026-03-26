@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +39,8 @@ import {
   LayoutGrid, List, Filter,
   LogOut, Settings, User, ChevronDown,
   Folder, FileCode, Sparkles, Store,
-  CreditCard, Lock, Shield, Mail
+  CreditCard, Lock, Shield, Mail, Menu,
+  ArrowRight, Download, BookOpen, X
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -53,6 +56,7 @@ interface Workflow {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, profile, signOut, activeWorkspace, loading: authLoading } = useAuth();
   const { isAdmin } = useAdmin();
   const { subscription, isWithinLimits, loading: subscriptionLoading } = useSubscription();
@@ -207,17 +211,84 @@ export default function Dashboard() {
     w.description?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return localStorage.getItem('biztori-onboarding-dismissed') !== 'true';
+  });
+
+  const dismissOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('biztori-onboarding-dismissed', 'true');
+  };
+
+  const mobileNavItems = [
+    { label: 'Workflows', href: '/dashboard', icon: Folder },
+    { label: 'Templates', href: '/templates', icon: Sparkles },
+    { label: 'Marketplace', href: '/marketplace', icon: Store },
+    { label: 'Executions', href: '/executions', icon: Clock },
+    { label: 'Credentials', href: '/credentials', icon: Settings },
+    { label: 'Email', href: '/email-marketing', icon: Mail },
+    { label: 'Billing', href: '/billing', icon: CreditCard },
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
+            {/* Mobile menu */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden -ml-2">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[280px] p-0">
+                <SheetHeader className="p-6 pb-4">
+                  <SheetTitle className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                      <Zap className="h-4 w-4 text-primary-foreground" />
+                    </div>
+                    BiztoriBD
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col px-4 pb-6">
+                  {mobileNavItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
+                          isActive ? 'bg-muted text-primary font-medium' : 'text-foreground hover:bg-muted/50'
+                        }`}
+                      >
+                        <Icon className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                  {isAdmin && (
+                    <>
+                      <div className="h-px bg-border my-3" />
+                      <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors">
+                        <Shield className="h-4 w-4 text-muted-foreground" />
+                        Admin
+                      </Link>
+                    </>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
+
             <Link to="/dashboard" className="flex items-center gap-2.5">
               <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/25">
                 <Zap className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold tracking-tight text-foreground">BiztoriBD</span>
+              <span className="text-xl font-bold tracking-tight text-foreground hidden sm:inline">BiztoriBD</span>
             </Link>
             
             <nav className="hidden md:flex items-center gap-1">
@@ -266,9 +337,9 @@ export default function Dashboard() {
             </nav>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {/* Subscription Badge */}
-            <Link to="/billing">
+            <Link to="/billing" className="hidden sm:block">
               <SubscriptionBadge />
             </Link>
             
@@ -312,9 +383,52 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
+
+      {/* Mobile Bottom Tab Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-xl border-t border-border">
+        <div className="flex items-center justify-around h-16 px-2">
+          {[
+            { icon: Folder, label: 'Workflows', href: '/dashboard' },
+            { icon: Sparkles, label: 'Templates', href: '/templates' },
+            { icon: Plus, label: 'Create', href: '#create' },
+            { icon: Clock, label: 'History', href: '/executions' },
+            { icon: Mail, label: 'Email', href: '/email-marketing' },
+          ].map((tab) => {
+            const isActive = tab.href !== '#create' && location.pathname === tab.href;
+            const isCreate = tab.href === '#create';
+            
+            if (isCreate) {
+              return (
+                <button
+                  key={tab.label}
+                  onClick={() => canCreateWorkflow && setCreateDialogOpen(true)}
+                  className="flex flex-col items-center gap-0.5 min-w-[56px]"
+                >
+                  <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+                    <Plus className="h-5 w-5 text-primary-foreground" />
+                  </div>
+                </button>
+              );
+            }
+            
+            return (
+              <Link
+                key={tab.label}
+                to={tab.href}
+                className={`flex flex-col items-center gap-0.5 min-w-[56px] py-1 ${
+                  isActive ? 'text-primary' : 'text-muted-foreground'
+                }`}
+              >
+                <tab.icon className="h-5 w-5" />
+                <span className="text-[10px] font-medium">{tab.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
       
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-6 md:py-8">
         {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
@@ -387,9 +501,65 @@ export default function Dashboard() {
             </Button>
           )}
         </div>
+
+        {/* Onboarding Card */}
+        {showOnboarding && !loading && workflows.length === 0 && !search && (
+          <Card className="mb-6 border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-transparent relative overflow-hidden">
+            <button onClick={dismissOnboarding} className="absolute top-3 right-3 p-1 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors">
+              <X className="h-4 w-4" />
+            </button>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Zap className="h-5 w-5 text-primary" />
+                Welcome to BiztoriBD! 🎉
+              </CardTitle>
+              <CardDescription>Get started with your first automation in minutes.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button
+                  onClick={() => setCreateDialogOpen(true)}
+                  className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/40 hover:bg-muted/50 transition-all text-left"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Plus className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-foreground">Create Workflow</div>
+                    <div className="text-xs text-muted-foreground">Start from scratch</div>
+                  </div>
+                </button>
+                <Link
+                  to="/templates"
+                  className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/40 hover:bg-muted/50 transition-all"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <BookOpen className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-foreground">Browse Templates</div>
+                    <div className="text-xs text-muted-foreground">Pre-built workflows</div>
+                  </div>
+                </Link>
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/40 hover:bg-muted/50 transition-all text-left"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Download className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-foreground">Import from n8n</div>
+                    <div className="text-xs text-muted-foreground">Bring existing flows</div>
+                  </div>
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         
         {/* Toolbar */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -427,11 +597,25 @@ export default function Dashboard() {
         
         {/* Workflows Grid/List */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading workflows...</p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i} className="overflow-hidden">
+                <CardHeader className="pb-2">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-full mt-2" />
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                    <Skeleton className="h-5 w-20 rounded-full" />
+                  </div>
+                  <div className="flex items-center justify-between mt-4">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         ) : filteredWorkflows.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">

@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
@@ -11,9 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { 
   Zap, Folder, Sparkles, Store, History, Key,
-  LogOut, Settings, User, ChevronDown, CreditCard, Shield, Code, FileText, Mail
+  LogOut, Settings, User, ChevronDown, CreditCard, Shield, Code, FileText, Mail, Menu
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -37,6 +38,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { profile, signOut } = useAuth();
   const { isAdmin } = useAdmin();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -83,6 +85,73 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
           
           <div className="flex items-center gap-2">
+            {/* Mobile hamburger menu */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[280px] p-0">
+                <SheetHeader className="p-6 pb-4">
+                  <SheetTitle className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                      <Zap className="h-4 w-4 text-primary-foreground" />
+                    </div>
+                    BiztoriBD
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col px-4 pb-6">
+                  {navItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          'flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors',
+                          isActive && 'bg-muted text-primary font-medium'
+                        )}
+                      >
+                        <Icon className={cn('h-4 w-4', isActive ? 'text-primary' : 'text-muted-foreground')} />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                  
+                  <div className="h-px bg-border my-3" />
+                  
+                  <Link
+                    to="/billing"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors',
+                      location.pathname === '/billing' && 'bg-muted text-primary font-medium'
+                    )}
+                  >
+                    <CreditCard className="h-4 w-4 text-muted-foreground" />
+                    Billing
+                  </Link>
+                  
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={cn(
+                        'flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors',
+                        location.pathname === '/admin' && 'bg-muted text-primary font-medium'
+                      )}
+                    >
+                      <Shield className="h-4 w-4 text-muted-foreground" />
+                      Admin
+                    </Link>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
+
             {/* Theme Toggle */}
             <ThemeToggle />
             

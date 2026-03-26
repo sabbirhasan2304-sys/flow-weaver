@@ -1,15 +1,17 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
   Zap, ArrowRight, Play, Users, Shield, 
   Workflow, Bot, Database, Globe, CheckCircle2,
   LayoutDashboard, Settings, Code, FileText, Book,
-  Layers, Cpu, Mail, BarChart3, Lock, Rocket
+  Layers, Cpu, Mail, BarChart3, Lock, Rocket, Menu, X
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 const features = [
   {
@@ -79,6 +81,7 @@ const fadeUp = {
 export default function Index() {
   const { user, loading } = useAuth();
   const { isAdmin } = useAdmin();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
@@ -110,20 +113,20 @@ export default function Index() {
             </a>
           </nav>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <ThemeToggle />
             {loading ? (
               <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             ) : user ? (
               <>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
                   <Link to="/dashboard">
                     <LayoutDashboard className="h-4 w-4 mr-2" />
                     Dashboard
                   </Link>
                 </Button>
                 {isAdmin && (
-                  <Button variant="outline" size="sm" asChild>
+                  <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
                     <Link to="/admin">
                       <Settings className="h-4 w-4 mr-2" />
                       Admin
@@ -133,10 +136,10 @@ export default function Index() {
               </>
             ) : (
               <>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
                   <Link to="/auth">Sign In</Link>
                 </Button>
-                <Button size="sm" asChild className="shadow-lg shadow-primary/25">
+                <Button size="sm" asChild className="hidden sm:inline-flex shadow-lg shadow-primary/25">
                   <Link to="/auth">
                     Get Started Free
                     <ArrowRight className="h-4 w-4 ml-1" />
@@ -144,6 +147,78 @@ export default function Index() {
                 </Button>
               </>
             )}
+
+            {/* Mobile hamburger menu */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] p-0">
+                <SheetHeader className="p-6 pb-4">
+                  <SheetTitle className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                      <Zap className="h-4 w-4 text-primary-foreground" />
+                    </div>
+                    BiztoriBD
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col px-4 pb-6">
+                  <a href="#features" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors">
+                    <Layers className="h-4 w-4 text-muted-foreground" />
+                    Features
+                  </a>
+                  <a href="#use-cases" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors">
+                    <Rocket className="h-4 w-4 text-muted-foreground" />
+                    Use Cases
+                  </a>
+                  <Link to="/pricing" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors">
+                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                    Pricing
+                  </Link>
+                  <Link to="/docs" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    Docs
+                  </Link>
+                  <a href="#api" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors">
+                    <Code className="h-4 w-4 text-muted-foreground" />
+                    API
+                  </a>
+                  
+                  <div className="h-px bg-border my-3" />
+                  
+                  {user ? (
+                    <>
+                      <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors">
+                        <LayoutDashboard className="h-4 w-4 text-primary" />
+                        Dashboard
+                      </Link>
+                      {isAdmin && (
+                        <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors">
+                          <Settings className="h-4 w-4 text-muted-foreground" />
+                          Admin
+                        </Link>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex flex-col gap-2 mt-2 px-3">
+                      <Button asChild className="w-full">
+                        <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                          Get Started Free
+                          <ArrowRight className="h-4 w-4 ml-1" />
+                        </Link>
+                      </Button>
+                      <Button variant="outline" asChild className="w-full">
+                        <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                          Sign In
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
@@ -152,7 +227,7 @@ export default function Index() {
       <section className="relative overflow-hidden">
         <div className="hero-glow absolute inset-0" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,hsl(var(--primary)/0.08),transparent_50%)]" />
-        <div className="container mx-auto px-4 py-28 md:py-40 relative">
+        <div className="container mx-auto px-4 py-16 md:py-40 relative">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -169,7 +244,7 @@ export default function Index() {
                Bangladesh's #1 Automation Platform 🇧🇩
             </motion.div>
             
-            <h1 className="text-5xl md:text-7xl font-extrabold text-foreground mb-6 leading-[1.1] tracking-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-extrabold text-foreground mb-6 leading-[1.1] tracking-tight">
               Automate Everything.
               <br />
               <span className="gradient-text">Build Anything.</span>
@@ -237,7 +312,7 @@ export default function Index() {
       </section>
       
       {/* Features Section */}
-      <section id="features" className="py-28 bg-muted/30 relative">
+      <section id="features" className="py-16 md:py-28 bg-muted/30 relative">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -286,7 +361,7 @@ export default function Index() {
       </section>
 
       {/* Use Cases Section */}
-      <section id="use-cases" className="py-28">
+      <section id="use-cases" className="py-16 md:py-28">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -330,7 +405,7 @@ export default function Index() {
       </section>
 
       {/* API Section */}
-      <section id="api" className="py-28 bg-muted/30">
+      <section id="api" className="py-16 md:py-28 bg-muted/30">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -431,7 +506,7 @@ export default function Index() {
       </section>
       
       {/* CTA Section */}
-      <section className="py-28">
+      <section className="py-16 md:py-28">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
