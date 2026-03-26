@@ -210,17 +210,84 @@ export default function Dashboard() {
     w.description?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return localStorage.getItem('biztori-onboarding-dismissed') !== 'true';
+  });
+
+  const dismissOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('biztori-onboarding-dismissed', 'true');
+  };
+
+  const mobileNavItems = [
+    { label: 'Workflows', href: '/dashboard', icon: Folder },
+    { label: 'Templates', href: '/templates', icon: Sparkles },
+    { label: 'Marketplace', href: '/marketplace', icon: Store },
+    { label: 'Executions', href: '/executions', icon: Clock },
+    { label: 'Credentials', href: '/credentials', icon: Settings },
+    { label: 'Email', href: '/email-marketing', icon: Mail },
+    { label: 'Billing', href: '/billing', icon: CreditCard },
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
+            {/* Mobile menu */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden -ml-2">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[280px] p-0">
+                <SheetHeader className="p-6 pb-4">
+                  <SheetTitle className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                      <Zap className="h-4 w-4 text-primary-foreground" />
+                    </div>
+                    BiztoriBD
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col px-4 pb-6">
+                  {mobileNavItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname === item.href;
+                    return (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${
+                          isActive ? 'bg-muted text-primary font-medium' : 'text-foreground hover:bg-muted/50'
+                        }`}
+                      >
+                        <Icon className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                  {isAdmin && (
+                    <>
+                      <div className="h-px bg-border my-3" />
+                      <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors">
+                        <Shield className="h-4 w-4 text-muted-foreground" />
+                        Admin
+                      </Link>
+                    </>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
+
             <Link to="/dashboard" className="flex items-center gap-2.5">
               <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/25">
                 <Zap className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold tracking-tight text-foreground">BiztoriBD</span>
+              <span className="text-xl font-bold tracking-tight text-foreground hidden sm:inline">BiztoriBD</span>
             </Link>
             
             <nav className="hidden md:flex items-center gap-1">
@@ -269,9 +336,9 @@ export default function Dashboard() {
             </nav>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {/* Subscription Badge */}
-            <Link to="/billing">
+            <Link to="/billing" className="hidden sm:block">
               <SubscriptionBadge />
             </Link>
             
@@ -315,6 +382,49 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
+
+      {/* Mobile Bottom Tab Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur-xl border-t border-border">
+        <div className="flex items-center justify-around h-16 px-2">
+          {[
+            { icon: Folder, label: 'Workflows', href: '/dashboard' },
+            { icon: Sparkles, label: 'Templates', href: '/templates' },
+            { icon: Plus, label: 'Create', href: '#create' },
+            { icon: Clock, label: 'History', href: '/executions' },
+            { icon: Mail, label: 'Email', href: '/email-marketing' },
+          ].map((tab) => {
+            const isActive = tab.href !== '#create' && location.pathname === tab.href;
+            const isCreate = tab.href === '#create';
+            
+            if (isCreate) {
+              return (
+                <button
+                  key={tab.label}
+                  onClick={() => canCreateWorkflow && setCreateDialogOpen(true)}
+                  className="flex flex-col items-center gap-0.5 min-w-[56px]"
+                >
+                  <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+                    <Plus className="h-5 w-5 text-primary-foreground" />
+                  </div>
+                </button>
+              );
+            }
+            
+            return (
+              <Link
+                key={tab.label}
+                to={tab.href}
+                className={`flex flex-col items-center gap-0.5 min-w-[56px] py-1 ${
+                  isActive ? 'text-primary' : 'text-muted-foreground'
+                }`}
+              >
+                <tab.icon className="h-5 w-5" />
+                <span className="text-[10px] font-medium">{tab.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
       
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
