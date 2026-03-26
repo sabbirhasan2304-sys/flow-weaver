@@ -312,7 +312,7 @@ export default function Index() {
       </section>
       
       {/* Features Section */}
-      <section id="features" className="py-28 bg-muted/30 relative">
+      <section id="features" className="py-16 md:py-28 bg-muted/30 relative">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
