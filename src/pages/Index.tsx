@@ -405,7 +405,7 @@ export default function Index() {
       </section>
 
       {/* API Section */}
-      <section id="api" className="py-28 bg-muted/30">
+      <section id="api" className="py-16 md:py-28 bg-muted/30">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
