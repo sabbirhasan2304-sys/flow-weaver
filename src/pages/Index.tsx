@@ -506,7 +506,7 @@ export default function Index() {
       </section>
       
       {/* CTA Section */}
-      <section className="py-28">
+      <section className="py-16 md:py-28">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
