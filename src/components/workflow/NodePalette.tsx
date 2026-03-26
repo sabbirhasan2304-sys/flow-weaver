@@ -178,10 +178,12 @@ interface NodePaletteProps {
 }
 
 // Memoized node item for performance
-const NodeItem = memo(({ node, onDragStart, locked }: { 
+const NodeItem = memo(({ node, onDragStart, locked, isFavorite, onToggleFavorite }: { 
   node: typeof nodeDefinitions[0]; 
   onDragStart: (event: React.DragEvent, nodeType: string) => void;
   locked?: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }) => {
   const IconComponent = iconMap[node.icon] || Puzzle;
   
@@ -247,6 +249,19 @@ const NodeItem = memo(({ node, onDragStart, locked }: {
           {node.description}
         </div>
       </div>
+      {onToggleFavorite && (
+        <button
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); onToggleFavorite(); }}
+          className={cn(
+            'h-6 w-6 flex items-center justify-center rounded-md transition-all shrink-0',
+            isFavorite 
+              ? 'text-amber-500 opacity-100' 
+              : 'text-muted-foreground/30 opacity-0 group-hover:opacity-100 hover:text-amber-500'
+          )}
+        >
+          <Star className={cn('h-3 w-3', isFavorite && 'fill-amber-500')} />
+        </button>
+      )}
     </div>
   );
 });
