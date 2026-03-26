@@ -43,6 +43,7 @@ export function WorkflowEditor({ workflowId, workflowName, initialData, onSave }
         {/* Top toolbar */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 bg-card/90 backdrop-blur-xl rounded-xl border border-border/50 px-2 py-1.5 shadow-xl shadow-black/10">
           <AIWorkflowBuilder />
+          <NodeDashboard />
           <WorkflowImportExport workflowName={workflowName} />
           {workflowId && <ExecutionPanel workflowId={workflowId} />}
           {workflowId && <VersionHistory workflowId={workflowId} />}
