@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +39,8 @@ import {
   LayoutGrid, List, Filter,
   LogOut, Settings, User, ChevronDown,
   Folder, FileCode, Sparkles, Store,
-  CreditCard, Lock, Shield, Mail
+  CreditCard, Lock, Shield, Mail, Menu,
+  ArrowRight, Download, BookOpen, X
 } from 'lucide-react';
 import { format } from 'date-fns';
 
