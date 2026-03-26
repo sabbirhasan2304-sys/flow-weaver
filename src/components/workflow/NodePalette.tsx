@@ -32,7 +32,7 @@ import {
   Search, ChevronRight, GripVertical,
   Tag, FlaskConical, TrendingUp, ClipboardList,
   Link2, Phone, QrCode, Copy, Flame, Rss, BarChart2, Bug, FileInput,
-  Reply, ShoppingBag,
+  Reply, ShoppingBag, Star,
 } from 'lucide-react';
 import {
   OpenAIIcon, AnthropicIcon, GoogleIcon, SlackIcon, DiscordIcon,
@@ -178,10 +178,12 @@ interface NodePaletteProps {
 }
 
 // Memoized node item for performance
-const NodeItem = memo(({ node, onDragStart, locked }: { 
+const NodeItem = memo(({ node, onDragStart, locked, isFavorite, onToggleFavorite }: { 
   node: typeof nodeDefinitions[0]; 
   onDragStart: (event: React.DragEvent, nodeType: string) => void;
   locked?: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 }) => {
   const IconComponent = iconMap[node.icon] || Puzzle;
   
@@ -247,6 +249,19 @@ const NodeItem = memo(({ node, onDragStart, locked }: {
           {node.description}
         </div>
       </div>
+      {onToggleFavorite && (
+        <button
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); onToggleFavorite(); }}
+          className={cn(
+            'h-6 w-6 flex items-center justify-center rounded-md transition-all shrink-0',
+            isFavorite 
+              ? 'text-amber-500 opacity-100' 
+              : 'text-muted-foreground/30 opacity-0 group-hover:opacity-100 hover:text-amber-500'
+          )}
+        >
+          <Star className={cn('h-3 w-3', isFavorite && 'fill-amber-500')} />
+        </button>
+      )}
     </div>
   );
 });
@@ -258,7 +273,40 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
     new Set(['Triggers', 'Actions'])
   );
   const { isNodeAllowed, requiresPlugin } = useInstalledPlugins();
-  
+
+  // Favorites & Recents from localStorage
+  const [favorites, setFavorites] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('biztori-favorite-nodes') || '[]')); }
+    catch { return new Set(); }
+  });
+  const [recents, setRecents] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('biztori-recent-nodes') || '[]'); }
+    catch { return []; }
+  });
+
+  const toggleFavorite = useCallback((nodeType: string) => {
+    setFavorites(prev => {
+      const next = new Set(prev);
+      if (next.has(nodeType)) next.delete(nodeType);
+      else next.add(nodeType);
+      localStorage.setItem('biztori-favorite-nodes', JSON.stringify([...next]));
+      return next;
+    });
+  }, []);
+
+  const trackRecent = useCallback((nodeType: string) => {
+    setRecents(prev => {
+      const next = [nodeType, ...prev.filter(t => t !== nodeType)].slice(0, 8);
+      localStorage.setItem('biztori-recent-nodes', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const handleDragStartWithTracking = useCallback((e: React.DragEvent, nodeType: string) => {
+    trackRecent(nodeType);
+    onDragStart(e, nodeType);
+  }, [onDragStart, trackRecent]);
+
   const categorizedNodes = useMemo(() => getNodesByCategory(), []);
   
   // Split nodes into allowed and locked per category
@@ -294,6 +342,19 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
     
     return { filteredNodes: allowed, lockedNodes: locked };
   }, [categorizedNodes, search, isNodeAllowed]);
+
+  // Favorite nodes
+  const favoriteNodes = useMemo(() => {
+    return nodeDefinitions.filter(n => favorites.has(n.type) && isNodeAllowed(n.type));
+  }, [favorites, isNodeAllowed]);
+
+  // Recent nodes
+  const recentNodes = useMemo(() => {
+    return recents
+      .map(type => nodeDefinitions.find(n => n.type === type))
+      .filter((n): n is typeof nodeDefinitions[0] => !!n && isNodeAllowed(n.type))
+      .slice(0, 5);
+  }, [recents, isNodeAllowed]);
   
   const toggleCategory = useCallback((category: string) => {
     setExpandedCategories(prev => {
@@ -332,13 +393,44 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
         </div>
       </div>
       
+      {/* Favorites Section */}
+      {!search && favoriteNodes.length > 0 && (
+        <div className="px-3 pt-2">
+          <div className="flex items-center gap-1.5 mb-1.5 px-1">
+            <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Favorites</span>
+          </div>
+          <div className="space-y-0.5 pb-2 border-b border-border/30">
+            {favoriteNodes.map((node, idx) => (
+              <NodeItem key={`fav-${node.type}-${idx}`} node={node} onDragStart={handleDragStartWithTracking} 
+                isFavorite onToggleFavorite={() => toggleFavorite(node.type)} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Recents Section */}
+      {!search && recentNodes.length > 0 && (
+        <div className="px-3 pt-2">
+          <div className="flex items-center gap-1.5 mb-1.5 px-1">
+            <Clock className="h-3 w-3 text-muted-foreground" />
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Recent</span>
+          </div>
+          <div className="space-y-0.5 pb-2 border-b border-border/30">
+            {recentNodes.map((node, idx) => (
+              <NodeItem key={`recent-${node.type}-${idx}`} node={node} onDragStart={handleDragStartWithTracking}
+                isFavorite={favorites.has(node.type)} onToggleFavorite={() => toggleFavorite(node.type)} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Node list */}
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-0.5">
           {allCategories.map((category) => {
             const allowedInCat = filteredNodes[category] || [];
             const lockedInCat = lockedNodes[category] || [];
-            const totalInCat = allowedInCat.length + lockedInCat.length;
             
             return (
               <Collapsible
@@ -372,10 +464,11 @@ function NodePaletteComponent({ onDragStart }: NodePaletteProps) {
                 <CollapsibleContent>
                   <div className="ml-3 space-y-0.5 pb-1">
                     {allowedInCat.map((node, idx) => (
-                      <NodeItem key={`${node.type}-${idx}`} node={node} onDragStart={onDragStart} />
+                      <NodeItem key={`${node.type}-${idx}`} node={node} onDragStart={handleDragStartWithTracking}
+                        isFavorite={favorites.has(node.type)} onToggleFavorite={() => toggleFavorite(node.type)} />
                     ))}
                     {lockedInCat.map((node, idx) => (
-                      <NodeItem key={`locked-${node.type}-${idx}`} node={node} onDragStart={onDragStart} locked />
+                      <NodeItem key={`locked-${node.type}-${idx}`} node={node} onDragStart={handleDragStartWithTracking} locked />
                     ))}
                   </div>
                 </CollapsibleContent>
