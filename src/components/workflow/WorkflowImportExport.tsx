@@ -399,7 +399,7 @@ export function WorkflowImportExport({ workflowName = 'workflow' }: WorkflowImpo
       style: { strokeWidth: 2, stroke: 'hsl(var(--primary) / 0.5)' },
     }));
 
-    return { nodes: importedNodes, edges: importedEdges, detectedFormat: 'internal' };
+    return { nodes: autoLayoutNodes(importedNodes, importedEdges), edges: importedEdges, detectedFormat: 'internal' };
   };
 
   const parseWorkflowContent = (content: string): ImportedWorkflow => {
