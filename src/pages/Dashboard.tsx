@@ -56,6 +56,7 @@ interface Workflow {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, profile, signOut, activeWorkspace, loading: authLoading } = useAuth();
   const { isAdmin } = useAdmin();
   const { subscription, isWithinLimits, loading: subscriptionLoading } = useSubscription();
