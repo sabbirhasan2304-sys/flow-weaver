@@ -227,7 +227,7 @@ export default function Index() {
       <section className="relative overflow-hidden">
         <div className="hero-glow absolute inset-0" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,hsl(var(--primary)/0.08),transparent_50%)]" />
-        <div className="container mx-auto px-4 py-28 md:py-40 relative">
+        <div className="container mx-auto px-4 py-16 md:py-40 relative">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
