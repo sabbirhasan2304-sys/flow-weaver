@@ -17,6 +17,7 @@ import { CustomDashboard } from '@/components/tracking/CustomDashboard';
 import { StapeMigrationWizard } from '@/components/tracking/StapeMigrationWizard';
 import { OnboardingWizard } from '@/components/tracking/OnboardingWizard';
 import { AIEventMapper } from '@/components/tracking/AIEventMapper';
+import { ConnectWebsite } from '@/components/tracking/ConnectWebsite';
 import { useNavigate } from 'react-router-dom';
 
 export default function Tracking() {
