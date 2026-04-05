@@ -1,122 +1,110 @@
 
 
-# NexusTrack — Phase 1 Implementation Plan
+# NexusTrack — Full Feature Enhancement Plan
 
-NexusTrack will be added as a new product section within your existing BiztoriBD platform at `/tracking`. Nothing existing will be replaced.
+Building all core features progressively across the existing `/tracking` module. No existing code is replaced.
 
-## What Gets Built
+## Phase 1: Enhanced Tracking Dashboard
 
-### 1. Tracking Dashboard Page (`/tracking`)
-A tabbed page with 5 sections: Overview, Pipelines, Event Log, Monitoring, Settings. Uses the existing `DashboardLayout` wrapper.
+### 1A. POAS / Profit Dashboard (new tab)
+- New component `src/components/tracking/POASDashboard.tsx`
+- Product feed upload (CSV with SKU, cost, price)
+- Profit per order calculation from tracking events
+- ROAS vs POAS comparison chart (Recharts)
+- Trend line and date range picker
+- New DB table `tracking_product_feeds` (user_id, sku, cost_price, sell_price)
 
-**Overview tab**: Stats cards (events processed, delivery rate, active pipelines), quick-start buttons (Connect Shopify, Connect Meta, Connect GA4), and a live event stream preview table.
+### 1B. Event Replay & Dead Letter Queue
+- Add "Replay" button per failed event in `EventLog.tsx`
+- New "Dead Letter" tab inside Event Log filtering `status = 'failed'`
+- Resend action calls a new edge function `replay-tracking-event`
+- Bulk replay with checkbox selection
+- Error explanation column in the detail drawer
 
-**Pipelines tab**: Visual drag-and-drop pipeline builder reusing ReactFlow. Source nodes (Web Pixel, Shopify, WooCommerce, Custom API) connect through Transform nodes (PII Anonymizer, Geo Enrichment, Bot Filter, Deduplicator, Cookie Recovery) to Destination nodes (Meta CAPI, Google Ads, GA4, TikTok, Snapchat, Custom Webhook). Simple config forms per node.
+### 1C. Enhanced Monitoring Cards
+- Update `MonitoringDashboard.tsx` with 3 new sections:
+  - **Ad Recovery Metrics**: Card showing estimated events recovered from ad-blocked users
+  - **Cookie Health Monitor**: Pie chart showing users by cookie type (first-party, third-party, none) and average lifetime
+  - **Bot Traffic Analysis**: Bar chart of bot vs human traffic, top bot sources, blocked count
 
-**Event Log tab**: Searchable/filterable table of tracking events with status badges (delivered/failed/retried), payload detail drawer, and CSV export.
+### 1D. Website Tracking Auditor
+- Enhance `AISetupAssistant.tsx` with a second mode: "Audit"
+- AI scans for tracking gaps, duplicate pixels, consent issues
+- Returns fix recommendations with estimated revenue impact
+- Uses existing `ai-tracking-setup` edge function with an expanded prompt
 
-**Monitoring tab**: Delivery health chart (success rate over time), anomaly alert cards, and an alert rule builder (email when error rate exceeds threshold).
+## Phase 2: NexusStore (Document Store)
 
-**Settings tab**: Custom domain config, consent mode toggles, bot detection settings, cookie recovery options.
+### 2A. Database
+- New table `nexus_store_collections` (user_id, name, description)
+- New table `nexus_store_documents` (collection_id, user_id, data JSONB, ttl_expires_at)
+- RLS scoped to `get_profile_id()`
 
-### 2. AI Setup Assistant
-A dialog component accessible from the Overview tab. User enters a website URL, and an edge function uses Lovable AI (Gemini) to analyze the site and recommend optimal tracking configuration (which sources, destinations, and transforms to use).
+### 2B. UI — New tab "NexusStore" on `/tracking` page
+- New component `src/components/tracking/NexusStore.tsx`
+- Collection list with create/delete
+- Visual document browser: filter by any JSON key, sort, paginate
+- Inline JSON editor for creating/editing documents
+- Bulk import (CSV/JSON upload) and export
+- TTL configuration per document or per collection
+- Search bar with basic JSON path queries
 
-### 3. Database Tables (4 new tables via migration)
-- `tracking_pipelines` — stores pipeline ReactFlow data per user
-- `tracking_events` — event log with status, retry count, payload
-- `tracking_alerts` — user-defined alert rules
-- `tracking_destinations` — saved destination configs (Meta pixel ID, GA4 measurement ID, etc.)
+## Phase 3: Agency & White-Label Tools
 
-All tables have RLS policies scoped to `auth.uid()` via `get_profile_id()`.
+### 3A. Database
+- New table `agency_clients` (agency_profile_id, client_name, client_email, workspace_id)
+- New table `agency_reports` (agency_profile_id, client_id, report_data JSONB, generated_at)
 
-### 4. Edge Function: `ai-tracking-setup`
-Accepts a URL, uses Lovable AI to analyze it, returns recommended tracking configuration as JSON.
+### 3B. UI — New tab "Agency" on `/tracking` page
+- New component `src/components/tracking/AgencyDashboard.tsx`
+- Client sub-account list with invite flow
+- Per-client event stats cards (events processed, delivery rate, errors)
+- Consolidated billing view showing cost per client
+- Automated report generation: select client, date range, metrics — generates summary
+- White-label settings: upload logo, set brand colors, custom dashboard domain field
 
-### 5. Navigation & Landing Page Updates
-- Add "Tracking" nav item to `DashboardLayout` (with `Crosshair` icon)
-- Add `/tracking` route to `App.tsx`
-- Add a NexusTrack feature card in the landing page features array
+## Phase 4: Migration & Onboarding Wizard
 
-## Files to Create
-| File | Purpose |
-|------|---------|
-| `src/pages/Tracking.tsx` | Main page with tab navigation |
-| `src/components/tracking/TrackingOverview.tsx` | Stats + quick-start cards |
-| `src/components/tracking/PipelineBuilder.tsx` | ReactFlow-based visual builder |
-| `src/components/tracking/trackingNodeDefinitions.ts` | Source/transform/destination node types |
-| `src/components/tracking/EventLog.tsx` | Searchable event log table |
-| `src/components/tracking/MonitoringDashboard.tsx` | Health charts + alert rules |
-| `src/components/tracking/TrackingSettings.tsx` | Domain, consent, bot config |
-| `src/components/tracking/AISetupAssistant.tsx` | AI website analyzer dialog |
-| `supabase/functions/ai-tracking-setup/index.ts` | AI analysis edge function |
+### 4A. Stape Migration Wizard
+- New component `src/components/tracking/StapeMigrationWizard.tsx`
+- Step 1: Enter Stape API key
+- Step 2: AI reads containers, power-ups, store data (simulated — shows mapped equivalents)
+- Step 3: Auto-generate NexusTrack workflow with equivalent nodes
+- Step 4: Review and confirm
 
-## Files to Modify
-| File | Change |
-|------|--------|
-| `src/App.tsx` | Add `/tracking` route |
-| `src/components/layout/DashboardLayout.tsx` | Add "Tracking" nav item |
-| `src/pages/Index.tsx` | Add NexusTrack to features array |
+### 4B. Interactive Onboarding
+- New component `src/components/tracking/OnboardingWizard.tsx`
+- Persona selection (Merchant / Agency / Enterprise)
+- Platform detection (Shopify / WooCommerce / Custom)
+- Goal selection (Meta CAPI / GA4 / Both / All platforms)
+- Auto-generates a starter tracking workflow with the right nodes pre-connected
+- Progress tracking with completion percentage
 
-## Database Migration SQL
-```sql
-CREATE TABLE tracking_pipelines (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL,
-  name TEXT NOT NULL,
-  description TEXT,
-  status TEXT DEFAULT 'draft',
-  pipeline_data JSONB DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
+## Files Summary
 
-CREATE TABLE tracking_events (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  pipeline_id UUID REFERENCES tracking_pipelines(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL,
-  event_name TEXT NOT NULL,
-  source TEXT NOT NULL,
-  destination TEXT,
-  status TEXT DEFAULT 'pending',
-  payload JSONB DEFAULT '{}',
-  response JSONB,
-  retry_count INT DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE TABLE tracking_alerts (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL,
-  name TEXT NOT NULL,
-  condition JSONB NOT NULL,
-  notify_email TEXT,
-  is_active BOOLEAN DEFAULT true,
-  last_triggered_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE TABLE tracking_destinations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL,
-  type TEXT NOT NULL,
-  name TEXT NOT NULL,
-  config JSONB DEFAULT '{}',
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
--- RLS + policies for all 4 tables scoped to get_profile_id()
-```
+| Action | File |
+|--------|------|
+| Create | `src/components/tracking/POASDashboard.tsx` |
+| Create | `src/components/tracking/NexusStore.tsx` |
+| Create | `src/components/tracking/AgencyDashboard.tsx` |
+| Create | `src/components/tracking/StapeMigrationWizard.tsx` |
+| Create | `src/components/tracking/OnboardingWizard.tsx` |
+| Create | `supabase/functions/replay-tracking-event/index.ts` |
+| Modify | `src/pages/Tracking.tsx` — add 3 new tabs (POAS, NexusStore, Agency) |
+| Modify | `src/components/tracking/EventLog.tsx` — replay button, dead letter filter |
+| Modify | `src/components/tracking/MonitoringDashboard.tsx` — ad recovery, cookie health, bot analysis |
+| Modify | `src/components/tracking/AISetupAssistant.tsx` — audit mode |
+| Migrate | 3 new DB tables + RLS policies |
 
 ## Implementation Order
-1. Database migration (4 tables + RLS)
-2. Tracking node definitions
-3. Core page + tab structure
-4. Overview tab with stats
-5. Pipeline builder (ReactFlow reuse)
-6. Event log table
-7. Monitoring dashboard
-8. Settings panel
-9. AI Setup Assistant + edge function
-10. Navigation + landing page updates
+1. DB migration (product_feeds, nexus_store_collections, nexus_store_documents, agency_clients, agency_reports)
+2. POAS Dashboard + product feed upload
+3. Event Replay + Dead Letter Queue + edge function
+4. Enhanced Monitoring (ad recovery, cookie health, bot traffic)
+5. Website Tracking Auditor enhancement
+6. NexusStore UI (collections, documents, query builder)
+7. Agency Dashboard (clients, reports, white-label)
+8. Stape Migration Wizard
+9. Onboarding Wizard
+10. Update Tracking page tabs and navigation
 
