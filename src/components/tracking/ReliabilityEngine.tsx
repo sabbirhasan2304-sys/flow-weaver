@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,17 +8,11 @@ import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { RefreshCw, Database, Shield, Clock, Repeat, CheckCircle2, AlertTriangle, Archive } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useQuery } from '@tanstack/react-query';
+import { useTrackingRealtime } from '@/hooks/useTrackingRealtime';
 import { toast } from 'sonner';
-
-const mockTimeline = [
-  { time: '14:23:01', status: 'pending', label: 'Event received' },
-  { time: '14:23:02', status: 'processing', label: 'PII scan passed' },
-  { time: '14:23:02', status: 'processing', label: 'Consent verified' },
-  { time: '14:23:03', status: 'failed', label: 'Meta CAPI — 500 error' },
-  { time: '14:23:08', status: 'retried', label: 'Retry #1 (5s backoff)' },
-  { time: '14:23:18', status: 'retried', label: 'Retry #2 (10s backoff)' },
-  { time: '14:23:18', status: 'delivered', label: 'Meta CAPI — 200 OK' },
-];
 
 const statusIcon: Record<string, any> = {
   pending: <Clock className="h-3.5 w-3.5 text-blue-500" />,
@@ -29,6 +23,8 @@ const statusIcon: Record<string, any> = {
 };
 
 export function ReliabilityEngine() {
+  const { profile } = useAuth();
+  useTrackingRealtime(!!profile?.id);
   const [retentionDays, setRetentionDays] = useState(90);
   const [maxRetries, setMaxRetries] = useState(10);
   const [backoffStrategy, setBackoffStrategy] = useState('exponential_jitter');
@@ -36,9 +32,50 @@ export function ReliabilityEngine() {
   const [dedupWindow, setDedupWindow] = useState(5);
   const [dedupKeys, setDedupKeys] = useState('event_name, user_id, transaction_id');
 
+  // Live stats from tracking_events
+  const { data: events = [] } = useQuery({
+    queryKey: ['tracking-events-reliability', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      const { data } = await supabase
+        .from('tracking_events')
+        .select('id, status, retry_count, created_at, event_fingerprint')
+        .order('created_at', { ascending: false })
+        .limit(1000);
+      return data || [];
+    },
+    enabled: !!profile?.id,
+    refetchInterval: 15000,
+  });
+
+  const stats = useMemo(() => {
+    const total = events.length;
+    const delivered = events.filter((e: any) => e.status === 'delivered').length;
+    const retried = events.filter((e: any) => e.retry_count > 0).length;
+    const totalRetries = events.reduce((sum: number, e: any) => sum + (e.retry_count || 0), 0);
+    const deduped = events.filter((e: any) => e.event_fingerprint).length;
+    const deliveryRate = total > 0 ? ((delivered / total) * 100).toFixed(1) : '0.0';
+    return { total, delivered, retried, totalRetries, deduped, deliveryRate };
+  }, [events]);
+
+  // Build delivery receipt timeline from the most recent events with status transitions
+  const timeline = useMemo(() => {
+    const recent = events.slice(0, 10);
+    return recent.map((e: any) => {
+      const time = new Date(e.created_at).toLocaleTimeString();
+      let statusKey = e.status;
+      if (e.retry_count > 0 && e.status === 'delivered') statusKey = 'delivered';
+      return {
+        time,
+        status: statusKey,
+        label: `${e.status === 'delivered' ? '✓' : e.status === 'failed' ? '✗' : '⏳'} Event ${e.id.slice(0, 8)} — ${e.status}${e.retry_count > 0 ? ` (${e.retry_count} retries)` : ''}`,
+      };
+    });
+  }, [events]);
+
   return (
     <div className="space-y-6">
-      {/* Stats */}
+      {/* Live Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
@@ -46,7 +83,7 @@ export function ReliabilityEngine() {
               <CheckCircle2 className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-xl font-bold text-foreground">99.2%</p>
+              <p className="text-xl font-bold text-foreground">{stats.deliveryRate}%</p>
               <p className="text-xs text-muted-foreground">Delivery Rate</p>
             </div>
           </CardContent>
@@ -57,7 +94,7 @@ export function ReliabilityEngine() {
               <Repeat className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-xl font-bold text-foreground">847</p>
+              <p className="text-xl font-bold text-foreground">{stats.retried}</p>
               <p className="text-xs text-muted-foreground">Auto-Retried</p>
             </div>
           </CardContent>
@@ -68,8 +105,8 @@ export function ReliabilityEngine() {
               <Database className="h-5 w-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-xl font-bold text-foreground">1.2M</p>
-              <p className="text-xs text-muted-foreground">Events Backed Up</p>
+              <p className="text-xl font-bold text-foreground">{stats.total.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">Events Tracked</p>
             </div>
           </CardContent>
         </Card>
@@ -79,8 +116,8 @@ export function ReliabilityEngine() {
               <Shield className="h-5 w-5 text-orange-600" />
             </div>
             <div>
-              <p className="text-xl font-bold text-foreground">342</p>
-              <p className="text-xs text-muted-foreground">Deduped Events</p>
+              <p className="text-xl font-bold text-foreground">{stats.deduped}</p>
+              <p className="text-xs text-muted-foreground">Fingerprinted</p>
             </div>
           </CardContent>
         </Card>
@@ -90,21 +127,25 @@ export function ReliabilityEngine() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Delivery Receipt Timeline</CardTitle>
-          <CardDescription>Visual trace of event processing stages</CardDescription>
+          <CardDescription>Real-time event processing status from live data</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="relative pl-6">
-            <div className="absolute left-[11px] top-0 bottom-0 w-px bg-border" />
-            {mockTimeline.map((step, i) => (
-              <div key={i} className="relative flex items-start gap-3 pb-4 last:pb-0">
-                <div className="absolute left-[-13px] mt-1 bg-background">{statusIcon[step.status]}</div>
-                <div className="ml-4">
-                  <p className="text-sm text-foreground">{step.label}</p>
-                  <p className="text-xs text-muted-foreground">{step.time}</p>
+          {timeline.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">No events yet. Timeline will populate with live data.</p>
+          ) : (
+            <div className="relative pl-6">
+              <div className="absolute left-[11px] top-0 bottom-0 w-px bg-border" />
+              {timeline.map((step, i) => (
+                <div key={i} className="relative flex items-start gap-3 pb-4 last:pb-0">
+                  <div className="absolute left-[-13px] mt-1 bg-background">{statusIcon[step.status] || statusIcon.pending}</div>
+                  <div className="ml-4">
+                    <p className="text-sm text-foreground">{step.label}</p>
+                    <p className="text-xs text-muted-foreground">{step.time}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -122,26 +163,13 @@ export function ReliabilityEngine() {
             </div>
             <Slider value={[retentionDays]} onValueChange={(v) => setRetentionDays(v[0])} min={7} max={365} step={1} />
             <div className="flex justify-between text-xs text-muted-foreground mt-1">
-              <span>7 days</span>
-              <span>90 days</span>
-              <span>1 year</span>
+              <span>7 days</span><span>90 days</span><span>1 year</span>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-2">
-            {[
-              { label: '30 days', value: 30, tier: 'Starter' },
-              { label: '90 days', value: 90, tier: 'Pro' },
-              { label: '365 days', value: 365, tier: 'Business' },
-            ].map((p) => (
-              <Button
-                key={p.value}
-                variant={retentionDays === p.value ? 'default' : 'outline'}
-                size="sm"
-                className="flex flex-col h-auto py-2"
-                onClick={() => setRetentionDays(p.value)}
-              >
-                <span>{p.label}</span>
-                <span className="text-[10px] opacity-70">{p.tier}</span>
+            {[{ label: '30 days', value: 30, tier: 'Starter' }, { label: '90 days', value: 90, tier: 'Pro' }, { label: '365 days', value: 365, tier: 'Business' }].map((p) => (
+              <Button key={p.value} variant={retentionDays === p.value ? 'default' : 'outline'} size="sm" className="flex flex-col h-auto py-2" onClick={() => setRetentionDays(p.value)}>
+                <span>{p.label}</span><span className="text-[10px] opacity-70">{p.tier}</span>
               </Button>
             ))}
           </div>
