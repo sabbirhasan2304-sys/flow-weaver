@@ -129,6 +129,15 @@ const App = () => (
             }
           />
 
+          <Route
+            path="/tracking"
+            element={
+              <ProtectedRoute>
+                <Tracking />
+              </ProtectedRoute>
+            }
+          />
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

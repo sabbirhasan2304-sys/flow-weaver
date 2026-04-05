@@ -30,6 +30,7 @@ const navItems = [
   { label: 'Executions', href: '/executions', icon: History },
   { label: 'Credentials', href: '/credentials', icon: Key },
   { label: 'Email', href: '/email-marketing', icon: Mail },
+  { label: 'Tracking', href: '/tracking', icon: Crosshair },
   { label: 'API', href: '/api-keys', icon: Code },
 ];
 

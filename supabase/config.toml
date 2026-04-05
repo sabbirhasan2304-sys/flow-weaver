@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.generate-email-content]
 verify_jwt = false
+
+[functions.ai-tracking-setup]
+verify_jwt = false
