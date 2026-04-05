@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2 } from 'lucide-react';
+import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe } from 'lucide-react';
 import { TrackingOverview } from '@/components/tracking/TrackingOverview';
 import { EventLog } from '@/components/tracking/EventLog';
 import { MonitoringDashboard } from '@/components/tracking/MonitoringDashboard';
@@ -17,6 +17,7 @@ import { CustomDashboard } from '@/components/tracking/CustomDashboard';
 import { StapeMigrationWizard } from '@/components/tracking/StapeMigrationWizard';
 import { OnboardingWizard } from '@/components/tracking/OnboardingWizard';
 import { AIEventMapper } from '@/components/tracking/AIEventMapper';
+import { ConnectWebsite } from '@/components/tracking/ConnectWebsite';
 import { useNavigate } from 'react-router-dom';
 
 export default function Tracking() {
@@ -47,6 +48,7 @@ export default function Tracking() {
 
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="flex-wrap h-auto gap-1">
+            <TabsTrigger value="connect" className="gap-1.5"><Globe className="h-4 w-4" /> Connect</TabsTrigger>
             <TabsTrigger value="overview" className="gap-1.5"><Activity className="h-4 w-4" /> Overview</TabsTrigger>
             <TabsTrigger value="events" className="gap-1.5"><List className="h-4 w-4" /> Events</TabsTrigger>
             <TabsTrigger value="poas" className="gap-1.5"><DollarSign className="h-4 w-4" /> POAS</TabsTrigger>
@@ -61,6 +63,7 @@ export default function Tracking() {
             <TabsTrigger value="settings" className="gap-1.5"><Settings className="h-4 w-4" /> Settings</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="connect"><ConnectWebsite /></TabsContent>
           <TabsContent value="overview"><TrackingOverview /></TabsContent>
           <TabsContent value="events"><EventLog /></TabsContent>
           <TabsContent value="poas"><POASDashboard /></TabsContent>
