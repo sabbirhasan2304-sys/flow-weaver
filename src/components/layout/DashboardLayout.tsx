@@ -14,7 +14,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { 
   Zap, Folder, Sparkles, Store, History, Key,
-  LogOut, Settings, User, ChevronDown, CreditCard, Shield, Code, FileText, Mail, Menu
+  LogOut, Settings, User, ChevronDown, CreditCard, Shield, Code, FileText, Mail, Menu, Crosshair
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -30,6 +30,7 @@ const navItems = [
   { label: 'Executions', href: '/executions', icon: History },
   { label: 'Credentials', href: '/credentials', icon: Key },
   { label: 'Email', href: '/email-marketing', icon: Mail },
+  { label: 'Tracking', href: '/tracking', icon: Crosshair },
   { label: 'API', href: '/api-keys', icon: Code },
 ];
 

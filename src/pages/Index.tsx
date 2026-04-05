@@ -5,7 +5,7 @@ import {
   Zap, ArrowRight, Play, Users, Shield, 
   Workflow, Bot, Database, Globe, CheckCircle2,
   LayoutDashboard, Settings, Code, FileText, Book,
-  Layers, Cpu, Mail, BarChart3, Lock, Rocket, Menu, X
+  Layers, Cpu, Mail, BarChart3, Lock, Rocket, Menu, X, Crosshair
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -48,6 +48,11 @@ const features = [
     icon: Layers,
     title: 'Bangladesh-First Integrations',
     description: 'bKash, Nagad, Pathao, eCourier, Steadfast, RedX, Daraz, BD NID verification — 25+ local nodes.',
+  },
+  {
+    icon: Crosshair,
+    title: 'NexusTrack — Server-Side Tracking',
+    description: 'Visual pipeline builder for Meta CAPI, GA4, TikTok & more. AI setup, bot detection, cookie recovery, and PII anonymization.',
   },
   {
     icon: Code,

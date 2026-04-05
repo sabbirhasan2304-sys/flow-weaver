@@ -21,6 +21,7 @@ import SelectPlan from "./pages/SelectPlan";
 import ApiKeys from "./pages/ApiKeys";
 import ApiDocs from "./pages/ApiDocs";
 import EmailMarketing from "./pages/EmailMarketing";
+import Tracking from "./pages/Tracking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -124,6 +125,15 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <EmailMarketing />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/tracking"
+            element={
+              <ProtectedRoute>
+                <Tracking />
               </ProtectedRoute>
             }
           />

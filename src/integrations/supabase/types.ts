@@ -1300,6 +1300,152 @@ export type Database = {
           },
         ]
       }
+      tracking_alerts: {
+        Row: {
+          condition: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          last_triggered_at: string | null
+          name: string
+          notify_email: string | null
+          user_id: string
+        }
+        Insert: {
+          condition?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          name: string
+          notify_email?: string | null
+          user_id: string
+        }
+        Update: {
+          condition?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          name?: string
+          notify_email?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tracking_destinations: {
+        Row: {
+          config: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tracking_events: {
+        Row: {
+          created_at: string
+          destination: string | null
+          event_name: string
+          id: string
+          payload: Json
+          pipeline_id: string | null
+          response: Json | null
+          retry_count: number
+          source: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          destination?: string | null
+          event_name: string
+          id?: string
+          payload?: Json
+          pipeline_id?: string | null
+          response?: Json | null
+          retry_count?: number
+          source: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          destination?: string | null
+          event_name?: string
+          id?: string
+          payload?: Json
+          pipeline_id?: string | null
+          response?: Json | null
+          retry_count?: number
+          source?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_events_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tracking_pipelines: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          pipeline_data: Json
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          pipeline_data?: Json
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          pipeline_data?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       usage_tracking: {
         Row: {
           ai_tokens_used: number
