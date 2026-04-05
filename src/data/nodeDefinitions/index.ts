@@ -26,6 +26,7 @@ import { apiNodes } from './api';
 import { emailMarketingNodes } from './emailMarketing';
 import { integrationNodes } from './integrations';
 import { bangladeshNodes } from './bangladesh';
+import { trackingNodes } from './tracking';
 
 // Combine all node definitions and deduplicate by type (first occurrence wins)
 const allNodes: NodeDefinition[] = [
@@ -50,6 +51,7 @@ const allNodes: NodeDefinition[] = [
   ...emailMarketingNodes,
   ...integrationNodes,
   ...bangladeshNodes,
+  ...trackingNodes,
 ];
 
 const seen = new Set<string>();
