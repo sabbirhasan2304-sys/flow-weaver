@@ -150,7 +150,7 @@ export function OnboardingWizard({ open, onOpenChange }: Props) {
       toast.success('Tracking workflow created successfully!');
       onOpenChange(false);
       resetState();
-      navigate(`/workflow/${(data as any).id}`);
+      navigate(`/workflow/${data.id}`);
     } catch (err: any) {
       console.error('Wizard create error:', err);
       toast.error(err.message || 'Failed to create workflow');
