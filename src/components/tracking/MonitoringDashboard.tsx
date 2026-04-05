@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,43 +6,40 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Bell, Plus, AlertTriangle, CheckCircle2, TrendingUp, Shield, Cookie, Bot } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-const mockHealthData = Array.from({ length: 24 }, (_, i) => ({
-  hour: `${i}:00`,
-  success: Math.floor(Math.random() * 100),
-  failed: Math.floor(Math.random() * 8),
-}));
-
-const cookieData = [
-  { name: 'First-party (server)', value: 62, color: 'hsl(var(--primary))' },
-  { name: 'First-party (client)', value: 25, color: '#f97316' },
-  { name: 'No cookies', value: 13, color: '#94a3b8' },
-];
-
-const botData = [
-  { source: 'Googlebot', count: 3200, type: 'SEO' },
-  { source: 'Bingbot', count: 1100, type: 'SEO' },
-  { source: 'DataDog', count: 800, type: 'Monitor' },
-  { source: 'Unknown Bot', count: 450, type: 'Suspicious' },
-  { source: 'Human', count: 45000, type: 'Real' },
-];
-
 export function MonitoringDashboard() {
   const { profile } = useAuth();
+  const { isAdmin } = useAdmin();
   const [alertDialogOpen, setAlertDialogOpen] = useState(false);
   const [alertName, setAlertName] = useState('');
   const [alertMetric, setAlertMetric] = useState('error_rate');
   const [alertThreshold, setAlertThreshold] = useState('5');
   const [alertEmail, setAlertEmail] = useState('');
 
+  const { data: events = [] } = useQuery({
+    queryKey: ['tracking-events-monitoring', profile?.id, isAdmin],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      const { data } = await supabase
+        .from('tracking_events')
+        .select('id, status, created_at, source, destination')
+        .order('created_at', { ascending: false })
+        .limit(1000);
+      return data || [];
+    },
+    enabled: !!profile?.id,
+    refetchInterval: 30000,
+  });
+
   const { data: alerts = [], refetch } = useQuery({
-    queryKey: ['tracking-alerts', profile?.id],
+    queryKey: ['tracking-alerts', profile?.id, isAdmin],
     queryFn: async () => {
       if (!profile?.id) return [];
       const { data } = await supabase.from('tracking_alerts').select('*').order('created_at', { ascending: false });
@@ -50,6 +47,62 @@ export function MonitoringDashboard() {
     },
     enabled: !!profile?.id,
   });
+
+  // Compute real stats from events
+  const totalEvents = events.length;
+  const deliveredCount = events.filter((e: any) => e.status === 'delivered').length;
+  const failedCount = events.filter((e: any) => e.status === 'failed').length;
+  const successRate = totalEvents > 0 ? ((deliveredCount / totalEvents) * 100).toFixed(1) : '0.0';
+
+  // Build hourly chart from real data (last 24h)
+  const healthData = useMemo(() => {
+    const now = new Date();
+    const hours: { hour: string; success: number; failed: number }[] = [];
+    for (let i = 23; i >= 0; i--) {
+      const hourStart = new Date(now);
+      hourStart.setHours(now.getHours() - i, 0, 0, 0);
+      const hourEnd = new Date(hourStart);
+      hourEnd.setHours(hourStart.getHours() + 1);
+      const hourEvents = events.filter((e: any) => {
+        const t = new Date(e.created_at);
+        return t >= hourStart && t < hourEnd;
+      });
+      hours.push({
+        hour: `${hourStart.getHours()}:00`,
+        success: hourEvents.filter((e: any) => e.status === 'delivered').length,
+        failed: hourEvents.filter((e: any) => e.status === 'failed').length,
+      });
+    }
+    return hours;
+  }, [events]);
+
+  // Source distribution for cookie health (based on real sources)
+  const sourceDistribution = useMemo(() => {
+    const sources: Record<string, number> = {};
+    events.forEach((e: any) => {
+      const src = e.source || 'unknown';
+      sources[src] = (sources[src] || 0) + 1;
+    });
+    const colors = ['hsl(var(--primary))', '#f97316', '#94a3b8', '#22c55e', '#8b5cf6'];
+    return Object.entries(sources).slice(0, 5).map(([name, value], i) => ({
+      name,
+      value,
+      color: colors[i % colors.length],
+    }));
+  }, [events]);
+
+  // Destination distribution for bot-like analysis
+  const destinationStats = useMemo(() => {
+    const dests: Record<string, number> = {};
+    events.forEach((e: any) => {
+      const dest = e.destination || 'No destination';
+      dests[dest] = (dests[dest] || 0) + 1;
+    });
+    return Object.entries(dests)
+      .map(([source, count]) => ({ source, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+  }, [events]);
 
   const createAlert = async () => {
     if (!profile?.id || !alertName.trim()) return;
@@ -68,11 +121,14 @@ export function MonitoringDashboard() {
     }
   };
 
-  const adRecoveryRate = 12.4;
-  const recoveredRevenue = 4250;
-
   return (
     <div className="space-y-6">
+      {isAdmin && (
+        <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+          <p className="text-sm font-medium text-primary">👑 Admin Mode — Viewing all users' monitoring data</p>
+        </div>
+      )}
+
       {/* Health Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
@@ -81,7 +137,7 @@ export function MonitoringDashboard() {
               <CheckCircle2 className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">98.7%</p>
+              <p className="text-2xl font-bold text-foreground">{successRate}%</p>
               <p className="text-xs text-muted-foreground">Success Rate</p>
             </div>
           </CardContent>
@@ -92,8 +148,8 @@ export function MonitoringDashboard() {
               <AlertTriangle className="h-5 w-5 text-red-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">23</p>
-              <p className="text-xs text-muted-foreground">Failed Events (24h)</p>
+              <p className="text-2xl font-bold text-foreground">{failedCount}</p>
+              <p className="text-xs text-muted-foreground">Failed Events</p>
             </div>
           </CardContent>
         </Card>
@@ -103,8 +159,8 @@ export function MonitoringDashboard() {
               <TrendingUp className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">1,847</p>
-              <p className="text-xs text-muted-foreground">Events Today</p>
+              <p className="text-2xl font-bold text-foreground">{totalEvents.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">Total Events</p>
             </div>
           </CardContent>
         </Card>
@@ -115,98 +171,82 @@ export function MonitoringDashboard() {
         <CardHeader><CardTitle className="text-lg">Delivery Health (24h)</CardTitle></CardHeader>
         <CardContent>
           <div className="h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={mockHealthData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="hour" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
-                <Area type="monotone" dataKey="success" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.1)" />
-                <Area type="monotone" dataKey="failed" stroke="#ef4444" fill="rgba(239,68,68,0.1)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {totalEvents === 0 ? (
+              <div className="flex items-center justify-center h-full text-muted-foreground text-sm">No event data yet. Events will appear here once tracking is active.</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={healthData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                  <XAxis dataKey="hour" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                  <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                  <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
+                  <Area type="monotone" dataKey="success" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.1)" name="Delivered" />
+                  <Area type="monotone" dataKey="failed" stroke="#ef4444" fill="rgba(239,68,68,0.1)" name="Failed" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* New: Ad Recovery, Cookie Health, Bot Traffic */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Ad Recovery Metrics */}
+      {/* Source & Destination Analysis */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Source Distribution */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2"><Shield className="h-4 w-4 text-primary" /> Ad Recovery</CardTitle>
+            <CardTitle className="text-sm flex items-center gap-2"><Cookie className="h-4 w-4 text-primary" /> Event Sources</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center space-y-1">
-              <p className="text-3xl font-bold text-foreground">{adRecoveryRate}%</p>
-              <p className="text-xs text-muted-foreground">Events recovered from ad-blocked users</p>
-              <div className="mt-3 p-2 rounded-lg bg-green-500/10">
-                <p className="text-sm font-medium text-green-600">+${recoveredRevenue.toLocaleString()}</p>
-                <p className="text-[10px] text-green-600/80">Estimated recovered revenue</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Cookie Health Monitor */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2"><Cookie className="h-4 w-4 text-primary" /> Cookie Health</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[140px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={cookieData} cx="50%" cy="50%" innerRadius={35} outerRadius={55} dataKey="value" paddingAngle={2}>
-                    {cookieData.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', fontSize: 12 }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="space-y-1 mt-1">
-              {cookieData.map((d) => (
-                <div key={d.name} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: d.color }} />
-                    <span className="text-muted-foreground">{d.name}</span>
-                  </div>
-                  <span className="font-medium text-foreground">{d.value}%</span>
+            {sourceDistribution.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">No source data yet</p>
+            ) : (
+              <>
+                <div className="h-[140px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={sourceDistribution} cx="50%" cy="50%" innerRadius={35} outerRadius={55} dataKey="value" paddingAngle={2}>
+                        {sourceDistribution.map((entry, i) => (
+                          <Cell key={i} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', fontSize: 12 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
-              ))}
-            </div>
+                <div className="space-y-1 mt-1">
+                  {sourceDistribution.map((d) => (
+                    <div key={d.name} className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: d.color }} />
+                        <span className="text-muted-foreground">{d.name}</span>
+                      </div>
+                      <span className="font-medium text-foreground">{d.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
-        {/* Bot Traffic Analysis */}
+        {/* Destination Breakdown */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2"><Bot className="h-4 w-4 text-primary" /> Bot Traffic</CardTitle>
+            <CardTitle className="text-sm flex items-center gap-2"><Bot className="h-4 w-4 text-primary" /> Destination Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {botData.map((b) => (
-                <div key={b.source} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5">
+            {destinationStats.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">No destination data yet</p>
+            ) : (
+              <div className="space-y-2">
+                {destinationStats.map((b) => (
+                  <div key={b.source} className="flex items-center justify-between text-xs">
                     <span className="text-foreground font-medium">{b.source}</span>
-                    <Badge variant="outline" className={
-                      b.type === 'Real' ? 'bg-green-500/10 text-green-600 text-[10px]' :
-                      b.type === 'Suspicious' ? 'bg-red-500/10 text-red-600 text-[10px]' :
-                      'bg-blue-500/10 text-blue-600 text-[10px]'
-                    }>{b.type}</Badge>
+                    <span className="text-muted-foreground">{b.count.toLocaleString()}</span>
                   </div>
-                  <span className="text-muted-foreground">{b.count.toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 pt-2 border-t border-border flex justify-between text-xs">
-              <span className="text-muted-foreground">Bot ratio</span>
-              <span className="font-medium text-foreground">
-                {((botData.filter(b => b.type !== 'Real').reduce((s, b) => s + b.count, 0) / botData.reduce((s, b) => s + b.count, 0)) * 100).toFixed(1)}%
-              </span>
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
