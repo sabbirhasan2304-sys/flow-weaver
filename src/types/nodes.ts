@@ -36,6 +36,7 @@ export const NODE_CATEGORIES = {
   AI: 'AI & Machine Learning',
   COMMUNICATION: 'Communication',
   EMAIL_MARKETING: 'Email Marketing',
+  TRACKING: 'Server-Side Tracking',
   PRODUCTIVITY: 'Productivity',
   STORAGE: 'Storage',
   DATABASES: 'Databases',
