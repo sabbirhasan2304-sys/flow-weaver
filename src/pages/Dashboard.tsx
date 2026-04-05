@@ -327,7 +327,12 @@ export default function Dashboard() {
                   Email
                 </Button>
               </Link>
-              {isAdmin && (
+              <Link to="/tracking">
+                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                  <FileCode className="h-4 w-4 mr-2" />
+                  Tracking
+                </Button>
+              </Link>
                 <Link to="/admin">
                   <Button variant="ghost" size="sm" className="text-muted-foreground">
                     <Shield className="h-4 w-4 mr-2" />
