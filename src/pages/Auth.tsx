@@ -77,12 +77,15 @@ export default function Auth() {
       <div className="hero-glow absolute inset-0" />
       <div className="w-full max-w-md relative">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-2.5 mb-8">
+        <Link to="/" className="flex items-center justify-center gap-2.5 mb-4">
           <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-xl shadow-primary/30">
             <Zap className="h-6 w-6 text-primary-foreground" />
           </div>
           <span className="text-2xl font-extrabold tracking-tight text-foreground">BiztoriBD</span>
-        </div>
+        </Link>
+        <p className="text-center text-sm text-muted-foreground mb-6">
+          375+ automation nodes · bKash & Nagad · Server-side tracking
+        </p>
         
         <Card>
           <Tabs defaultValue="signin">
