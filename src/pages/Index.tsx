@@ -365,8 +365,91 @@ export default function Index() {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section className="py-16 md:py-28">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+              <Play className="h-3.5 w-3.5" />
+              Simple Setup
+            </div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
+              Up and Running in 3 Steps
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              No complex setup. No DevOps. Just sign up, build, and go live.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto relative">
+            {/* Connector line */}
+            <div className="hidden md:block absolute top-16 left-[20%] right-[20%] h-0.5 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
+
+            {[
+              {
+                step: 1,
+                title: 'Create Your Account',
+                desc: 'Sign up free in 30 seconds. No credit card needed. Get instant access to all features.',
+                icon: Users,
+              },
+              {
+                step: 2,
+                title: 'Connect Your Tools',
+                desc: 'Install a tracking snippet, add your APIs, or use our no-code Gateway to connect platforms instantly.',
+                icon: Globe,
+              },
+              {
+                step: 3,
+                title: 'Automate & Scale',
+                desc: 'Build workflows with drag-and-drop, monitor real-time analytics, and let AI optimize everything.',
+                icon: Rocket,
+              },
+            ].map((item, index) => (
+              <motion.div
+                key={item.step}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.15, duration: 0.5 }}
+                className="text-center relative"
+              >
+                <div className="relative mx-auto mb-6">
+                  <div className="h-16 w-16 rounded-2xl bg-primary/10 border-2 border-primary/30 flex items-center justify-center mx-auto relative z-10 bg-background">
+                    <item.icon className="h-7 w-7 text-primary" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center z-20 shadow-lg shadow-primary/30">
+                    {item.step}
+                  </div>
+                </div>
+                <h3 className="text-lg font-bold text-foreground mb-2">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mt-12"
+          >
+            <Button size="lg" asChild className="h-12 px-8 shadow-lg shadow-primary/20">
+              <Link to="/auth">
+                Start Free Now
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </Link>
+            </Button>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Use Cases Section */}
-      <section id="use-cases" className="py-16 md:py-28">
+      <section id="use-cases" className="py-16 md:py-28 bg-muted/30">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
