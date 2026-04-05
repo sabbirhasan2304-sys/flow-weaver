@@ -9,11 +9,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useQuery } from '@tanstack/react-query';
+import { useTrackingRealtime } from '@/hooks/useTrackingRealtime';
 
 export function TrackingOverview() {
   const [aiOpen, setAiOpen] = useState(false);
   const { profile } = useAuth();
   const { isAdmin } = useAdmin();
+  useTrackingRealtime(!!profile?.id);
 
   const { data: events = [] } = useQuery({
     queryKey: ['tracking-events-overview', profile?.id, isAdmin],

@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useTrackingRealtime } from '@/hooks/useTrackingRealtime';
 
 const statusColors: Record<string, string> = {
   delivered: 'bg-green-500/10 text-green-600 border-green-200',
@@ -23,6 +24,7 @@ const statusColors: Record<string, string> = {
 
 export function EventLog() {
   const { profile } = useAuth();
+  useTrackingRealtime(!!profile?.id);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
