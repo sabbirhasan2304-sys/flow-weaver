@@ -77,12 +77,15 @@ export default function Auth() {
       <div className="hero-glow absolute inset-0" />
       <div className="w-full max-w-md relative">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-2.5 mb-8">
+        <Link to="/" className="flex items-center justify-center gap-2.5 mb-4">
           <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-xl shadow-primary/30">
             <Zap className="h-6 w-6 text-primary-foreground" />
           </div>
           <span className="text-2xl font-extrabold tracking-tight text-foreground">BiztoriBD</span>
-        </div>
+        </Link>
+        <p className="text-center text-sm text-muted-foreground mb-6">
+          375+ automation nodes · bKash & Nagad · Server-side tracking
+        </p>
         
         <Card>
           <Tabs defaultValue="signin">
@@ -296,6 +299,17 @@ export default function Auth() {
         <p className="text-center text-sm text-muted-foreground mt-4">
           By continuing, you agree to our Terms of Service and Privacy Policy
         </p>
+        
+        <div className="flex items-center justify-center gap-4 mt-6 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <Zap className="h-3 w-3 text-primary" />
+            Free forever plan
+          </span>
+          <span className="flex items-center gap-1">
+            <Zap className="h-3 w-3 text-primary" />
+            No credit card
+          </span>
+        </div>
       </div>
     </div>
   );
