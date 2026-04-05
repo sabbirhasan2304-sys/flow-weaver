@@ -1454,6 +1454,48 @@ export type Database = {
           },
         ]
       }
+      tracking_alert_rules: {
+        Row: {
+          channel: string
+          created_at: string
+          enabled: boolean
+          id: string
+          last_triggered_at: string | null
+          metric: string
+          operator: string
+          threshold: number
+          updated_at: string
+          user_id: string
+          webhook_url: string | null
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_triggered_at?: string | null
+          metric: string
+          operator?: string
+          threshold: number
+          updated_at?: string
+          user_id: string
+          webhook_url?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_triggered_at?: string | null
+          metric?: string
+          operator?: string
+          threshold?: number
+          updated_at?: string
+          user_id?: string
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
       tracking_alerts: {
         Row: {
           condition: Json
@@ -1524,6 +1566,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          retry_config: Json | null
           type: string
           user_id: string
         }
@@ -1533,6 +1576,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          retry_config?: Json | null
           type: string
           user_id: string
         }
@@ -1542,6 +1586,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          retry_config?: Json | null
           type?: string
           user_id?: string
         }
@@ -1551,6 +1596,7 @@ export type Database = {
         Row: {
           created_at: string
           destination: string | null
+          event_fingerprint: string | null
           event_name: string
           id: string
           payload: Json
@@ -1564,6 +1610,7 @@ export type Database = {
         Insert: {
           created_at?: string
           destination?: string | null
+          event_fingerprint?: string | null
           event_name: string
           id?: string
           payload?: Json
@@ -1577,6 +1624,7 @@ export type Database = {
         Update: {
           created_at?: string
           destination?: string | null
+          event_fingerprint?: string | null
           event_name?: string
           id?: string
           payload?: Json
