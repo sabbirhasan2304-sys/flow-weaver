@@ -8,6 +8,7 @@ import { CheckCircle2, ShoppingBag, Globe, Code, Building2, Users, BarChart3, Lo
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
