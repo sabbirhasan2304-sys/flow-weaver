@@ -50,6 +50,11 @@ const features = [
     description: 'bKash, Nagad, Pathao, eCourier, Steadfast, RedX, Daraz, BD NID verification — 25+ local nodes.',
   },
   {
+    icon: Crosshair,
+    title: 'NexusTrack — Server-Side Tracking',
+    description: 'Visual pipeline builder for Meta CAPI, GA4, TikTok & more. AI setup, bot detection, cookie recovery, and PII anonymization.',
+  },
+  {
     icon: Code,
     title: 'Developer API',
     description: 'Full REST API with 20+ endpoints. Batch execution, webhooks, real-time logs, 8 SDK languages.',
