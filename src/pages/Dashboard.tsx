@@ -333,6 +333,7 @@ export default function Dashboard() {
                   Tracking
                 </Button>
               </Link>
+              {isAdmin && (
                 <Link to="/admin">
                   <Button variant="ghost" size="sm" className="text-muted-foreground">
                     <Shield className="h-4 w-4 mr-2" />
