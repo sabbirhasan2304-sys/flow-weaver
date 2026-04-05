@@ -228,6 +228,7 @@ export default function Dashboard() {
     { label: 'Executions', href: '/executions', icon: Clock },
     { label: 'Credentials', href: '/credentials', icon: Settings },
     { label: 'Email', href: '/email-marketing', icon: Mail },
+    { label: 'Tracking', href: '/tracking', icon: FileCode },
     { label: 'Billing', href: '/billing', icon: CreditCard },
   ];
 
