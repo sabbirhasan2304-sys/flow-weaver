@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,29 +7,16 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Upload, DollarSign, TrendingUp, TrendingDown, Plus, Trash2, FileText } from 'lucide-react';
+import { Upload, DollarSign, TrendingUp, TrendingDown, Plus, Trash2, FileText, Package } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-const mockProfitData = Array.from({ length: 7 }, (_, i) => {
-  const date = new Date();
-  date.setDate(date.getDate() - (6 - i));
-  const revenue = Math.floor(Math.random() * 5000) + 2000;
-  const cost = Math.floor(revenue * (0.3 + Math.random() * 0.3));
-  return {
-    date: date.toLocaleDateString('en-US', { weekday: 'short' }),
-    revenue,
-    cost,
-    profit: revenue - cost,
-    roas: +(revenue / (cost * 0.4)).toFixed(2),
-    poas: +((revenue - cost) / (cost * 0.4)).toFixed(2),
-  };
-});
-
 export function POASDashboard() {
   const { profile } = useAuth();
+  const { isAdmin } = useAdmin();
   const queryClient = useQueryClient();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [csvInput, setCsvInput] = useState('');
@@ -39,7 +26,7 @@ export function POASDashboard() {
   const [newSell, setNewSell] = useState('');
 
   const { data: feeds = [], isLoading } = useQuery({
-    queryKey: ['product-feeds', profile?.id],
+    queryKey: ['product-feeds', profile?.id, isAdmin],
     queryFn: async () => {
       if (!profile?.id) return [];
       const { data } = await supabase
@@ -50,6 +37,29 @@ export function POASDashboard() {
     },
     enabled: !!profile?.id,
   });
+
+  // Compute real POAS metrics from product feed
+  const metrics = useMemo(() => {
+    if (feeds.length === 0) return { totalRevenue: 0, totalCost: 0, totalProfit: 0, avgRoas: 0, avgPoas: 0 };
+    const totalRevenue = feeds.reduce((s: number, f: any) => s + Number(f.sell_price || 0), 0);
+    const totalCost = feeds.reduce((s: number, f: any) => s + Number(f.cost_price || 0), 0);
+    const totalProfit = totalRevenue - totalCost;
+    const avgRoas = totalCost > 0 ? +(totalRevenue / totalCost).toFixed(2) : 0;
+    const avgPoas = totalCost > 0 ? +(totalProfit / totalCost).toFixed(2) : 0;
+    return { totalRevenue, totalCost, totalProfit, avgRoas, avgPoas };
+  }, [feeds]);
+
+  // Build per-product chart data from real feeds
+  const chartData = useMemo(() => {
+    return feeds.slice(0, 10).map((f: any) => ({
+      name: f.product_name || f.sku,
+      revenue: Number(f.sell_price || 0),
+      cost: Number(f.cost_price || 0),
+      profit: Number(f.sell_price || 0) - Number(f.cost_price || 0),
+      roas: Number(f.cost_price) > 0 ? +(Number(f.sell_price) / Number(f.cost_price)).toFixed(2) : 0,
+      poas: Number(f.cost_price) > 0 ? +((Number(f.sell_price) - Number(f.cost_price)) / Number(f.cost_price)).toFixed(2) : 0,
+    }));
+  }, [feeds]);
 
   const addFeed = useMutation({
     mutationFn: async () => {
@@ -85,14 +95,12 @@ export function POASDashboard() {
 
   const importCSV = () => {
     if (!profile?.id || !csvInput.trim()) return;
-    const lines = csvInput.trim().split('\n').slice(1); // skip header
+    const lines = csvInput.trim().split('\n').slice(1);
     const items = lines.map(line => {
       const [sku, name, cost, sell] = line.split(',').map(s => s.trim());
       return { user_id: profile.id, sku, product_name: name, cost_price: parseFloat(cost) || 0, sell_price: parseFloat(sell) || 0 };
     }).filter(i => i.sku);
-
     if (items.length === 0) { toast.error('No valid rows found'); return; }
-
     supabase.from('tracking_product_feeds').insert(items).then(({ error }) => {
       if (error) toast.error('Import failed');
       else {
@@ -103,14 +111,14 @@ export function POASDashboard() {
     });
   };
 
-  const totalRevenue = mockProfitData.reduce((s, d) => s + d.revenue, 0);
-  const totalCost = mockProfitData.reduce((s, d) => s + d.cost, 0);
-  const totalProfit = totalRevenue - totalCost;
-  const avgRoas = +(totalRevenue / (totalCost * 0.4)).toFixed(2);
-  const avgPoas = +(totalProfit / (totalCost * 0.4)).toFixed(2);
-
   return (
     <div className="space-y-6">
+      {isAdmin && (
+        <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+          <p className="text-sm font-medium text-primary">👑 Admin Mode — Viewing all users' product feeds</p>
+        </div>
+      )}
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
@@ -120,7 +128,7 @@ export function POASDashboard() {
                 <DollarSign className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <p className="text-xl font-bold text-foreground">${totalRevenue.toLocaleString()}</p>
+                <p className="text-xl font-bold text-foreground">${metrics.totalRevenue.toLocaleString()}</p>
                 <p className="text-xs text-muted-foreground">Total Revenue</p>
               </div>
             </div>
@@ -133,7 +141,7 @@ export function POASDashboard() {
                 <TrendingUp className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-xl font-bold text-foreground">${totalProfit.toLocaleString()}</p>
+                <p className="text-xl font-bold text-foreground">${metrics.totalProfit.toLocaleString()}</p>
                 <p className="text-xs text-muted-foreground">Total Profit</p>
               </div>
             </div>
@@ -146,8 +154,8 @@ export function POASDashboard() {
                 <TrendingUp className="h-5 w-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-xl font-bold text-foreground">{avgRoas}x</p>
-                <p className="text-xs text-muted-foreground">Avg ROAS</p>
+                <p className="text-xl font-bold text-foreground">{metrics.avgRoas}x</p>
+                <p className="text-xs text-muted-foreground">ROAS</p>
               </div>
             </div>
           </CardContent>
@@ -159,66 +167,76 @@ export function POASDashboard() {
                 <TrendingDown className="h-5 w-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-xl font-bold text-foreground">{avgPoas}x</p>
-                <p className="text-xs text-muted-foreground">Avg POAS</p>
+                <p className="text-xl font-bold text-foreground">{metrics.avgPoas}x</p>
+                <p className="text-xs text-muted-foreground">POAS</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* ROAS vs POAS Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">ROAS vs POAS Comparison</CardTitle>
-          <CardDescription>Revenue-based vs Profit-based return on ad spend</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[280px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={mockProfitData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="date" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
-                <Legend />
-                <Bar dataKey="roas" name="ROAS" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="poas" name="POAS" fill="#f97316" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Charts from real data */}
+      {chartData.length > 0 && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">ROAS vs POAS by Product</CardTitle>
+              <CardDescription>Calculated from your product feed data</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="name" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
+                    <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                    <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
+                    <Legend />
+                    <Bar dataKey="roas" name="ROAS" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="poas" name="POAS" fill="#f97316" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Profit Trend */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Profit Trend</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={mockProfitData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="date" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
-                <Legend />
-                <Line type="monotone" dataKey="revenue" name="Revenue" stroke="hsl(var(--primary))" strokeWidth={2} />
-                <Line type="monotone" dataKey="cost" name="Cost" stroke="#ef4444" strokeWidth={2} />
-                <Line type="monotone" dataKey="profit" name="Profit" stroke="#22c55e" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader><CardTitle className="text-lg">Revenue vs Cost vs Profit</CardTitle></CardHeader>
+            <CardContent>
+              <div className="h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="name" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
+                    <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                    <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
+                    <Legend />
+                    <Line type="monotone" dataKey="revenue" name="Revenue" stroke="hsl(var(--primary))" strokeWidth={2} />
+                    <Line type="monotone" dataKey="cost" name="Cost" stroke="#ef4444" strokeWidth={2} />
+                    <Line type="monotone" dataKey="profit" name="Profit" stroke="#22c55e" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {chartData.length === 0 && (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Package className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+            <p className="text-muted-foreground">Add products to your feed to see ROAS/POAS charts with real data.</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Product Feed */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Product Feed</CardTitle>
+              <CardTitle className="text-lg">Product Feed ({feeds.length})</CardTitle>
               <CardDescription>Upload your product costs to calculate POAS</CardDescription>
             </div>
             <div className="flex gap-2">

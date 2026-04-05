@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,9 +6,15 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Globe, Shield, Bot, Cookie } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export function TrackingSettings() {
+  const { profile } = useAuth();
+  const queryClient = useQueryClient();
+
   const [customDomain, setCustomDomain] = useState('');
   const [consentMode, setConsentMode] = useState('gdpr');
   const [botDetection, setBotDetection] = useState(true);
@@ -16,9 +22,101 @@ export function TrackingSettings() {
   const [cookieRecovery, setCookieRecovery] = useState(false);
   const [cookieTtl, setCookieTtl] = useState('365');
 
-  const saveSettings = () => {
-    toast.success('Settings saved (local only — backend integration coming soon)');
-  };
+  // Load existing identity config
+  const { data: identityConfig } = useQuery({
+    queryKey: ['tracking-identity-config', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return null;
+      const { data } = await supabase
+        .from('tracking_identity_config')
+        .select('*')
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!profile?.id,
+  });
+
+  // Load existing privacy settings
+  const { data: privacySettings } = useQuery({
+    queryKey: ['tracking-privacy-settings', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return null;
+      const { data } = await supabase
+        .from('tracking_privacy_settings')
+        .select('*')
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!profile?.id,
+  });
+
+  // Populate form from DB
+  useEffect(() => {
+    if (identityConfig) {
+      setCustomDomain(identityConfig.custom_domain || '');
+      setBotAction(identityConfig.bot_action || 'tag');
+      setCookieTtl(String(identityConfig.cookie_ttl_days || 365));
+      setCookieRecovery(identityConfig.ad_blocker_bypass || false);
+      setBotDetection(identityConfig.bot_threshold > 0);
+    }
+    if (privacySettings) {
+      const consent = privacySettings.consent_mode as any;
+      if (consent?.google && consent?.meta) setConsentMode('both');
+      else if (consent?.google) setConsentMode('gdpr');
+      else if (consent?.meta) setConsentMode('ccpa');
+      else setConsentMode('custom');
+    }
+  }, [identityConfig, privacySettings]);
+
+  const saveSettings = useMutation({
+    mutationFn: async () => {
+      if (!profile?.id) throw new Error('Not authenticated');
+
+      // Upsert identity config
+      if (identityConfig?.id) {
+        await supabase.from('tracking_identity_config').update({
+          custom_domain: customDomain || null,
+          bot_action: botAction,
+          bot_threshold: botDetection ? 0.7 : 0,
+          cookie_ttl_days: parseInt(cookieTtl) || 365,
+          ad_blocker_bypass: cookieRecovery,
+        }).eq('id', identityConfig.id);
+      } else {
+        await supabase.from('tracking_identity_config').insert({
+          user_id: profile.id,
+          custom_domain: customDomain || null,
+          bot_action: botAction,
+          bot_threshold: botDetection ? 0.7 : 0,
+          cookie_ttl_days: parseInt(cookieTtl) || 365,
+          ad_blocker_bypass: cookieRecovery,
+        });
+      }
+
+      // Upsert privacy settings
+      const consentData = {
+        google: consentMode === 'gdpr' || consentMode === 'both',
+        meta: consentMode === 'ccpa' || consentMode === 'both',
+      };
+      if (privacySettings?.id) {
+        await supabase.from('tracking_privacy_settings').update({
+          consent_mode: consentData as any,
+        }).eq('id', privacySettings.id);
+      } else {
+        await supabase.from('tracking_privacy_settings').insert({
+          user_id: profile.id,
+          consent_mode: consentData as any,
+        });
+      }
+    },
+    onSuccess: () => {
+      toast.success('Settings saved!');
+      queryClient.invalidateQueries({ queryKey: ['tracking-identity-config'] });
+      queryClient.invalidateQueries({ queryKey: ['tracking-privacy-settings'] });
+    },
+    onError: () => toast.error('Failed to save settings'),
+  });
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -118,7 +216,9 @@ export function TrackingSettings() {
         </CardContent>
       </Card>
 
-      <Button onClick={saveSettings} className="w-full">Save Settings</Button>
+      <Button onClick={() => saveSettings.mutate()} disabled={saveSettings.isPending} className="w-full">
+        {saveSettings.isPending ? 'Saving...' : 'Save Settings'}
+      </Button>
     </div>
   );
 }
