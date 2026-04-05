@@ -5,7 +5,7 @@ import {
   Zap, ArrowRight, Play, Users, Shield, 
   Workflow, Bot, Database, Globe, CheckCircle2,
   LayoutDashboard, Settings, Code, FileText, Book,
-  Layers, Cpu, Mail, BarChart3, Lock, Rocket, Menu, X
+  Layers, Cpu, Mail, BarChart3, Lock, Rocket, Menu, X, Crosshair
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeToggle } from '@/components/ThemeToggle';
