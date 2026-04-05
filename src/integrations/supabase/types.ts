@@ -14,6 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
+      agency_clients: {
+        Row: {
+          agency_profile_id: string
+          brand_color: string | null
+          client_email: string | null
+          client_name: string
+          created_at: string
+          custom_domain: string | null
+          id: string
+          logo_url: string | null
+          status: string
+          updated_at: string
+          workspace_id: string | null
+        }
+        Insert: {
+          agency_profile_id: string
+          brand_color?: string | null
+          client_email?: string | null
+          client_name: string
+          created_at?: string
+          custom_domain?: string | null
+          id?: string
+          logo_url?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Update: {
+          agency_profile_id?: string
+          brand_color?: string | null
+          client_email?: string | null
+          client_name?: string
+          created_at?: string
+          custom_domain?: string | null
+          id?: string
+          logo_url?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
+      agency_reports: {
+        Row: {
+          agency_profile_id: string
+          client_id: string | null
+          created_at: string
+          date_from: string | null
+          date_to: string | null
+          generated_at: string
+          id: string
+          report_data: Json
+          report_type: string
+        }
+        Insert: {
+          agency_profile_id: string
+          client_id?: string | null
+          created_at?: string
+          date_from?: string | null
+          date_to?: string | null
+          generated_at?: string
+          id?: string
+          report_data?: Json
+          report_type?: string
+        }
+        Update: {
+          agency_profile_id?: string
+          client_id?: string | null
+          created_at?: string
+          date_from?: string | null
+          date_to?: string | null
+          generated_at?: string
+          id?: string
+          report_data?: Json
+          report_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "agency_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_keys: {
         Row: {
           created_at: string
@@ -1033,6 +1119,74 @@ export type Database = {
           },
         ]
       }
+      nexus_store_collections: {
+        Row: {
+          created_at: string
+          default_ttl_seconds: number | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_ttl_seconds?: number | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_ttl_seconds?: number | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nexus_store_documents: {
+        Row: {
+          collection_id: string
+          created_at: string
+          data: Json
+          id: string
+          ttl_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          data?: Json
+          id?: string
+          ttl_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          data?: Json
+          id?: string
+          ttl_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nexus_store_documents_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "nexus_store_collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       node_plugins: {
         Row: {
           category: string
@@ -1441,6 +1595,42 @@ export type Database = {
           name?: string
           pipeline_data?: Json
           status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tracking_product_feeds: {
+        Row: {
+          cost_price: number
+          created_at: string
+          currency: string
+          id: string
+          product_name: string | null
+          sell_price: number
+          sku: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cost_price?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          product_name?: string | null
+          sell_price?: number
+          sku: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cost_price?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          product_name?: string | null
+          sell_price?: number
+          sku?: string
           updated_at?: string
           user_id?: string
         }
