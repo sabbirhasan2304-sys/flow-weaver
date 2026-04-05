@@ -113,14 +113,72 @@ export function NexusStore() {
     },
   });
 
-  const exportDocuments = () => {
+  const exportDocuments = (format: 'json' | 'csv' = 'json') => {
     if (!documents.length) return;
-    const blob = new Blob([JSON.stringify(documents.map((d: any) => d.data), null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${selectedCollection?.name || 'documents'}.json`;
-    a.click();
+    if (format === 'csv') {
+      const allKeys = new Set<string>();
+      documents.forEach((d: any) => Object.keys(d.data || {}).forEach(k => allKeys.add(k)));
+      const keys = Array.from(allKeys);
+      const csvRows = [keys.join(',')];
+      documents.forEach((d: any) => {
+        csvRows.push(keys.map(k => JSON.stringify((d.data as any)?.[k] ?? '')).join(','));
+      });
+      const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${selectedCollection?.name || 'documents'}.csv`; a.click();
+    } else {
+      const blob = new Blob([JSON.stringify(documents.map((d: any) => d.data), null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${selectedCollection?.name || 'documents'}.json`; a.click();
+    }
+    toast.success(`Exported as ${format.toUpperCase()}`);
+  };
+
+  const handleBulkImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile?.id || !selectedCollection?.id) return;
+    const text = await file.text();
+    let items: any[] = [];
+    try {
+      if (file.name.endsWith('.csv')) {
+        const lines = text.split('\n').filter(l => l.trim());
+        if (lines.length < 2) { toast.error('CSV must have headers and at least one row'); return; }
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        items = lines.slice(1).map(line => {
+          const vals = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+          const obj: any = {};
+          headers.forEach((h, i) => { obj[h] = vals[i] || ''; });
+          return obj;
+        });
+      } else {
+        const parsed = JSON.parse(text);
+        items = Array.isArray(parsed) ? parsed : [parsed];
+      }
+    } catch { toast.error('Failed to parse file'); return; }
+
+    if (items.length === 0) { toast.error('No data found in file'); return; }
+    if (items.length > 500) { toast.error('Max 500 documents per import'); return; }
+
+    const ttl = selectedCollection.default_ttl_seconds
+      ? new Date(Date.now() + selectedCollection.default_ttl_seconds * 1000).toISOString()
+      : null;
+
+    const rows = items.map(item => ({
+      collection_id: selectedCollection.id,
+      user_id: profile.id,
+      data: item,
+      ttl_expires_at: ttl,
+    }));
+
+    const { error } = await supabase.from('nexus_store_documents').insert(rows);
+    if (error) toast.error('Import failed: ' + error.message);
+    else {
+      toast.success(`Imported ${items.length} documents!`);
+      queryClient.invalidateQueries({ queryKey: ['nexus-documents'] });
+    }
+    e.target.value = '';
   };
 
   const filteredDocs = documents.filter((d: any) => {
@@ -208,8 +266,15 @@ export function NexusStore() {
           <p className="text-xs text-muted-foreground">{filteredDocs.length} documents</p>
         </div>
         <div className="ml-auto flex gap-2">
-          <Button size="sm" variant="outline" onClick={exportDocuments} disabled={!documents.length}>
-            <Download className="h-4 w-4 mr-1" /> Export
+          <label>
+            <input type="file" accept=".json,.csv" className="hidden" onChange={handleBulkImport} />
+            <Button size="sm" variant="outline" asChild><span><Upload className="h-4 w-4 mr-1" /> Import</span></Button>
+          </label>
+          <Button size="sm" variant="outline" onClick={() => exportDocuments('csv')} disabled={!documents.length}>
+            <Download className="h-4 w-4 mr-1" /> CSV
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => exportDocuments('json')} disabled={!documents.length}>
+            <Download className="h-4 w-4 mr-1" /> JSON
           </Button>
           <Button size="sm" onClick={() => setCreateDocOpen(true)}>
             <Plus className="h-4 w-4 mr-1" /> Add Document

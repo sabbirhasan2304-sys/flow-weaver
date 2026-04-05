@@ -7,13 +7,17 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Bell, Plus, AlertTriangle, CheckCircle2, TrendingUp, Shield, Cookie, Bot } from 'lucide-react';
+import { Bell, Plus, AlertTriangle, CheckCircle2, TrendingUp, Cookie, Bot } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useTrackingRealtime } from '@/hooks/useTrackingRealtime';
+import { AnomalyDetection } from './AnomalyDetection';
+import { AlertRulesEngine } from './AlertRulesEngine';
+import { AdRecoveryMetrics } from './AdRecoveryMetrics';
+import { CookieHealthMonitor } from './CookieHealthMonitor';
 
 export function MonitoringDashboard() {
   const { profile } = useAuth();
@@ -50,13 +54,11 @@ export function MonitoringDashboard() {
     enabled: !!profile?.id,
   });
 
-  // Compute real stats from events
   const totalEvents = events.length;
   const deliveredCount = events.filter((e: any) => e.status === 'delivered').length;
   const failedCount = events.filter((e: any) => e.status === 'failed').length;
   const successRate = totalEvents > 0 ? ((deliveredCount / totalEvents) * 100).toFixed(1) : '0.0';
 
-  // Build hourly chart from real data (last 24h)
   const healthData = useMemo(() => {
     const now = new Date();
     const hours: { hour: string; success: number; failed: number }[] = [];
@@ -78,49 +80,22 @@ export function MonitoringDashboard() {
     return hours;
   }, [events]);
 
-  // Source distribution for cookie health (based on real sources)
   const sourceDistribution = useMemo(() => {
     const sources: Record<string, number> = {};
-    events.forEach((e: any) => {
-      const src = e.source || 'unknown';
-      sources[src] = (sources[src] || 0) + 1;
-    });
+    events.forEach((e: any) => { sources[e.source || 'unknown'] = (sources[e.source || 'unknown'] || 0) + 1; });
     const colors = ['hsl(var(--primary))', '#f97316', '#94a3b8', '#22c55e', '#8b5cf6'];
-    return Object.entries(sources).slice(0, 5).map(([name, value], i) => ({
-      name,
-      value,
-      color: colors[i % colors.length],
-    }));
-  }, [events]);
-
-  // Destination distribution for bot-like analysis
-  const destinationStats = useMemo(() => {
-    const dests: Record<string, number> = {};
-    events.forEach((e: any) => {
-      const dest = e.destination || 'No destination';
-      dests[dest] = (dests[dest] || 0) + 1;
-    });
-    return Object.entries(dests)
-      .map(([source, count]) => ({ source, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 6);
+    return Object.entries(sources).slice(0, 5).map(([name, value], i) => ({ name, value, color: colors[i % colors.length] }));
   }, [events]);
 
   const createAlert = async () => {
     if (!profile?.id || !alertName.trim()) return;
     const { error } = await supabase.from('tracking_alerts').insert({
-      user_id: profile.id,
-      name: alertName,
+      user_id: profile.id, name: alertName,
       condition: { metric: alertMetric, operator: 'gt', threshold: parseFloat(alertThreshold) } as any,
       notify_email: alertEmail || profile.email,
     });
     if (error) toast.error('Failed to create alert');
-    else {
-      toast.success('Alert created!');
-      setAlertDialogOpen(false);
-      setAlertName('');
-      refetch();
-    }
+    else { toast.success('Alert created!'); setAlertDialogOpen(false); setAlertName(''); refetch(); }
   };
 
   return (
@@ -135,35 +110,20 @@ export function MonitoringDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{successRate}%</p>
-              <p className="text-xs text-muted-foreground">Success Rate</p>
-            </div>
+            <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center"><CheckCircle2 className="h-5 w-5 text-green-600" /></div>
+            <div><p className="text-2xl font-bold text-foreground">{successRate}%</p><p className="text-xs text-muted-foreground">Success Rate</p></div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-red-500/10 flex items-center justify-center">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{failedCount}</p>
-              <p className="text-xs text-muted-foreground">Failed Events</p>
-            </div>
+            <div className="h-10 w-10 rounded-lg bg-red-500/10 flex items-center justify-center"><AlertTriangle className="h-5 w-5 text-red-600" /></div>
+            <div><p className="text-2xl font-bold text-foreground">{failedCount}</p><p className="text-xs text-muted-foreground">Failed Events</p></div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-foreground">{totalEvents.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Total Events</p>
-            </div>
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><TrendingUp className="h-5 w-5 text-primary" /></div>
+            <div><p className="text-2xl font-bold text-foreground">{totalEvents.toLocaleString()}</p><p className="text-xs text-muted-foreground">Total Events</p></div>
           </CardContent>
         </Card>
       </div>
@@ -174,7 +134,7 @@ export function MonitoringDashboard() {
         <CardContent>
           <div className="h-[250px]">
             {totalEvents === 0 ? (
-              <div className="flex items-center justify-center h-full text-muted-foreground text-sm">No event data yet. Events will appear here once tracking is active.</div>
+              <div className="flex items-center justify-center h-full text-muted-foreground text-sm">No event data yet.</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={healthData}>
@@ -191,102 +151,55 @@ export function MonitoringDashboard() {
         </CardContent>
       </Card>
 
-      {/* Source & Destination Analysis */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Source Distribution */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2"><Cookie className="h-4 w-4 text-primary" /> Event Sources</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {sourceDistribution.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No source data yet</p>
-            ) : (
-              <>
-                <div className="h-[140px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={sourceDistribution} cx="50%" cy="50%" innerRadius={35} outerRadius={55} dataKey="value" paddingAngle={2}>
-                        {sourceDistribution.map((entry, i) => (
-                          <Cell key={i} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', fontSize: 12 }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="space-y-1 mt-1">
-                  {sourceDistribution.map((d) => (
-                    <div key={d.name} className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: d.color }} />
-                        <span className="text-muted-foreground">{d.name}</span>
-                      </div>
-                      <span className="font-medium text-foreground">{d.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+      {/* AI Anomaly Detection */}
+      <AnomalyDetection events={events} />
 
-        {/* Destination Breakdown */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2"><Bot className="h-4 w-4 text-primary" /> Destination Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {destinationStats.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No destination data yet</p>
-            ) : (
-              <div className="space-y-2">
-                {destinationStats.map((b) => (
-                  <div key={b.source} className="flex items-center justify-between text-xs">
-                    <span className="text-foreground font-medium">{b.source}</span>
-                    <span className="text-muted-foreground">{b.count.toLocaleString()}</span>
+      {/* Ad Recovery + Cookie Health */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <AdRecoveryMetrics events={events} />
+        <CookieHealthMonitor events={events} />
+      </div>
+
+      {/* Source Distribution */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2"><Cookie className="h-4 w-4 text-primary" /> Event Sources</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {sourceDistribution.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">No source data yet</p>
+          ) : (
+            <div className="flex items-center gap-6">
+              <div className="h-[120px] w-[120px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart><Pie data={sourceDistribution} cx="50%" cy="50%" innerRadius={30} outerRadius={50} dataKey="value" paddingAngle={2}>
+                    {sourceDistribution.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                  </Pie></PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="space-y-1 flex-1">
+                {sourceDistribution.map((d) => (
+                  <div key={d.name} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-2 w-2 rounded-full" style={{ backgroundColor: d.color }} />
+                      <span className="text-muted-foreground">{d.name}</span>
+                    </div>
+                    <span className="font-medium text-foreground">{d.value}</span>
                   </div>
                 ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Alert Rules */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Alert Rules</CardTitle>
-            <Button size="sm" onClick={() => setAlertDialogOpen(true)}><Plus className="h-4 w-4 mr-1" /> Add Rule</Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {alerts.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">No alert rules yet. Create one to get notified about anomalies.</p>
-          ) : (
-            <div className="space-y-3">
-              {alerts.map((alert: any) => (
-                <div key={alert.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
-                  <div className="flex items-center gap-3">
-                    <Bell className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{alert.name}</p>
-                      <p className="text-xs text-muted-foreground">{(alert.condition as any)?.metric} &gt; {(alert.condition as any)?.threshold}%</p>
-                    </div>
-                  </div>
-                  <Badge variant={alert.is_active ? 'default' : 'secondary'}>{alert.is_active ? 'Active' : 'Paused'}</Badge>
-                </div>
-              ))}
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Create Alert Dialog */}
+      {/* Alert Rules Engine */}
+      <AlertRulesEngine />
+
+      {/* Legacy Alert Dialog */}
       <Dialog open={alertDialogOpen} onOpenChange={setAlertDialogOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Create Alert Rule</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Create Quick Alert</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div><Label>Alert Name</Label><Input value={alertName} onChange={(e) => setAlertName(e.target.value)} placeholder="e.g., High Error Rate" /></div>
             <div>
@@ -297,13 +210,11 @@ export function MonitoringDashboard() {
                   <SelectItem value="error_rate">Error Rate (%)</SelectItem>
                   <SelectItem value="event_drop">Event Drop (%)</SelectItem>
                   <SelectItem value="latency">Latency (ms)</SelectItem>
-                  <SelectItem value="bot_rate">Bot Rate (%)</SelectItem>
-                  <SelectItem value="ad_block_rate">Ad Block Rate (%)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div><Label>Threshold</Label><Input type="number" value={alertThreshold} onChange={(e) => setAlertThreshold(e.target.value)} /></div>
-            <div><Label>Notification Email</Label><Input value={alertEmail} onChange={(e) => setAlertEmail(e.target.value)} placeholder="your@email.com" /></div>
+            <div><Label>Email</Label><Input value={alertEmail} onChange={(e) => setAlertEmail(e.target.value)} placeholder="your@email.com" /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAlertDialogOpen(false)}>Cancel</Button>
