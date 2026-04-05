@@ -228,6 +228,7 @@ export default function Dashboard() {
     { label: 'Executions', href: '/executions', icon: Clock },
     { label: 'Credentials', href: '/credentials', icon: Settings },
     { label: 'Email', href: '/email-marketing', icon: Mail },
+    { label: 'Tracking', href: '/tracking', icon: FileCode },
     { label: 'Billing', href: '/billing', icon: CreditCard },
   ];
 
@@ -324,6 +325,12 @@ export default function Dashboard() {
                 <Button variant="ghost" size="sm" className="text-muted-foreground">
                   <Mail className="h-4 w-4 mr-2" />
                   Email
+                </Button>
+              </Link>
+              <Link to="/tracking">
+                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                  <FileCode className="h-4 w-4 mr-2" />
+                  Tracking
                 </Button>
               </Link>
               {isAdmin && (
@@ -502,6 +509,62 @@ export default function Dashboard() {
           )}
         </div>
 
+        {/* Quick Stats & Actions */}
+        {!loading && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <Card className="bg-card/50">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Folder className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{workflows.length}</p>
+                  <p className="text-xs text-muted-foreground">Workflows</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-card/50">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{workflows.filter(w => w.is_active).length}</p>
+                  <p className="text-xs text-muted-foreground">Active</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Link to="/tracking" className="contents">
+              <Card className="bg-card/50 hover:border-primary/40 transition-colors cursor-pointer">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <FileCode className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">NexusTrack</p>
+                    <p className="text-xs text-muted-foreground">Server tracking</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto" />
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to="/email-marketing" className="contents">
+              <Card className="bg-card/50 hover:border-primary/40 transition-colors cursor-pointer">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Mail className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Email</p>
+                    <p className="text-xs text-muted-foreground">Campaigns</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto" />
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        )}
+
         {/* Onboarding Card */}
         {showOnboarding && !loading && workflows.length === 0 && !search && (
           <Card className="mb-6 border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-transparent relative overflow-hidden">
@@ -516,7 +579,7 @@ export default function Dashboard() {
               <CardDescription>Get started with your first automation in minutes.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <button
                   onClick={() => setCreateDialogOpen(true)}
                   className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/40 hover:bg-muted/50 transition-all text-left"
@@ -541,18 +604,30 @@ export default function Dashboard() {
                     <div className="text-xs text-muted-foreground">Pre-built workflows</div>
                   </div>
                 </Link>
-                <button
-                  onClick={() => navigate('/dashboard')}
-                  className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/40 hover:bg-muted/50 transition-all text-left"
+                <Link
+                  to="/tracking"
+                  className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/40 hover:bg-muted/50 transition-all"
+                >
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <FileCode className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-foreground">Setup Tracking</div>
+                    <div className="text-xs text-muted-foreground">Connect your website</div>
+                  </div>
+                </Link>
+                <Link
+                  to="/docs"
+                  className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/40 hover:bg-muted/50 transition-all"
                 >
                   <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <Download className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-foreground">Import from n8n</div>
-                    <div className="text-xs text-muted-foreground">Bring existing flows</div>
+                    <div className="text-sm font-medium text-foreground">Read Docs</div>
+                    <div className="text-xs text-muted-foreground">Guides & tutorials</div>
                   </div>
-                </button>
+                </Link>
               </div>
             </CardContent>
           </Card>
