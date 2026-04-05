@@ -63,6 +63,7 @@ export default function Tracking() {
             <TabsTrigger value="settings" className="gap-1.5"><Settings className="h-4 w-4" /> Settings</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="connect"><ConnectWebsite /></TabsContent>
           <TabsContent value="overview"><TrackingOverview /></TabsContent>
           <TabsContent value="events"><EventLog /></TabsContent>
           <TabsContent value="poas"><POASDashboard /></TabsContent>
