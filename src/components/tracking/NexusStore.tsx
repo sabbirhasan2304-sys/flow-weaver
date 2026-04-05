@@ -266,8 +266,15 @@ export function NexusStore() {
           <p className="text-xs text-muted-foreground">{filteredDocs.length} documents</p>
         </div>
         <div className="ml-auto flex gap-2">
-          <Button size="sm" variant="outline" onClick={exportDocuments} disabled={!documents.length}>
-            <Download className="h-4 w-4 mr-1" /> Export
+          <label>
+            <input type="file" accept=".json,.csv" className="hidden" onChange={handleBulkImport} />
+            <Button size="sm" variant="outline" asChild><span><Upload className="h-4 w-4 mr-1" /> Import</span></Button>
+          </label>
+          <Button size="sm" variant="outline" onClick={() => exportDocuments('csv')} disabled={!documents.length}>
+            <Download className="h-4 w-4 mr-1" /> CSV
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => exportDocuments('json')} disabled={!documents.length}>
+            <Download className="h-4 w-4 mr-1" /> JSON
           </Button>
           <Button size="sm" onClick={() => setCreateDocOpen(true)}>
             <Plus className="h-4 w-4 mr-1" /> Add Document
