@@ -56,6 +56,7 @@ export default function Tracking() {
             <TabsTrigger value="identity" className="gap-1.5"><Fingerprint className="h-4 w-4" /> Identity</TabsTrigger>
             <TabsTrigger value="store" className="gap-1.5"><Database className="h-4 w-4" /> NexusStore</TabsTrigger>
             <TabsTrigger value="dashboards" className="gap-1.5"><LayoutGrid className="h-4 w-4" /> Dashboards</TabsTrigger>
+            <TabsTrigger value="mapper" className="gap-1.5"><Wand2 className="h-4 w-4" /> AI Mapper</TabsTrigger>
             <TabsTrigger value="agency" className="gap-1.5"><Users className="h-4 w-4" /> Agency</TabsTrigger>
             <TabsTrigger value="settings" className="gap-1.5"><Settings className="h-4 w-4" /> Settings</TabsTrigger>
           </TabsList>
