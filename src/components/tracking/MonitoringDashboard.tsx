@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useTrackingRealtime } from '@/hooks/useTrackingRealtime';
 
 export function MonitoringDashboard() {
   const { profile } = useAuth();
