@@ -24,6 +24,7 @@ const statusColors: Record<string, string> = {
 
 export function EventLog() {
   const { profile } = useAuth();
+  useTrackingRealtime(!!profile?.id);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedEvent, setSelectedEvent] = useState<any>(null);

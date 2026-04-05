@@ -15,6 +15,7 @@ export function TrackingOverview() {
   const [aiOpen, setAiOpen] = useState(false);
   const { profile } = useAuth();
   const { isAdmin } = useAdmin();
+  useTrackingRealtime(!!profile?.id);
 
   const { data: events = [] } = useQuery({
     queryKey: ['tracking-events-overview', profile?.id, isAdmin],

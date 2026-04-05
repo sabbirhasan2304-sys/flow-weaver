@@ -18,6 +18,7 @@ import { useTrackingRealtime } from '@/hooks/useTrackingRealtime';
 export function MonitoringDashboard() {
   const { profile } = useAuth();
   const { isAdmin } = useAdmin();
+  useTrackingRealtime(!!profile?.id);
   const [alertDialogOpen, setAlertDialogOpen] = useState(false);
   const [alertName, setAlertName] = useState('');
   const [alertMetric, setAlertMetric] = useState('error_rate');
