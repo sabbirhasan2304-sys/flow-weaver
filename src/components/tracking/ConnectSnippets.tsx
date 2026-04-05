@@ -178,12 +178,42 @@ e.head.appendChild(s);
 
   return (
     <div className="space-y-6">
+      {/* Quick Start Guide */}
+      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Zap className="h-5 w-5 text-primary" />
+            Quick Start — Connect Your Website
+          </CardTitle>
+          <CardDescription>Follow these 3 steps to start tracking events from your website.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[
+              { step: 1, title: 'Copy Snippet', desc: 'Choose your platform below and copy the tracking code.' },
+              { step: 2, title: 'Install on Site', desc: 'Paste the snippet into your website\'s HTML or CMS.' },
+              { step: 3, title: 'Verify Connection', desc: 'Enter your URL below and confirm events are arriving.' },
+            ].map((item) => (
+              <div key={item.step} className="flex items-start gap-3 p-3 rounded-lg bg-background/60 border border-border/50">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
+                  {item.step}
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Verification Card */}
       <Card className="border-primary/30 bg-primary/5">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-primary" />
-            Verify Website Connection
+            Step 3: Verify Website Connection
           </CardTitle>
           <CardDescription>Enter your website URL and click verify to check if events are being received.</CardDescription>
         </CardHeader>

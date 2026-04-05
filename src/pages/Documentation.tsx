@@ -220,8 +220,114 @@ Purchase credits in the Billing page to continue using AI features.`
   }
 ];
 
+// ==================== NEXUSTRACK GUIDE ====================
+const nexusTrackGuide = {
+  id: 'nexustrack',
+  title: 'NexusTrack — Server-Side Tracking',
+  description: 'Set up server-side tracking for your website in minutes',
+  icon: Activity,
+  sections: [
+    {
+      title: 'What is NexusTrack?',
+      content: `NexusTrack is a server-side tracking system that captures events from your website and routes them to marketing platforms (Meta CAPI, GA4, TikTok, etc.) — bypassing ad blockers and improving data accuracy by up to 30%.
+
+Unlike client-side tags, NexusTrack runs server-side, meaning:
+• Events can't be blocked by ad blockers or browser privacy settings
+• First-party cookies extend visitor identity across sessions
+• You control exactly what data is sent to each platform
+• Full GDPR/privacy compliance with built-in PII anonymization`
+    },
+    {
+      title: 'Step 1: Go to the Connect Tab',
+      content: `Navigate to NexusTrack → Connect tab in your dashboard.
+
+You'll see three connection methods:
+• Install Snippets: Copy-paste tracking code into your website
+• Gateway Mode: No-code setup — just pick your platforms
+• Custom Domain: Set up a CNAME subdomain for first-party tracking`
+    },
+    {
+      title: 'Step 2: Choose Your Integration Method',
+      content: `Pick the method that fits your stack:
+
+Universal Script — For any website:
+• Copy the tracking snippet from the "Universal Script" tab
+• Paste it before </head> on every page
+• Auto-tracks page views, sessions, UTM params, and click IDs
+
+Shopify — For Shopify stores:
+• Go to Shopify Admin → Themes → Edit Code
+• Open theme.liquid
+• Paste the Shopify snippet before </body>
+• Tracks page views, customer identity, and checkout events
+
+WordPress / WooCommerce:
+• Install the BiztoriBD plugin from the WordPress plugin directory
+• Enter your API Key and API URL in the plugin settings
+• Tracks orders, payments, cart abandonment, and page views
+
+Google Tag Manager:
+• Create a Custom HTML tag in GTM
+• Paste the Universal Script
+• Set trigger to "All Pages"
+• Publish your container`
+    },
+    {
+      title: 'Step 3: Set Up Destinations (Gateway Mode)',
+      content: `Use Gateway Mode for a no-code setup:
+
+1. Go to Connect → Gateway Mode
+2. Select your source platform (Shopify, WordPress, or Custom)
+3. Choose your server-side destinations:
+   • Google Analytics 4 (Measurement ID + API Secret)
+   • Meta Conversions API (Pixel ID + Access Token)
+   • TikTok Events API (Pixel ID + Access Token)
+   • Google Ads (Conversion ID + Label)
+4. Enter your credentials for each destination
+5. Click "Save & Activate"
+
+Events will automatically flow from your website to all configured destinations.`
+    },
+    {
+      title: 'Step 4: Custom Domain (Optional but Recommended)',
+      content: `Set up a CNAME subdomain for first-party tracking:
+
+1. Go to Connect → Custom Domain
+2. Enter your desired subdomain (e.g., sst.yoursite.com)
+3. Add the CNAME record to your DNS provider:
+   • Type: CNAME
+   • Name: sst (or your chosen subdomain)
+   • Value: sst.nexustrack.io
+4. Add the TXT verification record
+5. Click "Verify DNS" — propagation takes 5-60 minutes
+
+Benefits:
+• Cookies are set as first-party (longer lifespan)
+• Tracking requests appear as same-domain (no ad blocker issues)
+• Better data accuracy for attribution and retargeting`
+    },
+    {
+      title: 'Step 5: Verify & Monitor',
+      content: `Confirm everything works:
+
+1. Go to Connect → Install Snippets
+2. Enter your website URL in the verification box
+3. Click "Verify" — we'll check for incoming events in real-time
+4. Visit your website in another tab to trigger a page view
+5. You should see "Connected!" confirmation within seconds
+
+After verification:
+• Check the Events tab for all incoming events
+• Use the Overview tab for real-time analytics
+• Set up Alert Rules for anomaly detection
+• Build Custom Dashboards for your team`
+    }
+  ]
+};
+
 // ==================== DETAILED GUIDES ====================
 const detailedGuides = [
+  nexusTrackGuide,
   {
     id: 'triggers',
     icon: Play,
