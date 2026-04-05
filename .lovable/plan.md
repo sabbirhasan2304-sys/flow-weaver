@@ -1,77 +1,122 @@
 
-# NexusTrack — Phase 2: Privacy, Identity & Data Reliability
+
+# NexusTrack — Advanced Feature Implementation Plan
 
 ## What's Already Built
-✅ POAS Dashboard, Event Replay + Dead Letter Queue, Enhanced Monitoring (ad recovery, cookie health, bot traffic), AI Audit mode, NexusStore, Agency Dashboard, Stape Migration Wizard, Onboarding Wizard, 17 tracking nodes
+All 11 tabs are live: Overview, Events, POAS, Monitoring, Reliability, Privacy, Identity, NexusStore, Dashboards, Agency, Settings. Plus: AI Setup Assistant, Stape Migration Wizard, Onboarding Wizard, 30+ tracking nodes, realtime subscriptions, admin access, and sample data.
 
-## What Gets Built Now
+## What Needs Enhancement (gaps vs. the spec)
 
-### 1. Privacy & Compliance Center (new tab)
-New component `src/components/tracking/PrivacyCompliance.tsx`
-- **PII Auto-Scanner**: Scans event payloads for email, phone, IP, credit card patterns — flags before transmission
-- **Consent Mode v2**: Toggle Google/Meta consent mode settings per workspace
-- **Anonymizer Config**: IP truncation, user agent generalization, configurable field masking rules
-- **CMP Integration**: Configure consent signals from OneTrust, Cookiebot, Usercentrics
-- **Data Residency**: Choose storage region preference (EU/US/APAC) per workspace
-- **GDPR/CCPA Report Generator**: One-click export of compliance summary as downloadable PDF
+### Phase 1: AI-Powered Features (High Impact Differentiators)
 
-### 2. Identity & Enrichment Hub (new tab)
-New component `src/components/tracking/IdentityHub.tsx`
-- **User ID Generator**: Configure first-party hashed user IDs (salt, hashing algorithm)
-- **Cross-Domain Stitching**: Set up domain list for identity linking
-- **Cookie Lifetime Config**: Server-set first-party cookies with configurable TTL
-- **Click ID Recovery**: Configure gclid/fbclid/ttclid recovery from URL params or first-party storage
-- **Ad-Blocker Bypass**: Custom GTM/GA4 loader setup via first-party domain
-- **Bot Detection Settings**: ML-based classifier threshold, SEO crawler allowlist, block/tag/pass actions
+**1A. AI Event Mapper** — New component
+- Paste raw dataLayer/webhook JSON, AI maps fields to destination schemas (Meta CAPI, GA4, TikTok)
+- Uses Lovable AI (Gemini) via edge function
+- Output: field mapping config saved to NexusStore for reuse
 
-### 3. Data Reliability Dashboard
-Enhance `EventLog.tsx` and add new component `src/components/tracking/ReliabilityEngine.tsx`
-- **Event Backup Config**: Retention period selector (30/90/365 days, unlimited)
-- **Dedup Settings**: Configure dedup window (event_id + fingerprinting), view dedup stats
-- **Retry Config**: Max attempts (up to 10), backoff strategy (exponential + jitter), per-destination
-- **Delivery Receipts Timeline**: Visual timeline showing per-event status transitions
-- **Event Backup Browser**: Browse historical events beyond the live log, filter by date range
+**1B. AI Anomaly Detection** — Add to Monitoring tab
+- Compute baseline event volumes from `tracking_events` (hourly averages over 7 days)
+- Flag unusual drops/spikes (>2 standard deviations)
+- Visual sparkline with anomaly markers
+- Auto-create alert when anomaly detected
 
-### 4. Custom Dashboard Builder
-New component `src/components/tracking/CustomDashboard.tsx`
-- Drag-and-drop widget grid using existing `@dnd-kit` library
-- Widget types: stat card, line chart, bar chart, pie chart, table, metric counter
-- Each widget configurable: data source (events/destinations/pipelines), time range, filters
-- Save/load custom dashboards per user
-- New DB table `tracking_dashboards` (user_id, name, widgets JSONB)
+**1C. AI Attribution Assistant** — New sub-tab under POAS
+- Multi-touch attribution models (last-click, linear, time-decay, position-based)
+- Pull conversion paths from tracking events
+- Recommendation engine: "Switch to position-based — estimated +12% ROAS accuracy"
 
-### 5. More Tracking Nodes (expand `tracking.ts`)
-Add 10+ new nodes to `src/data/nodeDefinitions/tracking.ts`:
-- **Sources**: Custom API Endpoint, Mobile SDK, Server Webhook
-- **Transforms**: Consent Filter, Click ID Restorer, Request Scheduler, User ID Stitcher, XML→JSON
-- **Destinations**: Pinterest CAPI, LinkedIn CAPI, Klaviyo, Custom Webhook with HMAC
+### Phase 2: Data Reliability — Connect to Real Data
 
-## Database Migration
-```sql
--- Custom dashboards
-CREATE TABLE tracking_dashboards (user_id, name, widgets JSONB, is_default BOOLEAN)
--- Privacy settings per workspace
-CREATE TABLE tracking_privacy_settings (user_id, consent_mode JSONB, anonymizer_rules JSONB, data_residency TEXT, cmp_provider TEXT)
--- Identity config
-CREATE TABLE tracking_identity_config (user_id, user_id_salt TEXT, cookie_ttl_days INT, cross_domains TEXT[], click_id_recovery JSONB, bot_threshold NUMERIC)
+**2A. ReliabilityEngine** — Replace mock data with live queries
+- Delivery rate, retry count, dedup stats from `tracking_events`
+- Delivery receipts timeline from real event status transitions
+- Save retry/dedup config to `tracking_privacy_settings` or new config table
+
+**2B. Alert Rules Engine** — New within Monitoring
+- Configurable rules: metric + threshold + channel (email/webhook)
+- DB table: `tracking_alert_rules` (user_id, metric, operator, threshold, channel, enabled)
+- Evaluate rules on each realtime event update
+
+### Phase 3: Analytics Enhancements
+
+**3A. Ad Recovery Metrics** — Enhance MonitoringDashboard
+- Quantify events recovered from ad-blocked users
+- Estimated revenue impact calculation (events recovered x avg order value from POAS feed)
+
+**3B. Cookie Health Monitor** — New card in Monitoring
+- Breakdown by cookie type (first-party server-set, first-party client, third-party)
+- Cookie lifetime distribution chart
+- ITP/ETP impact analysis
+
+**3C. GDPR/CCPA PDF Report** — Make Privacy tab export functional
+- Edge function that generates compliance summary PDF
+- Includes: PII scan results, consent config, anonymizer rules, data residency
+
+### Phase 4: Agency & NexusStore Enhancements
+
+**4A. Automated Agency Reports** — Make report generation real
+- Edge function to compile client metrics into PDF
+- Schedule: daily/weekly/monthly via cron or manual trigger
+- Email delivery to client
+
+**4B. Bulk Operations** — Agency Dashboard
+- Select multiple clients, apply template/config changes in batch
+- Bulk enable/disable power-ups across workspaces
+
+**4C. NexusStore Bulk Import/Export**
+- CSV/JSON file upload to bulk insert documents
+- Export collection as CSV/JSON download
+
+### Phase 5: Advanced Power-Ups
+
+**5A. Webhook Proxy** — New tracking node + settings UI
+- Bearer, HMAC, Basic auth support
+- Request/response logging
+
+**5B. IP Blocking** — New card in Settings
+- CIDR range input, block list management
+- Applied as transform node in pipelines
+
+## Database Changes
+```
+-- Alert rules
+CREATE TABLE tracking_alert_rules (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  metric TEXT NOT NULL,
+  operator TEXT NOT NULL DEFAULT '>',
+  threshold NUMERIC NOT NULL,
+  channel TEXT NOT NULL DEFAULT 'email',
+  enabled BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Add event_fingerprint for dedup
+ALTER TABLE tracking_events ADD COLUMN IF NOT EXISTS event_fingerprint TEXT;
+
+-- Add retry_config per destination
+ALTER TABLE tracking_destinations ADD COLUMN IF NOT EXISTS retry_config JSONB DEFAULT '{"max_retries": 10, "backoff": "exponential_jitter"}';
 ```
 
-## Files Summary
-| Action | File |
-|--------|------|
-| Create | `src/components/tracking/PrivacyCompliance.tsx` |
-| Create | `src/components/tracking/IdentityHub.tsx` |
-| Create | `src/components/tracking/ReliabilityEngine.tsx` |
-| Create | `src/components/tracking/CustomDashboard.tsx` |
-| Modify | `src/pages/Tracking.tsx` — add 4 new tabs |
-| Modify | `src/data/nodeDefinitions/tracking.ts` — add 12 new nodes |
-| Migrate | 3 new tables + RLS |
+## Edge Functions
+- `ai-event-mapper/index.ts` — Gemini-powered field mapping
+- `generate-compliance-report/index.ts` — PDF compliance report
+- `generate-agency-report/index.ts` — Client performance PDF
 
 ## Implementation Order
-1. DB migration (3 tables)
-2. Privacy & Compliance Center
-3. Identity & Enrichment Hub
-4. Data Reliability Dashboard
-5. Custom Dashboard Builder
-6. Expand tracking nodes
-7. Update Tracking page tabs
+1. ReliabilityEngine live data + alert rules table (migration)
+2. AI Event Mapper (edge function + UI component)
+3. AI Anomaly Detection (monitoring enhancement)
+4. Ad Recovery + Cookie Health metrics
+5. GDPR/CCPA PDF export
+6. NexusStore bulk import/export
+7. Agency automated reports + bulk ops
+8. AI Attribution Assistant
+9. Webhook proxy + IP blocking
+
+## Technical Details
+- All AI features use Lovable AI (Gemini 2.5 Flash) — no API key needed
+- PDF generation via edge functions using jsPDF or html-to-pdf approach
+- Alert evaluation happens client-side on realtime events (Phase 2 can move to edge function cron)
+- Dedup fingerprinting: SHA-256 hash of `event_name + user_id + timestamp_truncated_to_window`
+
