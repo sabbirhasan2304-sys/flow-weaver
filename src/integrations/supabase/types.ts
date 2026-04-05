@@ -1487,6 +1487,36 @@ export type Database = {
         }
         Relationships: []
       }
+      tracking_dashboards: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean | null
+          name: string
+          updated_at: string
+          user_id: string
+          widgets: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          name: string
+          updated_at?: string
+          user_id: string
+          widgets?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+          widgets?: Json
+        }
+        Relationships: []
+      }
       tracking_destinations: {
         Row: {
           config: Json
@@ -1567,6 +1597,57 @@ export type Database = {
           },
         ]
       }
+      tracking_identity_config: {
+        Row: {
+          ad_blocker_bypass: boolean | null
+          bot_action: string
+          bot_threshold: number
+          click_id_recovery: Json
+          cookie_ttl_days: number
+          created_at: string
+          cross_domains: string[] | null
+          custom_domain: string | null
+          hashing_algorithm: string
+          id: string
+          seo_crawler_allowlist: string[] | null
+          updated_at: string
+          user_id: string
+          user_id_salt: string | null
+        }
+        Insert: {
+          ad_blocker_bypass?: boolean | null
+          bot_action?: string
+          bot_threshold?: number
+          click_id_recovery?: Json
+          cookie_ttl_days?: number
+          created_at?: string
+          cross_domains?: string[] | null
+          custom_domain?: string | null
+          hashing_algorithm?: string
+          id?: string
+          seo_crawler_allowlist?: string[] | null
+          updated_at?: string
+          user_id: string
+          user_id_salt?: string | null
+        }
+        Update: {
+          ad_blocker_bypass?: boolean | null
+          bot_action?: string
+          bot_threshold?: number
+          click_id_recovery?: Json
+          cookie_ttl_days?: number
+          created_at?: string
+          cross_domains?: string[] | null
+          custom_domain?: string | null
+          hashing_algorithm?: string
+          id?: string
+          seo_crawler_allowlist?: string[] | null
+          updated_at?: string
+          user_id?: string
+          user_id_salt?: string | null
+        }
+        Relationships: []
+      }
       tracking_pipelines: {
         Row: {
           created_at: string
@@ -1595,6 +1676,42 @@ export type Database = {
           name?: string
           pipeline_data?: Json
           status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tracking_privacy_settings: {
+        Row: {
+          anonymizer_rules: Json
+          cmp_config: Json | null
+          cmp_provider: string | null
+          consent_mode: Json
+          created_at: string
+          data_residency: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anonymizer_rules?: Json
+          cmp_config?: Json | null
+          cmp_provider?: string | null
+          consent_mode?: Json
+          created_at?: string
+          data_residency?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anonymizer_rules?: Json
+          cmp_config?: Json | null
+          cmp_provider?: string | null
+          consent_mode?: Json
+          created_at?: string
+          data_residency?: string
+          id?: string
           updated_at?: string
           user_id?: string
         }
