@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid } from 'lucide-react';
+import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2 } from 'lucide-react';
 import { TrackingOverview } from '@/components/tracking/TrackingOverview';
 import { EventLog } from '@/components/tracking/EventLog';
 import { MonitoringDashboard } from '@/components/tracking/MonitoringDashboard';
@@ -16,6 +16,7 @@ import { ReliabilityEngine } from '@/components/tracking/ReliabilityEngine';
 import { CustomDashboard } from '@/components/tracking/CustomDashboard';
 import { StapeMigrationWizard } from '@/components/tracking/StapeMigrationWizard';
 import { OnboardingWizard } from '@/components/tracking/OnboardingWizard';
+import { AIEventMapper } from '@/components/tracking/AIEventMapper';
 import { useNavigate } from 'react-router-dom';
 
 export default function Tracking() {
