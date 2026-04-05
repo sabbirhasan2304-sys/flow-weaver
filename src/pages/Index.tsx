@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { 
   Zap, ArrowRight, Play, Users, Shield, 
   Workflow, Bot, Database, Globe, CheckCircle2,
   LayoutDashboard, Settings, Code, FileText, Book,
-  Layers, Cpu, Mail, BarChart3, Lock, Rocket, Menu, X, Crosshair
+  Layers, Cpu, Mail, BarChart3, Lock, Rocket, Menu, X, Crosshair,
+  Star, Quote, Heart, TrendingUp, Clock, Headphones
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -65,7 +68,7 @@ const stats = [
   { value: '375+', label: 'Automation Nodes' },
   { value: '20+', label: 'Node Categories' },
   { value: '25+', label: 'BD Integrations' },
-  { value: '24/7', label: 'Real-time Execution' },
+  { value: '99.9%', label: 'Uptime SLA' },
 ];
 
 const useCases = [
@@ -77,11 +80,26 @@ const useCases = [
   { icon: Users, title: 'Digital Agencies', desc: 'Client workflow management, team collaboration, shared credentials, and white-label reports.' },
 ];
 
-const fadeUp = {
-  initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
-};
+const testimonials = [
+  {
+    name: 'Rafiq Ahmed',
+    role: 'CTO, ShopBD',
+    quote: 'BiztoriBD replaced 4 different tools for us. Our Daraz order processing went from 2 hours to 5 minutes.',
+    avatar: 'RA',
+  },
+  {
+    name: 'Nadia Sultana',
+    role: 'Marketing Lead, TechDhaka',
+    quote: 'The email marketing + NexusTrack combo is incredible. We saw 40% better attribution accuracy within a week.',
+    avatar: 'NS',
+  },
+  {
+    name: 'Karim Hassan',
+    role: 'Founder, PayEasy',
+    quote: 'bKash and Nagad nodes saved us months of development. Our payment reconciliation is now fully automated.',
+    avatar: 'KH',
+  },
+];
 
 export default function Index() {
   const { user, loading } = useAuth();
@@ -107,15 +125,18 @@ export default function Index() {
             <a href="#use-cases" className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
               Use Cases
             </a>
+            <a href="#testimonials" className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
+              Testimonials
+            </a>
             <Link to="/pricing" className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
               Pricing
             </Link>
             <Link to="/docs" className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
               Docs
             </Link>
-            <a href="#api" className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
+            <Link to="/api-docs" className="text-sm px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all">
               API
-            </a>
+            </Link>
           </nav>
           
           <div className="flex items-center gap-2">
@@ -178,6 +199,10 @@ export default function Index() {
                     <Rocket className="h-4 w-4 text-muted-foreground" />
                     Use Cases
                   </a>
+                  <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors">
+                    <Star className="h-4 w-4 text-muted-foreground" />
+                    Testimonials
+                  </a>
                   <Link to="/pricing" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors">
                     <BarChart3 className="h-4 w-4 text-muted-foreground" />
                     Pricing
@@ -186,10 +211,10 @@ export default function Index() {
                     <FileText className="h-4 w-4 text-muted-foreground" />
                     Docs
                   </Link>
-                  <a href="#api" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors">
+                  <Link to="/api-docs" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors">
                     <Code className="h-4 w-4 text-muted-foreground" />
                     API
-                  </a>
+                  </Link>
                   
                   <div className="h-px bg-border my-3" />
                   
@@ -257,8 +282,8 @@ export default function Index() {
             
              <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
                The all-in-one automation platform built for Bangladesh. 
-               375+ nodes, AI agents, bKash/Nagad integration, email marketing, and a powerful API — 
-               no coding required.
+               375+ nodes, AI agents, bKash/Nagad integration, email marketing, server-side tracking, 
+               and a powerful developer API — no coding required.
              </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -268,13 +293,15 @@ export default function Index() {
                   <ArrowRight className="h-5 w-5 ml-2" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="h-12 px-8 text-base">
-                <Play className="h-5 w-5 mr-2" />
-                Watch Demo
+              <Button size="lg" variant="outline" asChild className="h-12 px-8 text-base">
+                <Link to="/api-docs">
+                  <Code className="h-5 w-5 mr-2" />
+                  Explore API
+                </Link>
               </Button>
             </div>
 
-            <div className="flex items-center justify-center gap-6 mt-8 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-8 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4 text-primary" />
                 Free forever plan
@@ -283,7 +310,7 @@ export default function Index() {
                 <CheckCircle2 className="h-4 w-4 text-primary" />
                 No credit card needed
               </span>
-              <span className="hidden sm:flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4 text-primary" />
                 Setup in 2 minutes
               </span>
@@ -387,28 +414,12 @@ export default function Index() {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto relative">
-            {/* Connector line */}
             <div className="hidden md:block absolute top-16 left-[20%] right-[20%] h-0.5 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
 
             {[
-              {
-                step: 1,
-                title: 'Create Your Account',
-                desc: 'Sign up free in 30 seconds. No credit card needed. Get instant access to all features.',
-                icon: Users,
-              },
-              {
-                step: 2,
-                title: 'Connect Your Tools',
-                desc: 'Install a tracking snippet, add your APIs, or use our no-code Gateway to connect platforms instantly.',
-                icon: Globe,
-              },
-              {
-                step: 3,
-                title: 'Automate & Scale',
-                desc: 'Build workflows with drag-and-drop, monitor real-time analytics, and let AI optimize everything.',
-                icon: Rocket,
-              },
+              { step: 1, title: 'Create Your Account', desc: 'Sign up free in 30 seconds. No credit card needed. Get instant access to all features.', icon: Users },
+              { step: 2, title: 'Connect Your Tools', desc: 'Install a tracking snippet, add your APIs, or use our no-code Gateway to connect platforms instantly.', icon: Globe },
+              { step: 3, title: 'Automate & Scale', desc: 'Build workflows with drag-and-drop, monitor real-time analytics, and let AI optimize everything.', icon: Rocket },
             ].map((item, index) => (
               <motion.div
                 key={item.step}
@@ -486,6 +497,63 @@ export default function Index() {
                   <h3 className="font-bold text-foreground mb-1">{uc.title}</h3>
                   <p className="text-sm text-muted-foreground">{uc.desc}</p>
                 </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-16 md:py-28">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+              <Heart className="h-3.5 w-3.5" />
+              Loved by Teams
+            </div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
+              What Our Users Say
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Trusted by startups, agencies, and enterprises across Bangladesh.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {testimonials.map((t, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="h-full hover:border-primary/30 transition-colors">
+                  <CardContent className="p-6">
+                    <div className="flex gap-0.5 mb-4">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                      ))}
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-6 italic">
+                      "{t.quote}"
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
+                        {t.avatar}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{t.name}</p>
+                        <p className="text-xs text-muted-foreground">{t.role}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </div>
@@ -639,24 +707,58 @@ export default function Index() {
       </section>
       
       {/* Footer */}
-      <footer className="border-t border-border py-12">
+      <footer className="border-t border-border py-12 bg-muted/20">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-                <Zap className="h-4 w-4 text-primary-foreground" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                  <Zap className="h-4 w-4 text-primary-foreground" />
+                </div>
+                <span className="font-bold text-foreground">BiztoriBD</span>
               </div>
-              <span className="font-bold text-foreground">BiztoriBD</span>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Bangladesh's #1 automation platform. Build workflows, track events, and grow faster.
+              </p>
             </div>
             
-            <nav className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
-              <Link to="/docs" className="hover:text-foreground transition-colors">Documentation</Link>
-              <Link to="/api-docs" className="hover:text-foreground transition-colors">API</Link>
-            </nav>
-            
+            <div>
+              <h4 className="font-semibold text-foreground mb-3 text-sm">Product</h4>
+              <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
+                <a href="#features" className="hover:text-foreground transition-colors">Features</a>
+                <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
+                <Link to="/templates" className="hover:text-foreground transition-colors">Templates</Link>
+                <Link to="/marketplace" className="hover:text-foreground transition-colors">Marketplace</Link>
+              </nav>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-foreground mb-3 text-sm">Developers</h4>
+              <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
+                <Link to="/api-docs" className="hover:text-foreground transition-colors">API Reference</Link>
+                <Link to="/docs" className="hover:text-foreground transition-colors">Documentation</Link>
+                <Link to="/api-keys" className="hover:text-foreground transition-colors">API Keys</Link>
+              </nav>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-foreground mb-3 text-sm">Platform</h4>
+              <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
+                <Link to="/tracking" className="hover:text-foreground transition-colors">NexusTrack</Link>
+                <Link to="/email-marketing" className="hover:text-foreground transition-colors">Email Marketing</Link>
+                <Link to="/auth" className="hover:text-foreground transition-colors">Sign Up</Link>
+              </nav>
+            </div>
+          </div>
+
+          <div className="border-t border-border pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} BiztoriBD. Made with ❤️ in Bangladesh 🇧🇩
+            </div>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span>Terms of Service</span>
+              <span>Privacy Policy</span>
+              <span>Contact</span>
             </div>
           </div>
         </div>

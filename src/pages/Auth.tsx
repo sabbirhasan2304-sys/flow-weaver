@@ -299,6 +299,17 @@ export default function Auth() {
         <p className="text-center text-sm text-muted-foreground mt-4">
           By continuing, you agree to our Terms of Service and Privacy Policy
         </p>
+        
+        <div className="flex items-center justify-center gap-4 mt-6 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <Zap className="h-3 w-3 text-primary" />
+            Free forever plan
+          </span>
+          <span className="flex items-center gap-1">
+            <Zap className="h-3 w-3 text-primary" />
+            No credit card
+          </span>
+        </div>
       </div>
     </div>
   );
