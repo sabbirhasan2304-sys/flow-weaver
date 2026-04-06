@@ -9,7 +9,8 @@ import {
   Workflow, Bot, Database, Globe, CheckCircle2,
   LayoutDashboard, Settings, Code, FileText, Book,
   Layers, Cpu, Mail, BarChart3, Lock, Rocket, Menu, X, Crosshair,
-  Star, Quote, Heart, TrendingUp, Clock, Headphones
+   Star, Quote, Heart, TrendingUp, Clock, Headphones, HelpCircle,
+   Facebook, Twitter, MessageCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeToggle } from '@/components/ThemeToggle';
