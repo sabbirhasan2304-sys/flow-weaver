@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.ai-event-mapper]
 verify_jwt = false
+
+[functions.process-email-queue]
+verify_jwt = true
