@@ -1,4 +1,6 @@
-import { API_BASE_URL } from "./apiDocsData";
+import { API_ENDPOINT } from '@/config/brand';
+
+const API_BASE_URL = API_ENDPOINT;
 
 export const wordpressPluginCode = `<?php
 /**

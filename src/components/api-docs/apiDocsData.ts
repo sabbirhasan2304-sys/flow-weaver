@@ -1,6 +1,12 @@
 // API Docs - Centralized data definitions
 
-export const API_BASE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-api`;
+import { API_ENDPOINT } from '@/config/brand';
+
+// Display URL for docs (user-facing)
+export const API_BASE_URL = `${API_ENDPOINT}/public-api`;
+
+// Internal URL for actual API calls (playground)
+export const INTERNAL_API_BASE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-api`;
 
 export interface EndpointParam {
   name: string;

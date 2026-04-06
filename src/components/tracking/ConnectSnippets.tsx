@@ -13,7 +13,9 @@ import {
   Terminal, ExternalLink, AlertCircle, Zap, RefreshCw
 } from 'lucide-react';
 
-const API_BASE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
+import { TRACKING_SCRIPT_URL, API_ENDPOINT, INTERNAL_API_URL } from '@/config/brand';
+
+const API_BASE_URL = API_ENDPOINT;
 
 export function ConnectSnippets() {
   const { profile } = useAuth();
@@ -44,7 +46,7 @@ export function ConnectSnippets() {
 <script>
 (function(n,e,x,u,s){n.NexusTrack=n.NexusTrack||[];
 s=e.createElement('script');s.async=1;
-s.src='${window.location.origin}/nexus-track.js';
+s.src='${TRACKING_SCRIPT_URL}';
 s.dataset.siteId='${trackingScriptId}';
 s.dataset.apiUrl='${API_BASE_URL}';
 s.dataset.apiKey='${apiKey || 'YOUR_API_KEY'}';
