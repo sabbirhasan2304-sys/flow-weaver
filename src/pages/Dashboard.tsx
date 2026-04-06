@@ -100,19 +100,40 @@ export default function Dashboard() {
   }, [user, activeWorkspace, navigate, authLoading, subscriptionLoading, isAdmin, hasActiveSubscription]);
 
   const fetchWorkflows = async () => {
-    if (!activeWorkspace) return;
-    
     setLoading(true);
-    const { data, error } = await supabase
-      .from('workflows')
-      .select('*')
-      .eq('workspace_id', activeWorkspace.id)
-      .order('updated_at', { ascending: false });
     
-    if (error) {
-      toast.error('Failed to load workflows');
+    if (isImpersonating && impersonatedUser) {
+      // Admin viewing another user's workflows - fetch via their workspace
+      const { data: wsMembers } = await supabase
+        .from('workspace_members')
+        .select('workspace_id')
+        .eq('profile_id', impersonatedUser.profileId);
+      
+      const wsIds = wsMembers?.map(m => m.workspace_id) || [];
+      if (wsIds.length > 0) {
+        const { data, error } = await supabase
+          .from('workflows')
+          .select('*')
+          .in('workspace_id', wsIds)
+          .order('updated_at', { ascending: false });
+        
+        if (!error) setWorkflows(data || []);
+      } else {
+        setWorkflows([]);
+      }
     } else {
-      setWorkflows(data || []);
+      if (!activeWorkspace) { setLoading(false); return; }
+      const { data, error } = await supabase
+        .from('workflows')
+        .select('*')
+        .eq('workspace_id', activeWorkspace.id)
+        .order('updated_at', { ascending: false });
+      
+      if (error) {
+        toast.error('Failed to load workflows');
+      } else {
+        setWorkflows(data || []);
+      }
     }
     setLoading(false);
   };
