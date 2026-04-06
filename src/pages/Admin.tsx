@@ -473,6 +473,9 @@ export default function Admin() {
                 <AlertTriangle className="h-4 w-4" /><span>Crashes</span>
                 {errorCount > 0 && <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-[10px]">{errorCount}</Badge>}
               </TabsTrigger>
+              <TabsTrigger value="data" className={tabTriggerClass}>
+                <Database className="h-4 w-4" /><span>Data</span>
+              </TabsTrigger>
               <TabsTrigger value="backend" className={tabTriggerClass}>
                 <Cloud className="h-4 w-4" /><span>Backend</span>
               </TabsTrigger>
