@@ -26,6 +26,7 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { ActiveAnalytics } from '@/components/admin/ActiveAnalytics';
 import { PaymentGatewaySettings } from '@/components/admin/PaymentGatewaySettings';
 import { ApiManagement } from '@/components/admin/ApiManagement';
+import { BackendProviderSettings } from '@/components/tracking/BackendProviderSettings';
 
 interface UserData {
   id: string;
@@ -611,6 +612,13 @@ export default function Admin() {
                 <AlertTriangle className="h-4 w-4" />
                 <span>Crash Reports</span>
               </TabsTrigger>
+              <TabsTrigger 
+                value="backend" 
+                className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground px-4 py-2"
+              >
+                <Cloud className="h-4 w-4" />
+                <span>Backend</span>
+              </TabsTrigger>
             </TabsList>
 
             <AnimatePresence mode="wait">
@@ -779,6 +787,18 @@ export default function Admin() {
                   transition={{ duration: 0.2 }}
                 >
                   <CrashReportsPanel />
+                </motion.div>
+              </TabsContent>
+
+              {/* Backend Provider Tab */}
+              <TabsContent value="backend" className="mt-0">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <BackendProviderSettings />
                 </motion.div>
               </TabsContent>
             </AnimatePresence>

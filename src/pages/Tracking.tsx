@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe, Eye, Send, Cloud } from 'lucide-react';
+import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe, Eye, Send } from 'lucide-react';
 import { TrackingOverview } from '@/components/tracking/TrackingOverview';
 import { EventLog } from '@/components/tracking/EventLog';
 import { MonitoringDashboard } from '@/components/tracking/MonitoringDashboard';
@@ -20,7 +20,7 @@ import { AIEventMapper } from '@/components/tracking/AIEventMapper';
 import { ConnectWebsite } from '@/components/tracking/ConnectWebsite';
 import { ClarityIntegration } from '@/components/tracking/ClarityIntegration';
 import { MarketingDestinations } from '@/components/tracking/MarketingDestinations';
-import { BackendProviderSettings } from '@/components/tracking/BackendProviderSettings';
+
 import { useNavigate } from 'react-router-dom';
 
 export default function Tracking() {
@@ -66,7 +66,6 @@ export default function Tracking() {
             <TabsTrigger value="destinations" className="gap-1.5"><Send className="h-4 w-4" /> Destinations</TabsTrigger>
             <TabsTrigger value="clarity" className="gap-1.5"><Eye className="h-4 w-4" /> Clarity</TabsTrigger>
             <TabsTrigger value="agency" className="gap-1.5"><Users className="h-4 w-4" /> Agency</TabsTrigger>
-            <TabsTrigger value="backend" className="gap-1.5"><Cloud className="h-4 w-4" /> Backend</TabsTrigger>
             <TabsTrigger value="settings" className="gap-1.5"><Settings className="h-4 w-4" /> Settings</TabsTrigger>
           </TabsList>
 
@@ -84,7 +83,7 @@ export default function Tracking() {
           <TabsContent value="clarity"><ClarityIntegration /></TabsContent>
           <TabsContent value="destinations"><MarketingDestinations /></TabsContent>
           <TabsContent value="agency"><AgencyDashboard /></TabsContent>
-          <TabsContent value="backend"><BackendProviderSettings /></TabsContent>
+          
           <TabsContent value="settings"><TrackingSettings /></TabsContent>
         </Tabs>
       </div>
