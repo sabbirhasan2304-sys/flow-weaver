@@ -17,7 +17,7 @@ import {
   Workflow, Zap, AlertTriangle, ArrowUpRight, ArrowDownRight,
   RefreshCw, Download, Crown,
   Sparkles, CheckCircle2, XCircle, Clock,
-  HardDrive, Mail, Cloud, Code, Minus
+  HardDrive, Mail, Cloud, Code, Minus, Database
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlanManagement } from '@/components/admin/PlanManagement';
