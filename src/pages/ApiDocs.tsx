@@ -682,57 +682,150 @@ export default function ApiDocs() {
           {/* === SDKs === */}
           {activeSection === "sdks" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+              {/* SDK Overview */}
+              <Card className="overflow-hidden">
+                <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border-b">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                      <Package className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold">Official SDKs & Libraries</h2>
+                      <p className="text-muted-foreground">Type-safe SDKs with built-in error handling, retry logic, and rate limit awareness</p>
+                    </div>
+                  </div>
+                </div>
+                <CardContent className="p-6">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {[
+                      { lang: "JavaScript / TypeScript", pkg: "npm install @biztoribbd/sdk", icon: "JS", color: "bg-yellow-500/10 text-yellow-600 border-yellow-200 dark:border-yellow-800" },
+                      { lang: "Python", pkg: "pip install biztoribbd", icon: "PY", color: "bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-800" },
+                      { lang: "PHP", pkg: "composer require biztoribbd/sdk", icon: "PHP", color: "bg-purple-500/10 text-purple-600 border-purple-200 dark:border-purple-800" },
+                      { lang: "Go", pkg: "go get github.com/biztoribbd/go-sdk", icon: "GO", color: "bg-cyan-500/10 text-cyan-600 border-cyan-200 dark:border-cyan-800" },
+                    ].map(sdk => (
+                      <div key={sdk.lang} className={`p-4 rounded-lg border ${sdk.color} space-y-2`}>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold">{sdk.icon}</span>
+                          <span className="font-semibold text-sm">{sdk.lang}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <code className="text-[10px] bg-background/50 px-1.5 py-0.5 rounded flex-1 truncate">{sdk.pkg}</code>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 shrink-0" onClick={() => copyCode(sdk.pkg)}>
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Interactive SDK Examples */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Terminal className="h-5 w-5" /> Official SDKs & Libraries</CardTitle>
-                  <CardDescription>Type-safe SDKs with built-in error handling and retry logic</CardDescription>
+                  <CardTitle className="flex items-center gap-2"><Rocket className="h-5 w-5 text-primary" /> Quick Start by Language</CardTitle>
+                  <CardDescription>Copy-paste examples to start making API calls in under a minute</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Tabs value={sdkLanguage} onValueChange={setSdkLanguage}>
-                    <TabsList className="flex-wrap h-auto">
-                      {["javascript", "typescript", "python", "php", "go"].map(lang => (
-                        <TabsTrigger key={lang} value={lang} className="text-xs capitalize">{lang}</TabsTrigger>
+                    <TabsList className="flex-wrap h-auto gap-1">
+                      {[
+                        { value: "javascript", label: "JavaScript" },
+                        { value: "typescript", label: "TypeScript" },
+                        { value: "python", label: "Python" },
+                        { value: "php", label: "PHP" },
+                        { value: "go", label: "Go" },
+                      ].map(tab => (
+                        <TabsTrigger key={tab.value} value={tab.value} className="text-xs">{tab.label}</TabsTrigger>
                       ))}
                     </TabsList>
-                    {Object.entries(sdkExamples).map(([lang, code]) => (
-                      <TabsContent key={lang} value={lang} className="relative">
-                        <pre className="bg-muted p-4 rounded-lg text-xs overflow-x-auto mt-2 max-h-[400px]">{code}</pre>
-                        <Button variant="ghost" size="sm" className="absolute top-4 right-2" onClick={() => copyCode(code)}>
-                          <Copy className="h-3.5 w-3.5" />
-                        </Button>
-                      </TabsContent>
-                    ))}
+                    {Object.entries(sdkExamples).map(([lang, code]) => {
+                      const installCmd: Record<string, string> = {
+                        javascript: "npm install @biztoribbd/sdk",
+                        typescript: "npm install @biztoribbd/sdk",
+                        python: "pip install biztoribbd",
+                        php: "composer require biztoribbd/sdk",
+                        go: "go get github.com/biztoribbd/go-sdk",
+                      };
+                      return (
+                        <TabsContent key={lang} value={lang} className="space-y-4 mt-4">
+                          {/* Step 1: Install */}
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">1</div>
+                            <span className="font-semibold text-sm">Install the SDK</span>
+                          </div>
+                          <div className="relative ml-10">
+                            <pre className="bg-muted p-3 rounded-lg text-sm font-mono">{installCmd[lang]}</pre>
+                            <Button variant="ghost" size="sm" className="absolute top-1 right-1" onClick={() => copyCode(installCmd[lang])}>
+                              <Copy className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+
+                          {/* Step 2: Initialize & Use */}
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">2</div>
+                            <span className="font-semibold text-sm">Initialize & make your first call</span>
+                          </div>
+                          <div className="relative ml-10">
+                            <pre className="bg-muted p-4 rounded-lg text-xs overflow-x-auto max-h-[400px]">{code}</pre>
+                            <Button variant="ghost" size="sm" className="absolute top-2 right-2" onClick={() => copyCode(code)}>
+                              <Copy className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </TabsContent>
+                      );
+                    })}
                   </Tabs>
                 </CardContent>
               </Card>
+
+              {/* SDK Features */}
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>
-                  <CardHeader><CardTitle className="text-base">Installation</CardTitle></CardHeader>
-                  <CardContent className="space-y-2">
-                    {[
-                      { pkg: "npm", cmd: "npm install @biztoribbd/sdk" },
-                      { pkg: "pip", cmd: "pip install biztoribbd" },
-                      { pkg: "composer", cmd: "composer require biztoribbd/sdk" },
-                      { pkg: "go", cmd: "go get github.com/biztoribbd/go-sdk" },
-                    ].map(p => (
-                      <div key={p.pkg} className="flex items-center gap-2">
-                        <Badge className="text-xs">{p.pkg}</Badge>
-                        <code className="text-xs bg-muted px-2 py-1 rounded flex-1">{p.cmd}</code>
-                        <Button variant="ghost" size="sm" onClick={() => copyCode(p.cmd)}><Copy className="h-3 w-3" /></Button>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader><CardTitle className="text-base">SDK Features</CardTitle></CardHeader>
+                  <CardHeader><CardTitle className="text-base flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary" /> SDK Features</CardTitle></CardHeader>
                   <CardContent>
-                    <ul className="space-y-2 text-sm">
-                      {["Full TypeScript support", "Automatic retry with backoff", "Built-in rate limit handling", "Comprehensive error types", "Request/response logging"].map(f => (
-                        <li key={f} className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />{f}
+                    <ul className="space-y-2.5 text-sm">
+                      {[
+                        { feature: "Full TypeScript support", desc: "Complete type definitions for all endpoints" },
+                        { feature: "Automatic retry with backoff", desc: "Exponential backoff on 5xx and network errors" },
+                        { feature: "Built-in rate limit handling", desc: "Auto-pauses and retries on 429 responses" },
+                        { feature: "Comprehensive error types", desc: "Typed error classes for each HTTP status code" },
+                        { feature: "Request/response logging", desc: "Optional debug logging for development" },
+                      ].map(f => (
+                        <li key={f.feature} className="flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-medium">{f.feature}</span>
+                            <p className="text-xs text-muted-foreground">{f.desc}</p>
+                          </div>
                         </li>
                       ))}
                     </ul>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader><CardTitle className="text-base flex items-center gap-2"><Terminal className="h-4 w-4 text-primary" /> Environment Setup</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">Store your API key as an environment variable — never hardcode it.</p>
+                    <div>
+                      <p className="text-xs font-medium mb-1">.env</p>
+                      <div className="relative">
+                        <pre className="bg-muted p-3 rounded-lg text-xs">BIZTORIBBD_API_KEY=bz_your_api_key_here</pre>
+                        <Button variant="ghost" size="sm" className="absolute top-1 right-1" onClick={() => copyCode("BIZTORIBBD_API_KEY=bz_your_api_key_here")}>
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium mb-1">.gitignore</p>
+                      <pre className="bg-muted p-3 rounded-lg text-xs">.env{'\n'}.env.local</pre>
+                    </div>
+                    <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-lg p-3">
+                      <p className="text-xs text-amber-700 dark:text-amber-300 flex items-start gap-2">
+                        <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                        Never expose your API key in client-side code or commit it to version control.
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
