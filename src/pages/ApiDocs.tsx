@@ -84,6 +84,7 @@ export default function ApiDocs() {
     { id: "security", label: "Security", icon: Shield },
     { id: "webhooks", label: "Webhooks", icon: Globe },
     { id: "plugins", label: "Plugins & Integrations", icon: Plug },
+    { id: "changelog", label: "Changelog", icon: History },
   ];
 
   return (
