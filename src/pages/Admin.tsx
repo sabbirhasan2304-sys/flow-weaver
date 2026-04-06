@@ -789,6 +789,18 @@ export default function Admin() {
                   <CrashReportsPanel />
                 </motion.div>
               </TabsContent>
+
+              {/* Backend Provider Tab */}
+              <TabsContent value="backend" className="mt-0">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <BackendProviderSettings />
+                </motion.div>
+              </TabsContent>
             </AnimatePresence>
           </Tabs>
         </motion.div>
