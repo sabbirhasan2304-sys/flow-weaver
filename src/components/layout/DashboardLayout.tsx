@@ -2,6 +2,7 @@ import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useImpersonation } from '@/hooks/useImpersonation';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,7 +15,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { 
   Zap, Folder, Sparkles, Store, History, Key,
-  LogOut, Settings, User, ChevronDown, CreditCard, Shield, Code, FileText, Mail, Menu, Crosshair
+  LogOut, Settings, User, ChevronDown, CreditCard, Shield, Code, FileText, Mail, Menu, Crosshair, X, Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
