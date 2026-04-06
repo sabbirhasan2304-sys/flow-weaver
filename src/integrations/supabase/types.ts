@@ -1768,6 +1768,48 @@ export type Database = {
         }
         Relationships: []
       }
+      tracking_marketing_destinations: {
+        Row: {
+          created_at: string
+          credentials: Json
+          display_name: string
+          event_mappings: Json
+          id: string
+          is_active: boolean
+          last_tested_at: string | null
+          platform: string
+          test_status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credentials?: Json
+          display_name?: string
+          event_mappings?: Json
+          id?: string
+          is_active?: boolean
+          last_tested_at?: string | null
+          platform: string
+          test_status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credentials?: Json
+          display_name?: string
+          event_mappings?: Json
+          id?: string
+          is_active?: boolean
+          last_tested_at?: string | null
+          platform?: string
+          test_status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tracking_pipelines: {
         Row: {
           created_at: string
