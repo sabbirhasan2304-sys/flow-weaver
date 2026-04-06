@@ -72,6 +72,8 @@ interface Plan {
 }
 
 export function UserManagement() {
+  const navigate = useNavigate();
+  const { startImpersonation } = useImpersonation();
   const [users, setUsers] = useState<UserData[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -80,6 +82,9 @@ export function UserManagement() {
   const [filterPlan, setFilterPlan] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isOverviewOpen, setIsOverviewOpen] = useState(false);
+  const [overviewUser, setOverviewUser] = useState<UserData | null>(null);
+  const [overviewStats, setOverviewStats] = useState<{ workflows: number; executions: number; campaigns: number; contacts: number }>({ workflows: 0, executions: 0, campaigns: 0, contacts: 0 });
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreditsDialogOpen, setIsCreditsDialogOpen] = useState(false);
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
