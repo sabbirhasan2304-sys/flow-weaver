@@ -28,6 +28,7 @@ import { BackendProviderSettings } from '@/components/tracking/BackendProviderSe
 import { AdminActivityFeed } from '@/components/admin/AdminActivityFeed';
 import { AdminEmailOverview } from '@/components/admin/AdminEmailOverview';
 import { AdminPlatformSettings } from '@/components/admin/AdminPlatformSettings';
+import { DataManagement } from '@/components/admin/DataManagement';
 import { toast } from 'sonner';
 
 interface Stats {
