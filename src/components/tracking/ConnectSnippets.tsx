@@ -13,7 +13,9 @@ import {
   Terminal, ExternalLink, AlertCircle, Zap, RefreshCw
 } from 'lucide-react';
 
-const API_BASE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
+import { TRACKING_SCRIPT_URL, API_ENDPOINT, INTERNAL_API_URL } from '@/config/brand';
+
+const API_BASE_URL = API_ENDPOINT;
 
 export function ConnectSnippets() {
   const { profile } = useAuth();
