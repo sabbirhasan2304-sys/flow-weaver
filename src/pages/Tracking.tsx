@@ -80,6 +80,7 @@ export default function Tracking() {
           <TabsContent value="dashboards"><CustomDashboard /></TabsContent>
           <TabsContent value="mapper"><AIEventMapper /></TabsContent>
           <TabsContent value="clarity"><ClarityIntegration /></TabsContent>
+          <TabsContent value="destinations"><MarketingDestinations /></TabsContent>
           <TabsContent value="agency"><AgencyDashboard /></TabsContent>
           <TabsContent value="settings"><TrackingSettings /></TabsContent>
         </Tabs>
