@@ -400,7 +400,7 @@ export function BackendProviderSettings() {
             ].map((route) => {
               const fromConfigured = route.from === 'lovable_cloud' || configs.some(c => c.provider === route.from);
               const toConfigured = route.to === 'lovable_cloud' || configs.some(c => c.provider === route.to);
-              const canMigrate = fromConfigured && toConfigured;
+              const canMigrate = fromConfigured && toConfigured && isAdmin;
 
               return (
                 <Button
@@ -419,7 +419,10 @@ export function BackendProviderSettings() {
                       <ArrowRightLeft className="h-3 w-3" />
                       <span className="font-medium">{route.label}</span>
                     </div>
-                    {!canMigrate && (
+                    {!isAdmin && (
+                      <span className="text-[10px] text-muted-foreground">Admin only</span>
+                    )}
+                    {isAdmin && !canMigrate && (
                       <span className="text-[10px] text-muted-foreground">Configure both providers first</span>
                     )}
                   </div>
