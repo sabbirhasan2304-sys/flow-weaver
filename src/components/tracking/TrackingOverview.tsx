@@ -130,7 +130,7 @@ export function TrackingOverview({ onNavigateToConnect }: TrackingOverviewProps)
             {quickStarts.map((qs) => {
               const Icon = qs.icon;
               return (
-                <Button key={qs.label} variant="outline" className="h-auto py-4 flex flex-col gap-2">
+                <Button key={qs.label} variant="outline" className="h-auto py-4 flex flex-col gap-2" onClick={onNavigateToConnect}>
                   <div className={`h-10 w-10 rounded-lg ${qs.color} flex items-center justify-center`}>
                     <Icon className="h-5 w-5" />
                   </div>

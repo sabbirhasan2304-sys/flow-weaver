@@ -65,7 +65,7 @@ export default function Tracking() {
           </TabsList>
 
           <TabsContent value="connect"><ConnectWebsite /></TabsContent>
-          <TabsContent value="overview"><TrackingOverview /></TabsContent>
+          <TabsContent value="overview"><TrackingOverview onNavigateToConnect={() => setActiveTab('connect')} /></TabsContent>
           <TabsContent value="events"><EventLog /></TabsContent>
           <TabsContent value="poas"><POASDashboard /></TabsContent>
           <TabsContent value="monitoring"><MonitoringDashboard /></TabsContent>
