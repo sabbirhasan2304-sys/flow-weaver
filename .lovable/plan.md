@@ -1,60 +1,87 @@
 
 
-## Admin Dashboard Improvement Plan
+## Setup Pricing for Tracking, Nodes, and Combined Plans
 
-### Issues Found
+### Current State
+- 4 plans exist (Free/Starter/Pro/Enterprise) focused on **workflow automation only**
+- No separate tracking pricing (NexusTrack server-side tracking has no pricing model)
+- No per-node pricing or usage tiers for tracking events
+- Comparison table mentions competitors but not tracking competitors (Stape.io)
 
-1. **Fake trend percentages** — Stat cards show hardcoded "+12%", "+8%" etc. that are not calculated from real data
-2. **Settings tab is a placeholder** — Shows "Coming Soon" with no actual settings
-3. **Export button does nothing** — Header "Export" button has no onClick handler
-4. **No recent activity feed** — No way to see recent signups, workflow creations, or executions at a glance
-5. **No email marketing admin overview** — Admin can't see email stats across all users
-6. **Crash Reports lacks severity/resolution** — No filtering, no "resolved" toggle, very basic
-7. **Subscriptions tab counts from limited data** — Uses `users` array (max 100) instead of querying actual counts
-8. **No system announcements** — No way for admin to broadcast messages to users
+### Research Summary
 
-### Implementation Plan
+**n8n Cloud Pricing (2026):**
+- Starter: $24/mo (2,500 executions)
+- Pro: $60/mo (10,000 executions)
+- Business: $800/mo (40,000 executions)
 
-**Step 1: Fix fake stat trends and add real calculations**
-- Remove hardcoded trend values from stat cards
-- Compare current period vs. previous period counts (e.g., users this week vs last week)
-- Show "N/A" when insufficient data exists
+**Stape.io Pricing (2026):**
+- Free: 10K requests
+- Pro: $17/mo (500K requests)
+- Business: $83/mo (5M requests)
+- Enterprise: custom
+- Meta CAPI Gateway: $8/mo per pixel, Unlimited: $83/mo for 100 pixels
 
-**Step 2: Add recent activity feed to overview**
-- Create an `AdminActivityFeed` component showing the last 20 events:
-  - New user signups (from `profiles`)
-  - Workflow executions (from `executions`)  
-  - Payment transactions (from `payment_transactions`)
-- Display as a timeline/list below the stat cards, before the tabs
+### Plan — Three Pricing Categories
 
-**Step 3: Make Export button functional**
-- Wire the header Export button to export a summary report (JSON) containing all stat cards data, user counts by plan, and execution stats
+We will create **3 pricing categories** on the Pricing page, each with its own tiered plans optimized for Bangladesh:
 
-**Step 4: Add Email Marketing admin tab**
-- New tab "Email" showing cross-user email campaign stats:
-  - Total campaigns, total emails sent, open/click rates aggregated
-  - Top campaigns table with sender, subject, stats
-- Query `email_campaigns` table without profile filter
+#### Category 1: Workflow Automation (existing plans, minor updates)
+Keep existing 4 plans but update comparison table to show accurate current prices.
 
-**Step 5: Improve Crash Reports**
-- Add severity filter (info/warning/error)
-- Add "Mark Resolved" button per crash report
-- Add count badge on the Crash Reports tab trigger
-- Add bulk "Clear All" action
+#### Category 2: NexusTrack — Server-Side Tracking
+New plans benchmarked **40-60% below Stape.io** for Bangladesh market:
 
-**Step 6: Replace Settings placeholder with real settings**
-- Platform name/branding config (stored in a `platform_settings` table or local state)
-- Default trial duration setting
-- Maintenance mode toggle (UI-only flag stored in DB)
-- Email notification preferences for admin alerts
+| Plan | Monthly (BDT) | ~USD | Events/mo | Destinations | Features |
+|------|--------------|------|-----------|--------------|----------|
+| Free | ৳0 | $0 | 10K | 2 | Basic pixel, GA4 |
+| Starter | ৳508 | ~$4 | 500K | 5 | Cookie recovery, bot filter |
+| Pro | ৳2,540 | ~$20 | 5M | 10 | PII anonymizer, geo enrichment, all transforms |
+| Business | ৳6,350 | ~$50 | 25M | Unlimited | Multi-zone, dedicated IP, SLA |
+| Enterprise | ৳12,700 | ~$100 | 100M+ | Unlimited | Custom, white-label, priority |
 
-**Step 7: Fix subscription counts**
-- Query actual counts from `subscriptions` table directly instead of filtering the limited `users` array
-- Use `select('*', { count: 'exact', head: true })` grouped by plan
+**vs Stape.io:** Pro at $17/mo gives 500K; our Pro at ~$20 gives 5M (10x more events).
+
+#### Category 3: All-in-One Bundle (Nodes + Tracking)
+Combined plans with discount (save 20-30% vs buying separately):
+
+| Plan | Monthly (BDT) | Includes |
+|------|--------------|----------|
+| Starter Bundle | ৳1,905 | Starter Workflow + Starter Tracking |
+| Pro Bundle | ৳6,350 | Pro Workflow + Pro Tracking |
+| Enterprise Bundle | ৳25,400 | Enterprise Workflow + Business Tracking |
+
+### Implementation Steps
+
+**Step 1: Database — Insert new plan rows**
+- Add 5 tracking plans + 3 bundle plans to the `plans` table with a new `category` field in the `features` JSON (e.g., `"plan_category": "tracking"` / `"bundle"`)
+- No schema change needed — use `features` JSONB to store category
+
+**Step 2: Update Pricing page UI**
+- Add a **3-tab switcher** at the top: "Workflow Automation" | "Server-Side Tracking" | "All-in-One Bundle"
+- Each tab shows its own set of plan cards filtered by `plan_category`
+- Add tracking-specific feature lists (events/mo, destinations, transforms)
+- Add a new comparison table for tracking: BiztoriBD vs Stape.io vs Google Cloud Run vs Addingwell
+
+**Step 3: Update usage-based summary section**
+- Add tracking-specific metrics: ৳0.0005/event, ৳15/destination/month
+- Keep existing AI/execution/storage metrics
+
+**Step 4: Update competitor comparison**
+- Add tracking comparison table (BiztoriBD vs Stape.io vs Addingwell vs self-hosted GTM)
+- Update workflow comparison with accurate n8n 2026 prices ($24/$60/$800)
+
+**Step 5: Update SelectPlan page**
+- Add the same tab switcher so users can select tracking or bundle plans during onboarding
+
+### Files to Modify
+- `src/pages/Pricing.tsx` — Major refactor with 3-tab layout, new comparison tables
+- `src/pages/SelectPlan.tsx` — Add category filter for plan selection
+- Database: INSERT new plan rows (tracking + bundle plans)
 
 ### Technical Details
-- All new components follow existing patterns: motion animations, Card-based layouts, same color scheme
-- New queries use existing RLS admin policies (already have `is_admin()` function)
-- No new database tables required for steps 1-5; step 6 may need a `platform_settings` migration
-- Estimated 6-8 files modified/created
+- Plans filtered client-side using `features.plan_category` field
+- No schema migration needed — leverages existing JSONB `features` column
+- Pricing in BDT with USD equivalent shown in parentheses
+- Yearly discount remains 20% across all categories
 
