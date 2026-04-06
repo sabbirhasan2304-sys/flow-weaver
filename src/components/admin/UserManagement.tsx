@@ -193,6 +193,40 @@ export function UserManagement() {
     setIsViewDialogOpen(true);
   };
 
+  const handleOpenOverview = async (user: UserData) => {
+    setOverviewUser(user);
+    setIsOverviewOpen(true);
+    // Fetch user-specific stats
+    const [
+      { count: wfCount },
+      { count: execCount },
+      { count: campCount },
+      { count: contactCount },
+    ] = await Promise.all([
+      supabase.from('workflows').select('*', { count: 'exact', head: true }).eq('workspace_id', '').or(`workspace_id.in.(select id from workspace_members where profile_id = '${user.id}')`),
+      supabase.from('executions').select('*', { count: 'exact', head: true }),
+      supabase.from('email_campaigns').select('*', { count: 'exact', head: true }).eq('profile_id', user.id),
+      supabase.from('email_contacts').select('*', { count: 'exact', head: true }).eq('profile_id', user.id),
+    ]);
+    setOverviewStats({
+      workflows: wfCount || 0,
+      executions: execCount || 0,
+      campaigns: campCount || 0,
+      contacts: contactCount || 0,
+    });
+  };
+
+  const handleImpersonate = (user: UserData) => {
+    startImpersonation({
+      profileId: user.id,
+      userId: user.user_id,
+      email: user.email,
+      fullName: user.full_name,
+    });
+    navigate('/dashboard');
+    toast.success(`Now viewing as ${user.full_name || user.email}`);
+  };
+
   const handleEditUser = (user: UserData) => {
     setSelectedUser(user);
     setEditForm({ full_name: user.full_name || '', email: user.email });
