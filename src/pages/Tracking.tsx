@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe } from 'lucide-react';
+import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe, Eye } from 'lucide-react';
 import { TrackingOverview } from '@/components/tracking/TrackingOverview';
 import { EventLog } from '@/components/tracking/EventLog';
 import { MonitoringDashboard } from '@/components/tracking/MonitoringDashboard';
@@ -18,6 +18,7 @@ import { StapeMigrationWizard } from '@/components/tracking/StapeMigrationWizard
 import { OnboardingWizard } from '@/components/tracking/OnboardingWizard';
 import { AIEventMapper } from '@/components/tracking/AIEventMapper';
 import { ConnectWebsite } from '@/components/tracking/ConnectWebsite';
+import { ClarityIntegration } from '@/components/tracking/ClarityIntegration';
 import { useNavigate } from 'react-router-dom';
 
 export default function Tracking() {
@@ -60,6 +61,7 @@ export default function Tracking() {
             <TabsTrigger value="store" className="gap-1.5"><Database className="h-4 w-4" /> NexusStore</TabsTrigger>
             <TabsTrigger value="dashboards" className="gap-1.5"><LayoutGrid className="h-4 w-4" /> Dashboards</TabsTrigger>
             <TabsTrigger value="mapper" className="gap-1.5"><Wand2 className="h-4 w-4" /> AI Mapper</TabsTrigger>
+            <TabsTrigger value="clarity" className="gap-1.5"><Eye className="h-4 w-4" /> Clarity</TabsTrigger>
             <TabsTrigger value="agency" className="gap-1.5"><Users className="h-4 w-4" /> Agency</TabsTrigger>
             <TabsTrigger value="settings" className="gap-1.5"><Settings className="h-4 w-4" /> Settings</TabsTrigger>
           </TabsList>
@@ -75,6 +77,7 @@ export default function Tracking() {
           <TabsContent value="store"><NexusStore /></TabsContent>
           <TabsContent value="dashboards"><CustomDashboard /></TabsContent>
           <TabsContent value="mapper"><AIEventMapper /></TabsContent>
+          <TabsContent value="clarity"><ClarityIntegration /></TabsContent>
           <TabsContent value="agency"><AgencyDashboard /></TabsContent>
           <TabsContent value="settings"><TrackingSettings /></TabsContent>
         </Tabs>
