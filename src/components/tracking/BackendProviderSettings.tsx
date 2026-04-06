@@ -230,6 +230,16 @@ export function BackendProviderSettings() {
 
   return (
     <div className="space-y-6">
+      {/* Admin-only notice */}
+      {!isAdmin && (
+        <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-200">
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-yellow-600" />
+            <p className="text-sm text-yellow-700">Only admins can switch or configure backend providers. Contact your admin to make changes.</p>
+          </div>
+        </div>
+      )}
+
       {/* Current Provider Banner */}
       <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
         <CardContent className="p-4">
