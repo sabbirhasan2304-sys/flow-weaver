@@ -23,11 +23,13 @@ import ApiDocs from "./pages/ApiDocs";
 import EmailMarketing from "./pages/EmailMarketing";
 import Tracking from "./pages/Tracking";
 import NotFound from "./pages/NotFound";
+import { OfflineBanner } from "./components/OfflineBanner";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <ThemeProvider>
+  <OfflineBanner />
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
