@@ -208,7 +208,8 @@ export function ClarityIntegration() {
       <Tabs defaultValue="setup" className="space-y-4">
         <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="setup" className="gap-1.5"><Settings2 className="h-3.5 w-3.5" /> Setup</TabsTrigger>
-          <TabsTrigger value="heatmaps" className="gap-1.5"><BarChart3 className="h-3.5 w-3.5" /> Heatmaps</TabsTrigger>
+          <TabsTrigger value="dashboard" className="gap-1.5"><BarChart3 className="h-3.5 w-3.5" /> Live Dashboard</TabsTrigger>
+          <TabsTrigger value="heatmaps" className="gap-1.5"><MousePointerClick className="h-3.5 w-3.5" /> Heatmaps</TabsTrigger>
           <TabsTrigger value="recordings" className="gap-1.5"><Video className="h-3.5 w-3.5" /> Recordings</TabsTrigger>
           <TabsTrigger value="insights" className="gap-1.5"><Flame className="h-3.5 w-3.5" /> Smart Events</TabsTrigger>
           <TabsTrigger value="identify" className="gap-1.5"><Users className="h-3.5 w-3.5" /> Identify</TabsTrigger>
@@ -216,6 +217,72 @@ export function ClarityIntegration() {
           <TabsTrigger value="privacy" className="gap-1.5"><Shield className="h-3.5 w-3.5" /> Privacy</TabsTrigger>
           <TabsTrigger value="snippet" className="gap-1.5"><Code className="h-3.5 w-3.5" /> Snippet</TabsTrigger>
         </TabsList>
+
+        {/* EMBEDDED DASHBOARD */}
+        <TabsContent value="dashboard" className="space-y-4">
+          {config.project_id ? (
+            <>
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                      <CardTitle className="text-lg">Clarity Live Dashboard</CardTitle>
+                      <CardDescription>View heatmaps, recordings, and insights directly inside NexusTrack</CardDescription>
+                    </div>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={`https://clarity.microsoft.com/projects/view/${config.project_id}/dashboard`} target="_blank" rel="noopener">
+                        <ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Open in Clarity
+                      </a>
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="rounded-lg border overflow-hidden bg-background">
+                    <iframe
+                      src={`https://clarity.microsoft.com/projects/view/${config.project_id}/dashboard`}
+                      className="w-full border-0"
+                      style={{ height: '700px' }}
+                      title="Microsoft Clarity Dashboard"
+                      sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    💡 If the dashboard doesn't load, you may need to sign into Clarity first.
+                    <a href="https://clarity.microsoft.com" target="_blank" rel="noopener" className="text-primary underline ml-1">Sign in →</a>
+                  </p>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <EmbedLinkCard
+                  title="Heatmaps"
+                  icon={<MousePointerClick className="h-5 w-5 text-primary" />}
+                  url={`https://clarity.microsoft.com/projects/view/${config.project_id}/heatmaps`}
+                />
+                <EmbedLinkCard
+                  title="Recordings"
+                  icon={<Video className="h-5 w-5 text-info" />}
+                  url={`https://clarity.microsoft.com/projects/view/${config.project_id}/recordings`}
+                />
+                <EmbedLinkCard
+                  title="Insights"
+                  icon={<Flame className="h-5 w-5 text-destructive" />}
+                  url={`https://clarity.microsoft.com/projects/view/${config.project_id}/dashboard`}
+                />
+              </div>
+            </>
+          ) : (
+            <Card>
+              <CardContent className="pt-6 text-center py-12">
+                <Eye className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                <h3 className="font-medium mb-1">No Project Connected</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Enter your Clarity Project ID in the Setup tab to view your dashboard here.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
         {/* SETUP */}
         <TabsContent value="setup" className="space-y-4">
