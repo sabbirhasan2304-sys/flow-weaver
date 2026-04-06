@@ -200,6 +200,54 @@ export type Database = {
           },
         ]
       }
+      backend_provider_config: {
+        Row: {
+          anon_key: string | null
+          config: Json
+          connection_url: string | null
+          created_at: string
+          display_name: string
+          id: string
+          is_active: boolean
+          last_synced_at: string | null
+          migration_status: string | null
+          provider: string
+          service_role_key: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anon_key?: string | null
+          config?: Json
+          connection_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          migration_status?: string | null
+          provider?: string
+          service_role_key?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anon_key?: string | null
+          config?: Json
+          connection_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          migration_status?: string | null
+          provider?: string
+          service_role_key?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       credentials: {
         Row: {
           created_at: string
