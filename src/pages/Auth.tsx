@@ -59,6 +59,21 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const handleForgotPassword = async () => {
+    if (!signInEmail) {
+      toast.error('Please enter your email address first');
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(signInEmail, {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Password reset email sent! Check your inbox.');
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     
@@ -70,7 +85,6 @@ export default function Auth() {
       toast.error(error.message);
       setGoogleLoading(false);
     }
-    // If successful, the page will redirect
   };
 
   return (
