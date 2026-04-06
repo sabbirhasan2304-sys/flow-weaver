@@ -17,7 +17,7 @@ import {
   Workflow, Zap, AlertTriangle, ArrowUpRight, ArrowDownRight,
   RefreshCw, Download, Crown,
   Sparkles, CheckCircle2, XCircle, Clock,
-  HardDrive, Mail, Cloud, Code, Minus
+  HardDrive, Mail, Cloud, Code, Minus, Database
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlanManagement } from '@/components/admin/PlanManagement';
@@ -28,6 +28,7 @@ import { BackendProviderSettings } from '@/components/tracking/BackendProviderSe
 import { AdminActivityFeed } from '@/components/admin/AdminActivityFeed';
 import { AdminEmailOverview } from '@/components/admin/AdminEmailOverview';
 import { AdminPlatformSettings } from '@/components/admin/AdminPlatformSettings';
+import { DataManagement } from '@/components/admin/DataManagement';
 import { toast } from 'sonner';
 
 interface Stats {
@@ -472,6 +473,9 @@ export default function Admin() {
                 <AlertTriangle className="h-4 w-4" /><span>Crashes</span>
                 {errorCount > 0 && <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-[10px]">{errorCount}</Badge>}
               </TabsTrigger>
+              <TabsTrigger value="data" className={tabTriggerClass}>
+                <Database className="h-4 w-4" /><span>Data</span>
+              </TabsTrigger>
               <TabsTrigger value="backend" className={tabTriggerClass}>
                 <Cloud className="h-4 w-4" /><span>Backend</span>
               </TabsTrigger>
@@ -514,6 +518,10 @@ export default function Admin() {
 
               <TabsContent value="crashes" className="mt-0">
                 <CrashReportsPanel onCountChange={setErrorCount} />
+              </TabsContent>
+
+              <TabsContent value="data" className="mt-0">
+                <DataManagement />
               </TabsContent>
 
               <TabsContent value="backend" className="mt-0">

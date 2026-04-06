@@ -44,6 +44,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { SystemHealthWidget } from '@/components/dashboard/SystemHealthWidget';
+import { UserDashboardStats } from '@/components/dashboard/UserDashboardStats';
 
 interface Workflow {
   id: string;
@@ -565,6 +566,9 @@ export default function Dashboard() {
             </Link>
           </div>
         )}
+
+        {/* User Dashboard Stats */}
+        {!loading && <UserDashboardStats />}
 
         {/* System Health Widget */}
         {isAdmin && !loading && (
