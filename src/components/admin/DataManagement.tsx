@@ -27,7 +27,7 @@ export function DataManagement() {
   const [confirmText, setConfirmText] = useState('');
   const [clearing, setClearing] = useState(false);
 
-  const { data: counts, refetch } = useQuery({
+  const { data: counts, refetch, isRefetching } = useQuery({
     queryKey: ['admin-data-counts'],
     queryFn: async () => {
       const [
@@ -54,6 +54,7 @@ export function DataManagement() {
         creditTx: creditTx || 0,
       };
     },
+    refetchOnWindowFocus: false,
   });
 
   const categories: DataCategory[] = [
@@ -69,14 +70,18 @@ export function DataManagement() {
     if (!confirmDialog.category || confirmText !== 'DELETE') return;
     setClearing(true);
     try {
-      const { error } = await supabase
+      const { error, count } = await supabase
         .from(confirmDialog.category.table as any)
-        .delete()
+        .delete({ count: 'exact' })
         .neq('id', '00000000-0000-0000-0000-000000000000'); // delete all rows
 
       if (error) throw error;
-      toast.success(`${confirmDialog.category.label} cleared successfully`);
-      refetch();
+      if (count === 0 && confirmDialog.category.count > 0) {
+        toast.error(`Permission denied: Could not delete ${confirmDialog.category.label}. Check admin privileges.`);
+      } else {
+        toast.success(`${confirmDialog.category.label} cleared — ${count ?? 0} records removed`);
+      }
+      await refetch();
     } catch (err: any) {
       toast.error(`Failed to clear: ${err.message}`);
     } finally {
@@ -98,9 +103,9 @@ export function DataManagement() {
               </CardTitle>
               <CardDescription>Clear logs and historical data to free up database space</CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Refresh Counts
+            <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefetching} className="gap-2">
+              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+              {isRefetching ? 'Refreshing...' : 'Refresh Counts'}
             </Button>
           </div>
         </CardHeader>
