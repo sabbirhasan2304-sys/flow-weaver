@@ -31,7 +31,7 @@ export function ApiPlayground() {
   };
 
   const buildUrl = () => {
-    let url = `${API_BASE_URL}${selectedEndpoint.path}`;
+    let url = `${INTERNAL_API_BASE_URL}${selectedEndpoint.path}`;
     // Replace path params
     selectedEndpoint.pathParams?.forEach(p => {
       url = url.replace(`:${p.name}`, pathParamValues[p.name] || `{${p.name}}`);
