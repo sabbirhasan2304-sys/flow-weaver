@@ -622,9 +622,18 @@ export function UserManagement() {
                               <Eye className="h-4 w-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenOverview(u)}>
+                              <BarChart3 className="h-4 w-4 mr-2" />
+                              Quick Overview
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditUser(u)}>
                               <Pencil className="h-4 w-4 mr-2" />
                               Edit Profile
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleImpersonate(u)}>
+                              <LogIn className="h-4 w-4 mr-2" />
+                              Login as User
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleManageRole(u)}>
