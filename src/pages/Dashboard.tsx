@@ -44,6 +44,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { SystemHealthWidget } from '@/components/dashboard/SystemHealthWidget';
+import { UserDashboardStats } from '@/components/dashboard/UserDashboardStats';
 
 interface Workflow {
   id: string;
