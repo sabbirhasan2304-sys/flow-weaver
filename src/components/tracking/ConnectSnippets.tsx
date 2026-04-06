@@ -46,7 +46,7 @@ export function ConnectSnippets() {
 <script>
 (function(n,e,x,u,s){n.NexusTrack=n.NexusTrack||[];
 s=e.createElement('script');s.async=1;
-s.src='${window.location.origin}/nexus-track.js';
+s.src='${TRACKING_SCRIPT_URL}';
 s.dataset.siteId='${trackingScriptId}';
 s.dataset.apiUrl='${API_BASE_URL}';
 s.dataset.apiKey='${apiKey || 'YOUR_API_KEY'}';
