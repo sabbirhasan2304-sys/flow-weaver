@@ -103,9 +103,9 @@ export function DataManagement() {
               </CardTitle>
               <CardDescription>Clear logs and historical data to free up database space</CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Refresh Counts
+            <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefetching} className="gap-2">
+              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+              {isRefetching ? 'Refreshing...' : 'Refresh Counts'}
             </Button>
           </div>
         </CardHeader>
