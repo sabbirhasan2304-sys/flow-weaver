@@ -566,7 +566,14 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Onboarding Card */}
+        {/* System Health Widget */}
+        {isAdmin && !loading && (
+          <div className="mb-6">
+            <SystemHealthWidget />
+          </div>
+        )}
+
+
         {showOnboarding && !loading && workflows.length === 0 && !search && (
           <Card className="mb-6 border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-transparent relative overflow-hidden">
             <button onClick={dismissOnboarding} className="absolute top-3 right-3 p-1 rounded-md hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors">
