@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe, Eye, Send } from 'lucide-react';
+import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe, Eye, Send, TrendingUp, Bug, CheckSquare, Search } from 'lucide-react';
 import { TrackingOverview } from '@/components/tracking/TrackingOverview';
 import { EventLog } from '@/components/tracking/EventLog';
 import { MonitoringDashboard } from '@/components/tracking/MonitoringDashboard';
@@ -20,6 +20,10 @@ import { AIEventMapper } from '@/components/tracking/AIEventMapper';
 import { ConnectWebsite } from '@/components/tracking/ConnectWebsite';
 import { ClarityIntegration } from '@/components/tracking/ClarityIntegration';
 import { MarketingDestinations } from '@/components/tracking/MarketingDestinations';
+import { ConsentModeConfig } from '@/components/tracking/ConsentModeConfig';
+import { SiteAuditor } from '@/components/tracking/SiteAuditor';
+import { ConversionRecovery } from '@/components/tracking/ConversionRecovery';
+import { LiveDebugger } from '@/components/tracking/LiveDebugger';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -55,15 +59,19 @@ export default function Tracking() {
             <TabsTrigger value="connect" className="gap-1.5"><Globe className="h-4 w-4" /> Connect</TabsTrigger>
             <TabsTrigger value="overview" className="gap-1.5"><Activity className="h-4 w-4" /> Overview</TabsTrigger>
             <TabsTrigger value="events" className="gap-1.5"><List className="h-4 w-4" /> Events</TabsTrigger>
+            <TabsTrigger value="debugger" className="gap-1.5"><Bug className="h-4 w-4" /> Debugger</TabsTrigger>
+            <TabsTrigger value="recovery" className="gap-1.5"><TrendingUp className="h-4 w-4" /> Recovery</TabsTrigger>
             <TabsTrigger value="poas" className="gap-1.5"><DollarSign className="h-4 w-4" /> POAS</TabsTrigger>
+            <TabsTrigger value="destinations" className="gap-1.5"><Send className="h-4 w-4" /> Destinations</TabsTrigger>
+            <TabsTrigger value="consent" className="gap-1.5"><CheckSquare className="h-4 w-4" /> Consent</TabsTrigger>
             <TabsTrigger value="monitoring" className="gap-1.5"><Bell className="h-4 w-4" /> Monitoring</TabsTrigger>
             <TabsTrigger value="reliability" className="gap-1.5"><RefreshCw className="h-4 w-4" /> Reliability</TabsTrigger>
             <TabsTrigger value="privacy" className="gap-1.5"><Shield className="h-4 w-4" /> Privacy</TabsTrigger>
             <TabsTrigger value="identity" className="gap-1.5"><Fingerprint className="h-4 w-4" /> Identity</TabsTrigger>
             <TabsTrigger value="store" className="gap-1.5"><Database className="h-4 w-4" /> NexusStore</TabsTrigger>
-            <TabsTrigger value="dashboards" className="gap-1.5"><LayoutGrid className="h-4 w-4" /> Dashboards</TabsTrigger>
+            <TabsTrigger value="audit" className="gap-1.5"><Search className="h-4 w-4" /> Audit</TabsTrigger>
             <TabsTrigger value="mapper" className="gap-1.5"><Wand2 className="h-4 w-4" /> AI Mapper</TabsTrigger>
-            <TabsTrigger value="destinations" className="gap-1.5"><Send className="h-4 w-4" /> Destinations</TabsTrigger>
+            <TabsTrigger value="dashboards" className="gap-1.5"><LayoutGrid className="h-4 w-4" /> Dashboards</TabsTrigger>
             <TabsTrigger value="clarity" className="gap-1.5"><Eye className="h-4 w-4" /> Clarity</TabsTrigger>
             <TabsTrigger value="agency" className="gap-1.5"><Users className="h-4 w-4" /> Agency</TabsTrigger>
             <TabsTrigger value="settings" className="gap-1.5"><Settings className="h-4 w-4" /> Settings</TabsTrigger>
@@ -72,18 +80,21 @@ export default function Tracking() {
           <TabsContent value="connect"><ConnectWebsite /></TabsContent>
           <TabsContent value="overview"><TrackingOverview onNavigateToConnect={() => setActiveTab('connect')} /></TabsContent>
           <TabsContent value="events"><EventLog /></TabsContent>
+          <TabsContent value="debugger"><LiveDebugger /></TabsContent>
+          <TabsContent value="recovery"><ConversionRecovery /></TabsContent>
           <TabsContent value="poas"><POASDashboard /></TabsContent>
+          <TabsContent value="destinations"><MarketingDestinations /></TabsContent>
+          <TabsContent value="consent"><ConsentModeConfig /></TabsContent>
           <TabsContent value="monitoring"><MonitoringDashboard /></TabsContent>
           <TabsContent value="reliability"><ReliabilityEngine /></TabsContent>
           <TabsContent value="privacy"><PrivacyCompliance /></TabsContent>
           <TabsContent value="identity"><IdentityHub /></TabsContent>
           <TabsContent value="store"><NexusStore /></TabsContent>
-          <TabsContent value="dashboards"><CustomDashboard /></TabsContent>
+          <TabsContent value="audit"><SiteAuditor /></TabsContent>
           <TabsContent value="mapper"><AIEventMapper /></TabsContent>
+          <TabsContent value="dashboards"><CustomDashboard /></TabsContent>
           <TabsContent value="clarity"><ClarityIntegration /></TabsContent>
-          <TabsContent value="destinations"><MarketingDestinations /></TabsContent>
           <TabsContent value="agency"><AgencyDashboard /></TabsContent>
-          
           <TabsContent value="settings"><TrackingSettings /></TabsContent>
         </Tabs>
       </div>
