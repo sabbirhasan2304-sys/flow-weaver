@@ -40,6 +40,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { profile, signOut } = useAuth();
   const { isAdmin } = useAdmin();
+  const { impersonatedUser, isImpersonating, stopImpersonation } = useImpersonation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
