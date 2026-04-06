@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -76,6 +77,7 @@ const PROVIDERS = [
 
 export function BackendProviderSettings() {
   const { profile } = useAuth();
+  const { isAdmin } = useAdmin();
   const queryClient = useQueryClient();
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [configValues, setConfigValues] = useState<Record<string, string>>({});
@@ -228,6 +230,16 @@ export function BackendProviderSettings() {
 
   return (
     <div className="space-y-6">
+      {/* Admin-only notice */}
+      {!isAdmin && (
+        <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-200">
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-yellow-600" />
+            <p className="text-sm text-yellow-700">Only admins can switch or configure backend providers. Contact your admin to make changes.</p>
+          </div>
+        </div>
+      )}
+
       {/* Current Provider Banner */}
       <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
         <CardContent className="p-4">
@@ -284,7 +296,7 @@ export function BackendProviderSettings() {
                   <div className={`h-10 w-10 rounded-lg border flex items-center justify-center ${provider.color}`}>
                     <Icon className="h-5 w-5" />
                   </div>
-                  {isConfigured && !isActive && (
+                  {isConfigured && !isActive && isAdmin && (
                     <Button
                       variant="ghost"
                       size="icon"
@@ -328,6 +340,7 @@ export function BackendProviderSettings() {
                       variant="outline"
                       size="sm"
                       className="flex-1 text-xs"
+                      disabled={!isAdmin}
                       onClick={() => {
                         setSelectedProvider(provider.id);
                         if (config) {
@@ -349,10 +362,11 @@ export function BackendProviderSettings() {
                     <Button
                       size="sm"
                       className="flex-1 text-xs"
+                      disabled={!isAdmin}
                       onClick={() => switchProvider.mutate(provider.id)}
                     >
                       <Zap className="h-3 w-3 mr-1" />
-                      Switch
+                      {isAdmin ? 'Switch' : 'Admin Only'}
                     </Button>
                   )}
                   {isActive && !provider.requiresConfig && (
@@ -386,7 +400,7 @@ export function BackendProviderSettings() {
             ].map((route) => {
               const fromConfigured = route.from === 'lovable_cloud' || configs.some(c => c.provider === route.from);
               const toConfigured = route.to === 'lovable_cloud' || configs.some(c => c.provider === route.to);
-              const canMigrate = fromConfigured && toConfigured;
+              const canMigrate = fromConfigured && toConfigured && isAdmin;
 
               return (
                 <Button
@@ -405,7 +419,10 @@ export function BackendProviderSettings() {
                       <ArrowRightLeft className="h-3 w-3" />
                       <span className="font-medium">{route.label}</span>
                     </div>
-                    {!canMigrate && (
+                    {!isAdmin && (
+                      <span className="text-[10px] text-muted-foreground">Admin only</span>
+                    )}
+                    {isAdmin && !canMigrate && (
                       <span className="text-[10px] text-muted-foreground">Configure both providers first</span>
                     )}
                   </div>
