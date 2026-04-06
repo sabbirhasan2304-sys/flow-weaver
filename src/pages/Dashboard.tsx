@@ -80,7 +80,6 @@ export default function Dashboard() {
   const canCreateWorkflow = isAdmin || (hasActiveSubscription && isWithinLimits('workflows', workflows.length));
 
   useEffect(() => {
-    // Wait for auth to finish loading before checking user
     if (authLoading || subscriptionLoading) return;
     
     if (!user) {
@@ -88,16 +87,15 @@ export default function Dashboard() {
       return;
     }
 
-    // Redirect to plan selection if user doesn't have an active subscription (and is not admin)
     if (!isAdmin && !hasActiveSubscription) {
       navigate('/select-plan');
       return;
     }
     
-    if (activeWorkspace) {
+    if (isImpersonating || activeWorkspace) {
       fetchWorkflows();
     }
-  }, [user, activeWorkspace, navigate, authLoading, subscriptionLoading, isAdmin, hasActiveSubscription]);
+  }, [user, activeWorkspace, navigate, authLoading, subscriptionLoading, isAdmin, hasActiveSubscription, isImpersonating]);
 
   const fetchWorkflows = async () => {
     setLoading(true);
