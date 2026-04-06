@@ -50,25 +50,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Impersonation Banner */}
+      {/* Stealth Impersonation Indicator - small floating pill, only admin sees this */}
       {isImpersonating && impersonatedUser && (
-        <div className="sticky top-0 z-[60] bg-amber-500 text-amber-950 px-4 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <Eye className="h-4 w-4" />
-            <span>Viewing as: <strong>{impersonatedUser.fullName || impersonatedUser.email}</strong></span>
-          </div>
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            className="h-7 gap-1.5 text-amber-950 hover:bg-amber-600 hover:text-amber-950"
+        <div className="fixed bottom-4 right-4 z-[60] flex items-center gap-2 bg-muted/90 backdrop-blur-sm border border-border rounded-full px-3 py-1.5 shadow-lg opacity-60 hover:opacity-100 transition-opacity">
+          <Eye className="h-3 w-3 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">{impersonatedUser.fullName || impersonatedUser.email}</span>
+          <button 
+            className="ml-1 text-muted-foreground hover:text-foreground"
             onClick={() => {
               stopImpersonation();
               navigate('/admin');
             }}
           >
-            <X className="h-3.5 w-3.5" />
-            Exit
-          </Button>
+            <X className="h-3 w-3" />
+          </button>
         </div>
       )}
       {/* Header */}
