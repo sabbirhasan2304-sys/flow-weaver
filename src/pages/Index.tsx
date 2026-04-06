@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { 
   Zap, ArrowRight, Play, Users, Shield, 
   Workflow, Bot, Database, Globe, CheckCircle2,
   LayoutDashboard, Settings, Code, FileText, Book,
   Layers, Cpu, Mail, BarChart3, Lock, Rocket, Menu, X, Crosshair,
-  Star, Quote, Heart, TrendingUp, Clock, Headphones
+   Star, Quote, Heart, TrendingUp, Clock, Headphones, HelpCircle,
+   Facebook, Twitter, MessageCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -99,6 +101,15 @@ const testimonials = [
     quote: 'bKash and Nagad nodes saved us months of development. Our payment reconciliation is now fully automated.',
     avatar: 'KH',
   },
+];
+
+const faqs = [
+  { q: 'Is BiztoriBD really free to start?', a: 'Yes! Our Free plan includes 100 executions/month, 5 workflows, and access to all 375+ nodes. No credit card required.' },
+  { q: 'How does bKash/Nagad integration work?', a: 'We provide native nodes for bKash and Nagad that let you verify payments, send money, check balances, and receive instant notifications — all within your workflows.' },
+  { q: 'What is NexusTrack server-side tracking?', a: 'NexusTrack sends your website events (purchases, page views, etc.) directly from our servers to Meta, GA4, TikTok, and more — bypassing ad blockers and improving attribution accuracy by up to 30%.' },
+  { q: 'Can I use my own SMTP server for email marketing?', a: 'Absolutely! Connect any cPanel, Gmail, SendGrid, or custom SMTP server. You have full control over your email sending infrastructure.' },
+  { q: 'Do you support team collaboration?', a: 'Yes — Pro and Enterprise plans include multi-user workspaces with role-based access, shared credentials, and team workflow management.' },
+  { q: 'How is BiztoriBD different from Zapier or n8n?', a: 'BiztoriBD is built specifically for Bangladesh with native bKash, Nagad, Pathao, eCourier, and Daraz integrations. Plus it includes email marketing, server-side tracking, and AI agents — all in one platform at local pricing.' },
 ];
 
 export default function Index() {
@@ -661,6 +672,48 @@ export default function Index() {
         </div>
       </section>
       
+      {/* FAQ Section */}
+      <section id="faq" className="py-16 md:py-28">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+              <HelpCircle className="h-3.5 w-3.5" />
+              FAQ
+            </div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Everything you need to know about BiztoriBD.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <Accordion type="single" collapsible className="space-y-3">
+              {faqs.map((faq, i) => (
+                <AccordionItem key={i} value={`faq-${i}`} className="border border-border rounded-xl px-5 data-[state=open]:bg-muted/30">
+                  <AccordionTrigger className="text-left text-sm font-semibold hover:no-underline py-4">
+                    {faq.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground pb-4 leading-relaxed">
+                    {faq.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </motion.div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-16 md:py-28">
         <div className="container mx-auto px-4">
@@ -709,17 +762,29 @@ export default function Index() {
       {/* Footer */}
       <footer className="border-t border-border py-12 bg-muted/20">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-            <div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
+            <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
                 <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
                   <Zap className="h-4 w-4 text-primary-foreground" />
                 </div>
                 <span className="font-bold text-foreground">BiztoriBD</span>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                 Bangladesh's #1 automation platform. Build workflows, track events, and grow faster.
               </p>
+              {/* Social Links */}
+              <div className="flex items-center gap-2">
+                <a href="https://facebook.com/biztoribd" target="_blank" rel="noopener noreferrer" className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+                  <Facebook className="h-4 w-4" />
+                </a>
+                <a href="https://twitter.com/biztoribd" target="_blank" rel="noopener noreferrer" className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+                  <Twitter className="h-4 w-4" />
+                </a>
+                <a href="https://wa.me/8801XXXXXXXXX" target="_blank" rel="noopener noreferrer" className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+                  <MessageCircle className="h-4 w-4" />
+                </a>
+              </div>
             </div>
             
             <div>
@@ -727,8 +792,8 @@ export default function Index() {
               <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
                 <a href="#features" className="hover:text-foreground transition-colors">Features</a>
                 <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
-                <Link to="/templates" className="hover:text-foreground transition-colors">Templates</Link>
-                <Link to="/marketplace" className="hover:text-foreground transition-colors">Marketplace</Link>
+                <a href="#use-cases" className="hover:text-foreground transition-colors">Use Cases</a>
+                <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
               </nav>
             </div>
 
@@ -737,16 +802,25 @@ export default function Index() {
               <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
                 <Link to="/api-docs" className="hover:text-foreground transition-colors">API Reference</Link>
                 <Link to="/docs" className="hover:text-foreground transition-colors">Documentation</Link>
-                <Link to="/api-keys" className="hover:text-foreground transition-colors">API Keys</Link>
+                <a href="#api" className="hover:text-foreground transition-colors">API Overview</a>
               </nav>
             </div>
 
             <div>
               <h4 className="font-semibold text-foreground mb-3 text-sm">Platform</h4>
               <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
-                <Link to="/tracking" className="hover:text-foreground transition-colors">NexusTrack</Link>
-                <Link to="/email-marketing" className="hover:text-foreground transition-colors">Email Marketing</Link>
-                <Link to="/auth" className="hover:text-foreground transition-colors">Sign Up</Link>
+                <Link to="/auth" className="hover:text-foreground transition-colors">Sign Up Free</Link>
+                <Link to="/auth" className="hover:text-foreground transition-colors">Sign In</Link>
+                <a href="#testimonials" className="hover:text-foreground transition-colors">Testimonials</a>
+              </nav>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-foreground mb-3 text-sm">Contact</h4>
+              <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
+                <span>📧 support@biztoribd.com</span>
+                <span>📱 WhatsApp Support</span>
+                <span>📍 Dhaka, Bangladesh</span>
               </nav>
             </div>
           </div>
@@ -756,9 +830,9 @@ export default function Index() {
               © {new Date().getFullYear()} BiztoriBD. Made with ❤️ in Bangladesh 🇧🇩
             </div>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span>Terms of Service</span>
-              <span>Privacy Policy</span>
-              <span>Contact</span>
+              <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
+              <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
+              <a href="#" className="hover:text-foreground transition-colors">Refund Policy</a>
             </div>
           </div>
         </div>

@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { Loader2, Zap } from 'lucide-react';
 import { lovable } from '@/integrations/lovable/index';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -58,6 +59,21 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const handleForgotPassword = async () => {
+    if (!signInEmail) {
+      toast.error('Please enter your email address first');
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(signInEmail, {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Password reset email sent! Check your inbox.');
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     
@@ -69,7 +85,6 @@ export default function Auth() {
       toast.error(error.message);
       setGoogleLoading(false);
     }
-    // If successful, the page will redirect
   };
 
   return (
@@ -160,7 +175,16 @@ export default function Auth() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="signin-password">Password</Label>
+                      <button
+                        type="button"
+                        onClick={handleForgotPassword}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
                     <Input
                       id="signin-password"
                       type="password"
