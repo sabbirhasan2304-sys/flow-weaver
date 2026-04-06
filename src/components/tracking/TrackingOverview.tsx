@@ -11,7 +11,11 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { useQuery } from '@tanstack/react-query';
 import { useTrackingRealtime } from '@/hooks/useTrackingRealtime';
 
-export function TrackingOverview() {
+interface TrackingOverviewProps {
+  onNavigateToConnect?: () => void;
+}
+
+export function TrackingOverview({ onNavigateToConnect }: TrackingOverviewProps) {
   const [aiOpen, setAiOpen] = useState(false);
   const { profile } = useAuth();
   const { isAdmin } = useAdmin();
