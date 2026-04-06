@@ -149,7 +149,6 @@ Deno.serve(async (req) => {
       return {
         user_id: userId,
         event_name: event.event_name,
-        event_id: event.event_id || crypto.randomUUID(),
         source: event.source || "web",
         destination: event.destination || "server",
         status: "pending",
@@ -163,8 +162,9 @@ Deno.serve(async (req) => {
           user_agent: ua,
           server_side: true,
           consent_granted: consentGranted,
+          event_id: event.event_id || crypto.randomUUID(),
         },
-        fingerprint,
+        event_fingerprint: fingerprint,
         retry_count: 0,
         created_at: event.timestamp || now,
       };
