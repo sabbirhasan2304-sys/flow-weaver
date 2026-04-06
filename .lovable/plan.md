@@ -1,59 +1,52 @@
-## NexusTrack vs Stape.io Gap Analysis & Improvement Plan
 
-### What NexusTrack Already Has (Ahead of Stape)
-- ✅ AI Event Mapper (Stape doesn't have AI)
-- ✅ Visual workflow builder for tracking (Stape relies on GTM)
-- ✅ NexusStore document DB (matches Stape Store)
-- ✅ Identity Hub (cross-device stitching)
-- ✅ Custom Dashboards
-- ✅ Agency Dashboard with white-label
-- ✅ 8 marketing destinations configured
-- ✅ Bot detection & anomaly detection
-- ✅ Reliability Engine with DLQ + replay
 
-### Critical Gaps to Fix
+## Fix All Domain References to Use biztoribd.com
 
-#### 1. Event Ingestion Edge Function (CRITICAL)
-- Stape's core: events come in → get processed → forwarded to destinations
-- **Current state**: No real endpoint to receive tracking events from the JS snippet
-- **Fix**: Create `track-event` edge function that accepts events, validates, stores in `tracking_events`, and triggers forwarding
+### Problem
+The tracking snippet and API URLs currently expose infrastructure domains:
+- **Script source**: Uses `window.location.origin` → shows `*.lovableproject.com` or `*.lovable.app`
+- **API URL**: Uses `VITE_SUPABASE_URL` → shows `*.supabase.co`
+- **Plugin code**: Also references the Supabase URL via `API_BASE_URL`
 
-#### 2. Consent Mode v2 Support
-- Stape heavily promotes Google Consent Mode v2 compliance
-- **Fix**: Add Consent Mode configuration to the Privacy tab with:
-  - Google Consent Mode v2 settings (ad_storage, analytics_storage, etc.)
-  - Auto-adjustment of event data based on consent state
-  - Visual consent state indicator per event
+Users installing the tracking snippet on their sites see these internal domains instead of `biztoribd.com`.
 
-#### 3. Website Tracking Checker / Site Auditor
-- Stape offers a free "scan your site" tool that checks tracking setup
-- **Fix**: Build a "Scan Website" feature in the Connect tab that:
-  - Checks if tracking script is installed
-  - Verifies custom domain CNAME
-  - Tests event delivery
-  - Checks consent mode setup
-  - Shows actionable recommendations
+### Solution
+Create a centralized brand domain config and replace all external-facing URLs.
 
-#### 4. Conversion Recovery Dashboard
-- Stape's key selling point: "recover X% lost conversions"
-- **Fix**: Add a "Recovery" section to Overview showing:
-  - Events that bypassed ad blockers (server-side vs client-side comparison)
-  - Estimated additional conversions captured
-  - Revenue impact calculation
+### Changes
 
-#### 5. Live Event Debugger
-- Stape has real-time debugging/preview mode
-- **Fix**: Add a "Debug Mode" toggle that shows:
-  - Live event stream with request/response details
-  - Payload validation with warnings
-  - Test event sending from the dashboard
+**1. Create a brand config file** (`src/config/brand.ts`)
+- Define constants: `BRAND_DOMAIN = 'biztoribd.com'`, `TRACKING_SCRIPT_URL = 'https://cdn.biztoribd.com/nexus-track.js'`, `API_ENDPOINT = 'https://api.biztoribd.com/v1'`
+- These are the URLs shown in snippets to end users — they would be reverse-proxied to actual infra in production
+
+**2. Update `src/components/tracking/ConnectSnippets.tsx`**
+- Replace `window.location.origin` with `https://cdn.biztoribd.com`
+- Replace `API_BASE_URL` (supabase URL) with `https://api.biztoribd.com/v1`
+- All 3 snippet types (Universal, Shopify, WordPress) updated
+
+**3. Update `src/components/api-docs/apiDocsData.ts`**
+- Change `API_BASE_URL` to use `https://api.biztoribd.com/v1` for display in docs
+- Keep actual supabase URL for internal API calls (playground)
+
+**4. Update `src/components/api-docs/pluginCode.ts`**
+- WordPress plugin and Shopify snippet use the brand domain
+
+**5. Update `src/components/tracking/LiveDebugger.tsx`**
+- Replace hardcoded `supabase.co` reference with brand API domain for display, keep actual supabase URL for fetch calls
+
+**6. Update `supabase/functions/auth-email-hook/index.ts`**
+- Replace `lovableproject.com` sample URL with `https://biztoribd.com`
+
+### Architecture Note
+- **Display URLs** (shown to users in snippets, docs, plugins): Always `biztoribd.com` subdomains
+- **Internal fetch URLs** (actual API calls from the app): Continue using `VITE_SUPABASE_URL` since that's where the backend lives
+- In production, `api.biztoribd.com` and `cdn.biztoribd.com` would be set up as reverse proxies (via Cloudflare or similar) pointing to the actual infrastructure
 
 ### Files to Create/Modify
-- **NEW**: `supabase/functions/track-event/index.ts` — Event ingestion endpoint
-- **NEW**: `src/components/tracking/ConsentModeConfig.tsx` — Consent Mode v2 UI
-- **NEW**: `src/components/tracking/SiteAuditor.tsx` — Website tracking checker
-- **NEW**: `src/components/tracking/ConversionRecovery.tsx` — Recovery metrics
-- **NEW**: `src/components/tracking/LiveDebugger.tsx` — Real-time event debugger
-- **MODIFY**: `src/pages/Tracking.tsx` — Add new tabs
-- **MODIFY**: `src/components/tracking/ConnectSnippets.tsx` — Update script to use new endpoint
-- **MODIFY**: `src/components/tracking/TrackingOverview.tsx` — Add recovery metrics
+- **New**: `src/config/brand.ts`
+- **Edit**: `src/components/tracking/ConnectSnippets.tsx`
+- **Edit**: `src/components/api-docs/apiDocsData.ts`
+- **Edit**: `src/components/api-docs/pluginCode.ts`
+- **Edit**: `src/components/tracking/LiveDebugger.tsx`
+- **Edit**: `supabase/functions/auth-email-hook/index.ts`
+
