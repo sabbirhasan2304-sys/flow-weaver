@@ -69,14 +69,18 @@ export function DataManagement() {
     if (!confirmDialog.category || confirmText !== 'DELETE') return;
     setClearing(true);
     try {
-      const { error } = await supabase
+      const { error, count } = await supabase
         .from(confirmDialog.category.table as any)
-        .delete()
+        .delete({ count: 'exact' })
         .neq('id', '00000000-0000-0000-0000-000000000000'); // delete all rows
 
       if (error) throw error;
-      toast.success(`${confirmDialog.category.label} cleared successfully`);
-      refetch();
+      if (count === 0 && confirmDialog.category.count > 0) {
+        toast.error(`Permission denied: Could not delete ${confirmDialog.category.label}. Check admin privileges.`);
+      } else {
+        toast.success(`${confirmDialog.category.label} cleared — ${count ?? 0} records removed`);
+      }
+      await refetch();
     } catch (err: any) {
       toast.error(`Failed to clear: ${err.message}`);
     } finally {
