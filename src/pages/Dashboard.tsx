@@ -62,6 +62,7 @@ export default function Dashboard() {
   const location = useLocation();
   const { user, profile, signOut, activeWorkspace, loading: authLoading } = useAuth();
   const { isAdmin } = useAdmin();
+  const { isImpersonating, impersonatedUser } = useImpersonation();
   const { subscription, isWithinLimits, loading: subscriptionLoading } = useSubscription();
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
