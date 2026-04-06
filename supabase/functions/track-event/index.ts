@@ -173,23 +173,23 @@ Deno.serve(async (req) => {
     // Deduplicate by fingerprint (within batch)
     const seen = new Set<string>();
     const uniqueEvents = processedEvents.filter((e) => {
-      if (seen.has(e.fingerprint)) return false;
-      seen.add(e.fingerprint);
+      if (seen.has(e.event_fingerprint)) return false;
+      seen.add(e.event_fingerprint);
       return true;
     });
 
     // Check for existing fingerprints in last 5 minutes (dedup window)
-    const fingerprints = uniqueEvents.map((e) => e.fingerprint);
+    const fingerprints = uniqueEvents.map((e) => e.event_fingerprint);
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     
     const { data: existingEvents } = await supabase
       .from("tracking_events")
-      .select("fingerprint")
-      .in("fingerprint", fingerprints)
+      .select("event_fingerprint")
+      .in("event_fingerprint", fingerprints)
       .gte("created_at", fiveMinAgo);
 
-    const existingFingerprints = new Set((existingEvents || []).map((e: any) => e.fingerprint));
-    const newEvents = uniqueEvents.filter((e) => !existingFingerprints.has(e.fingerprint));
+    const existingFingerprints = new Set((existingEvents || []).map((e: any) => e.event_fingerprint));
+    const newEvents = uniqueEvents.filter((e) => !existingFingerprints.has(e.event_fingerprint));
     const duplicateCount = uniqueEvents.length - newEvents.length;
 
     if (newEvents.length > 0) {
