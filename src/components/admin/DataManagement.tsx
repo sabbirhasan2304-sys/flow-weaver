@@ -27,7 +27,7 @@ export function DataManagement() {
   const [confirmText, setConfirmText] = useState('');
   const [clearing, setClearing] = useState(false);
 
-  const { data: counts, refetch } = useQuery({
+  const { data: counts, refetch, isRefetching } = useQuery({
     queryKey: ['admin-data-counts'],
     queryFn: async () => {
       const [
@@ -54,6 +54,7 @@ export function DataManagement() {
         creditTx: creditTx || 0,
       };
     },
+    refetchOnWindowFocus: false,
   });
 
   const categories: DataCategory[] = [
