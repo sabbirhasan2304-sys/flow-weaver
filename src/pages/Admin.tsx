@@ -520,6 +520,10 @@ export default function Admin() {
                 <CrashReportsPanel onCountChange={setErrorCount} />
               </TabsContent>
 
+              <TabsContent value="data" className="mt-0">
+                <DataManagement />
+              </TabsContent>
+
               <TabsContent value="backend" className="mt-0">
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                   <BackendProviderSettings />
