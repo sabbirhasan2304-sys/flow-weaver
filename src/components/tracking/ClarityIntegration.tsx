@@ -740,3 +740,21 @@ function InsightCard({ icon, title, description, badge }: {
     </Card>
   );
 }
+
+function EmbedLinkCard({ title, icon, url }: { title: string; icon: React.ReactNode; url: string }) {
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardContent className="pt-6">
+        <div className="flex items-center gap-3 mb-2">
+          {icon}
+          <h4 className="font-medium">{title}</h4>
+        </div>
+        <Button variant="outline" size="sm" className="w-full" asChild>
+          <a href={url} target="_blank" rel="noopener">
+            <ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Open {title}
+          </a>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
