@@ -611,6 +611,13 @@ export default function Admin() {
                 <AlertTriangle className="h-4 w-4" />
                 <span>Crash Reports</span>
               </TabsTrigger>
+              <TabsTrigger 
+                value="backend" 
+                className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground px-4 py-2"
+              >
+                <Cloud className="h-4 w-4" />
+                <span>Backend</span>
+              </TabsTrigger>
             </TabsList>
 
             <AnimatePresence mode="wait">
