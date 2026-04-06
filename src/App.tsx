@@ -22,6 +22,7 @@ import ApiKeys from "./pages/ApiKeys";
 import ApiDocs from "./pages/ApiDocs";
 import EmailMarketing from "./pages/EmailMarketing";
 import Tracking from "./pages/Tracking";
+import Unsubscribe from "./pages/Unsubscribe";
 import NotFound from "./pages/NotFound";
 import { OfflineBanner } from "./components/OfflineBanner";
 
