@@ -43,6 +43,7 @@ import {
   ArrowRight, Download, BookOpen, X
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { SystemHealthWidget } from '@/components/dashboard/SystemHealthWidget';
 
 interface Workflow {
   id: string;
