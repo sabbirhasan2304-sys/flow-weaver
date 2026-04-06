@@ -24,6 +24,7 @@ export default function Tracking() {
   const navigate = useNavigate();
   const [migrationOpen, setMigrationOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
 
   return (
     <DashboardLayout>
