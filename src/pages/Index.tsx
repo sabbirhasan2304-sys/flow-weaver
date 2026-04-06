@@ -103,6 +103,15 @@ const testimonials = [
   },
 ];
 
+const faqs = [
+  { q: 'Is BiztoriBD really free to start?', a: 'Yes! Our Free plan includes 100 executions/month, 5 workflows, and access to all 375+ nodes. No credit card required.' },
+  { q: 'How does bKash/Nagad integration work?', a: 'We provide native nodes for bKash and Nagad that let you verify payments, send money, check balances, and receive instant notifications — all within your workflows.' },
+  { q: 'What is NexusTrack server-side tracking?', a: 'NexusTrack sends your website events (purchases, page views, etc.) directly from our servers to Meta, GA4, TikTok, and more — bypassing ad blockers and improving attribution accuracy by up to 30%.' },
+  { q: 'Can I use my own SMTP server for email marketing?', a: 'Absolutely! Connect any cPanel, Gmail, SendGrid, or custom SMTP server. You have full control over your email sending infrastructure.' },
+  { q: 'Do you support team collaboration?', a: 'Yes — Pro and Enterprise plans include multi-user workspaces with role-based access, shared credentials, and team workflow management.' },
+  { q: 'How is BiztoriBD different from Zapier or n8n?', a: 'BiztoriBD is built specifically for Bangladesh with native bKash, Nagad, Pathao, eCourier, and Daraz integrations. Plus it includes email marketing, server-side tracking, and AI agents — all in one platform at local pricing.' },
+];
+
 export default function Index() {
   const { user, loading } = useAuth();
   const { isAdmin } = useAdmin();
