@@ -24,6 +24,7 @@ export default function Tracking() {
   const navigate = useNavigate();
   const [migrationOpen, setMigrationOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
 
   return (
     <DashboardLayout>
@@ -46,7 +47,7 @@ export default function Tracking() {
           </div>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="connect" className="gap-1.5"><Globe className="h-4 w-4" /> Connect</TabsTrigger>
             <TabsTrigger value="overview" className="gap-1.5"><Activity className="h-4 w-4" /> Overview</TabsTrigger>
@@ -64,7 +65,7 @@ export default function Tracking() {
           </TabsList>
 
           <TabsContent value="connect"><ConnectWebsite /></TabsContent>
-          <TabsContent value="overview"><TrackingOverview /></TabsContent>
+          <TabsContent value="overview"><TrackingOverview onNavigateToConnect={() => setActiveTab('connect')} /></TabsContent>
           <TabsContent value="events"><EventLog /></TabsContent>
           <TabsContent value="poas"><POASDashboard /></TabsContent>
           <TabsContent value="monitoring"><MonitoringDashboard /></TabsContent>
