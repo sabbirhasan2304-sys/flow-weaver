@@ -416,6 +416,104 @@ export default function Pricing() {
         </div>
       </section>
 
+      {/* Competitor Comparison */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-10"
+          >
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
+              <Sparkles className="h-3 w-3 mr-1" />
+              Why BiztoriBD?
+            </Badge>
+            <h2 className="text-3xl font-bold mb-3">How We Compare</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              See why BiztoriBD is the best value automation platform — especially for South Asian businesses.
+            </p>
+          </motion.div>
+
+          <Card className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="w-[200px] font-semibold">Feature</TableHead>
+                    <TableHead className="text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Zap className="h-4 w-4 text-primary" />
+                        </div>
+                        <span className="font-bold text-primary">BiztoriBD</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-lg">⚡</span>
+                        <span className="font-semibold text-muted-foreground">Zapier</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-lg">🔮</span>
+                        <span className="font-semibold text-muted-foreground">Make</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-lg">🔧</span>
+                        <span className="font-semibold text-muted-foreground">n8n</span>
+                      </div>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[
+                    { feature: "Free plan", biz: "✓ 500 exec/mo", zapier: "✓ 100 tasks/mo", make: "✓ 1,000 ops/mo", n8n: "✓ Self-host only" },
+                    { feature: "Starter price", biz: "৳499/mo (~$4)", zapier: "$29.99/mo", make: "$10.59/mo", n8n: "€24/mo" },
+                    { feature: "Pro price", biz: "৳1,499/mo (~$12)", zapier: "$73.50/mo", make: "$18.82/mo", n8n: "€60/mo" },
+                    { feature: "Bangladesh payments", biz: true, zapier: false, make: false, n8n: false },
+                    { feature: "bKash / Nagad nodes", biz: true, zapier: false, make: false, n8n: false },
+                    { feature: "AI workflow builder", biz: true, zapier: "Limited", make: false, n8n: false },
+                    { feature: "Server-side tracking", biz: true, zapier: false, make: false, n8n: false },
+                    { feature: "Email marketing built-in", biz: true, zapier: false, make: false, n8n: false },
+                    { feature: "Visual workflow editor", biz: true, zapier: true, make: true, n8n: true },
+                    { feature: "250+ integrations", biz: true, zapier: true, make: true, n8n: true },
+                    { feature: "Self-hostable", biz: false, zapier: false, make: false, n8n: true },
+                    { feature: "Webhook support", biz: true, zapier: true, make: true, n8n: true },
+                    { feature: "Custom code nodes", biz: true, zapier: "Pro only", make: true, n8n: true },
+                    { feature: "Agency dashboard", biz: true, zapier: false, make: "Enterprise", n8n: false },
+                    { feature: "BDT pricing", biz: true, zapier: false, make: false, n8n: false },
+                  ].map((row, i) => (
+                    <TableRow key={i} className={i % 2 === 0 ? 'bg-muted/20' : ''}>
+                      <TableCell className="font-medium text-sm">{row.feature}</TableCell>
+                      {[row.biz, row.zapier, row.make, row.n8n].map((val, j) => (
+                        <TableCell key={j} className="text-center">
+                          {val === true ? (
+                            <Check className={`h-5 w-5 mx-auto ${j === 0 ? 'text-primary' : 'text-green-500'}`} />
+                          ) : val === false ? (
+                            <X className="h-5 w-5 mx-auto text-muted-foreground/40" />
+                          ) : (
+                            <span className={`text-xs font-medium ${j === 0 ? 'text-primary' : 'text-muted-foreground'}`}>{val}</span>
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="p-4 bg-primary/5 border-t text-center">
+              <p className="text-sm text-muted-foreground">
+                Prices as of April 2026. BiztoriBD is <span className="font-bold text-primary">40–60% more affordable</span> than global competitors for the Bangladesh market.
+              </p>
+            </div>
+          </Card>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto text-center max-w-2xl">
