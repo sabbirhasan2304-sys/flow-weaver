@@ -1000,6 +1000,93 @@ export function UserManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* User Overview Side Panel */}
+      <Sheet open={isOverviewOpen} onOpenChange={setIsOverviewOpen}>
+        <SheetContent className="w-[400px] sm:w-[480px] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              User Overview
+            </SheetTitle>
+          </SheetHeader>
+          {overviewUser && (
+            <div className="space-y-6 mt-6">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-14 w-14 border-2">
+                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-violet-500/20 text-primary text-xl font-bold">
+                    {(overviewUser.full_name || overviewUser.email).charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">{overviewUser.full_name || 'No name'}</h3>
+                  <p className="text-sm text-muted-foreground">{overviewUser.email}</p>
+                  <div className="flex gap-2 mt-1.5">
+                    {getRoleBadge(overviewUser.role || 'user')}
+                    {getPlanBadge(overviewUser.subscription?.plan_name)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'Workflows', value: overviewStats.workflows, Icon: Workflow },
+                  { label: 'Executions', value: overviewStats.executions, Icon: Zap },
+                  { label: 'Campaigns', value: overviewStats.campaigns, Icon: Mail },
+                  { label: 'Contacts', value: overviewStats.contacts, Icon: Users },
+                ].map(({ label, value, Icon }) => (
+                  <div key={label} className="p-3 rounded-xl bg-muted/50 border border-border/50">
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
+                      <Icon className="h-3.5 w-3.5" /> {label}
+                    </div>
+                    <div className="text-2xl font-bold">{value}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Subscription</h4>
+                <div className="p-4 rounded-xl bg-muted/30 border border-border/50 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Plan</span>
+                    {getPlanBadge(overviewUser.subscription?.plan_name)}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Status</span>
+                    {overviewUser.subscription ? getStatusBadge(overviewUser.subscription.status) : <span className="text-sm">—</span>}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Credits</span>
+                    <span className="font-semibold flex items-center gap-1">
+                      <Coins className="h-3.5 w-3.5 text-amber-500" />
+                      {overviewUser.credits?.balance?.toFixed(0) || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-muted/30 border border-border/50">
+                <div className="text-xs text-muted-foreground">Member since</div>
+                <div className="font-medium">
+                  {new Date(overviewUser.created_at).toLocaleDateString('en-US', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                  })}
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button className="flex-1 gap-2" onClick={() => { setIsOverviewOpen(false); handleImpersonate(overviewUser); }}>
+                  <LogIn className="h-4 w-4" />
+                  Login as User
+                </Button>
+                <Button variant="outline" className="flex-1 gap-2" onClick={() => { setIsOverviewOpen(false); handleEditUser(overviewUser); }}>
+                  <Pencil className="h-4 w-4" />
+                  Edit
+                </Button>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
