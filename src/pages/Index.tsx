@@ -762,17 +762,29 @@ export default function Index() {
       {/* Footer */}
       <footer className="border-t border-border py-12 bg-muted/20">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-            <div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
+            <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
                 <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
                   <Zap className="h-4 w-4 text-primary-foreground" />
                 </div>
                 <span className="font-bold text-foreground">BiztoriBD</span>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                 Bangladesh's #1 automation platform. Build workflows, track events, and grow faster.
               </p>
+              {/* Social Links */}
+              <div className="flex items-center gap-2">
+                <a href="https://facebook.com/biztoribd" target="_blank" rel="noopener noreferrer" className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+                  <Facebook className="h-4 w-4" />
+                </a>
+                <a href="https://twitter.com/biztoribd" target="_blank" rel="noopener noreferrer" className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+                  <Twitter className="h-4 w-4" />
+                </a>
+                <a href="https://wa.me/8801XXXXXXXXX" target="_blank" rel="noopener noreferrer" className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
+                  <MessageCircle className="h-4 w-4" />
+                </a>
+              </div>
             </div>
             
             <div>
@@ -780,8 +792,8 @@ export default function Index() {
               <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
                 <a href="#features" className="hover:text-foreground transition-colors">Features</a>
                 <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
-                <Link to="/templates" className="hover:text-foreground transition-colors">Templates</Link>
-                <Link to="/marketplace" className="hover:text-foreground transition-colors">Marketplace</Link>
+                <a href="#use-cases" className="hover:text-foreground transition-colors">Use Cases</a>
+                <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
               </nav>
             </div>
 
@@ -790,16 +802,25 @@ export default function Index() {
               <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
                 <Link to="/api-docs" className="hover:text-foreground transition-colors">API Reference</Link>
                 <Link to="/docs" className="hover:text-foreground transition-colors">Documentation</Link>
-                <Link to="/api-keys" className="hover:text-foreground transition-colors">API Keys</Link>
+                <a href="#api" className="hover:text-foreground transition-colors">API Overview</a>
               </nav>
             </div>
 
             <div>
               <h4 className="font-semibold text-foreground mb-3 text-sm">Platform</h4>
               <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
-                <Link to="/tracking" className="hover:text-foreground transition-colors">NexusTrack</Link>
-                <Link to="/email-marketing" className="hover:text-foreground transition-colors">Email Marketing</Link>
-                <Link to="/auth" className="hover:text-foreground transition-colors">Sign Up</Link>
+                <Link to="/auth" className="hover:text-foreground transition-colors">Sign Up Free</Link>
+                <Link to="/auth" className="hover:text-foreground transition-colors">Sign In</Link>
+                <a href="#testimonials" className="hover:text-foreground transition-colors">Testimonials</a>
+              </nav>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-foreground mb-3 text-sm">Contact</h4>
+              <nav className="flex flex-col gap-2 text-sm text-muted-foreground">
+                <span>📧 support@biztoribd.com</span>
+                <span>📱 WhatsApp Support</span>
+                <span>📍 Dhaka, Bangladesh</span>
               </nav>
             </div>
           </div>
@@ -809,9 +830,9 @@ export default function Index() {
               © {new Date().getFullYear()} BiztoriBD. Made with ❤️ in Bangladesh 🇧🇩
             </div>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span>Terms of Service</span>
-              <span>Privacy Policy</span>
-              <span>Contact</span>
+              <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
+              <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
+              <a href="#" className="hover:text-foreground transition-colors">Refund Policy</a>
             </div>
           </div>
         </div>
