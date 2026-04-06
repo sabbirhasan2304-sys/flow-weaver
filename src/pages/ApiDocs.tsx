@@ -1219,6 +1219,118 @@ const apiKey = "bz_live_xxxx"; // ❌ Bad!
               </Card>
             </motion.div>
           )}
+
+          {/* === CHANGELOG === */}
+          {activeSection === "changelog" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+              <Card className="overflow-hidden">
+                <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border-b">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                      <History className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold">API Changelog</h2>
+                      <p className="text-muted-foreground">Track every update, new endpoint, and breaking change</p>
+                    </div>
+                  </div>
+                </div>
+                <CardContent className="p-6">
+                  <div className="relative space-y-0">
+                    {/* Timeline line */}
+                    <div className="absolute left-[18px] top-3 bottom-3 w-px bg-border" />
+
+                    {[
+                      {
+                        version: "v2.4.0",
+                        date: "April 2, 2026",
+                        badge: "Latest",
+                        badgeColor: "bg-green-600 text-white",
+                        changes: [
+                          { type: "added", text: "NexusTrack server-side tracking endpoints" },
+                          { type: "added", text: "AI Event Mapper — auto-detect and configure tracking" },
+                          { type: "added", text: "Gateway Mode for no-code platform routing" },
+                          { type: "improved", text: "SDK rate limit handling with Retry-After support" },
+                        ],
+                      },
+                      {
+                        version: "v2.3.0",
+                        date: "March 15, 2026",
+                        changes: [
+                          { type: "added", text: "Webhook signature verification (SHA-256)" },
+                          { type: "added", text: "Execution retry endpoint with modified input" },
+                          { type: "added", text: "Workflow clone endpoint" },
+                          { type: "improved", text: "Pagination now supports cursor-based mode" },
+                        ],
+                      },
+                      {
+                        version: "v2.2.0",
+                        date: "February 20, 2026",
+                        changes: [
+                          { type: "added", text: "Email campaign management endpoints" },
+                          { type: "added", text: "Contact tags and segmentation API" },
+                          { type: "added", text: "Bulk contact import via CSV upload" },
+                          { type: "fixed", text: "Fixed 500 error on large workflow execution payloads" },
+                        ],
+                      },
+                      {
+                        version: "v2.1.0",
+                        date: "January 28, 2026",
+                        changes: [
+                          { type: "added", text: "Workflow statistics endpoint" },
+                          { type: "added", text: "Execution log streaming" },
+                          { type: "improved", text: "Error responses now include request_id for debugging" },
+                          { type: "breaking", text: "Removed deprecated v1 authentication via query string" },
+                        ],
+                      },
+                      {
+                        version: "v2.0.0",
+                        date: "January 5, 2026",
+                        changes: [
+                          { type: "added", text: "Complete REST API v2 with bz_ key authentication" },
+                          { type: "added", text: "Official SDKs for JavaScript, Python, PHP, Go" },
+                          { type: "added", text: "Interactive API Playground" },
+                          { type: "added", text: "WordPress & Shopify plugins" },
+                          { type: "breaking", text: "v1 endpoints deprecated — migration guide available" },
+                        ],
+                      },
+                    ].map((release, idx) => {
+                      const typeStyles: Record<string, { label: string; color: string }> = {
+                        added: { label: "New", color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" },
+                        improved: { label: "Improved", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
+                        fixed: { label: "Fixed", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
+                        breaking: { label: "Breaking", color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
+                      };
+                      return (
+                        <div key={release.version} className="relative pl-10 pb-8 last:pb-0">
+                          {/* Timeline dot */}
+                          <div className={`absolute left-2.5 top-1.5 h-3.5 w-3.5 rounded-full border-2 border-background ${idx === 0 ? "bg-primary" : "bg-muted-foreground/30"}`} />
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-bold text-lg">{release.version}</span>
+                            <span className="text-sm text-muted-foreground">— {release.date}</span>
+                            {release.badge && (
+                              <Badge className={`text-[10px] ${release.badgeColor}`}>{release.badge}</Badge>
+                            )}
+                          </div>
+                          <div className="space-y-1.5">
+                            {release.changes.map((change, i) => {
+                              const style = typeStyles[change.type];
+                              return (
+                                <div key={i} className="flex items-start gap-2 text-sm">
+                                  <Badge variant="outline" className={`text-[10px] px-1.5 shrink-0 ${style.color} border-0`}>{style.label}</Badge>
+                                  <span className="text-muted-foreground">{change.text}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
         </div>
       </div>
       </main>
