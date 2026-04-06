@@ -26,6 +26,7 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { ActiveAnalytics } from '@/components/admin/ActiveAnalytics';
 import { PaymentGatewaySettings } from '@/components/admin/PaymentGatewaySettings';
 import { ApiManagement } from '@/components/admin/ApiManagement';
+import { BackendProviderSettings } from '@/components/tracking/BackendProviderSettings';
 
 interface UserData {
   id: string;
