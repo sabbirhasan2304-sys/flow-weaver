@@ -77,6 +77,7 @@ const PROVIDERS = [
 
 export function BackendProviderSettings() {
   const { profile } = useAuth();
+  const { isAdmin } = useAdmin();
   const queryClient = useQueryClient();
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [configValues, setConfigValues] = useState<Record<string, string>>({});
