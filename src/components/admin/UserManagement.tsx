@@ -36,8 +36,12 @@ import {
   Users, Search, Filter, Eye, Mail, UserCog, Shield, 
   Coins, CreditCard, MoreHorizontal, Pencil, Trash2,
   CheckCircle2, XCircle, Clock, Crown, Zap, Sparkles,
-  Plus, Minus, AlertTriangle, UserX, UserCheck, RefreshCw
+  Plus, Minus, AlertTriangle, UserX, UserCheck, RefreshCw,
+  LogIn, Workflow, BarChart3, Activity
 } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useNavigate } from 'react-router-dom';
+import { useImpersonation } from '@/hooks/useImpersonation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
