@@ -1562,6 +1562,45 @@ export type Database = {
         }
         Relationships: []
       }
+      tracking_clarity_config: {
+        Row: {
+          created_at: string
+          custom_events: Json
+          custom_tags: Json
+          id: string
+          identify_config: Json
+          is_active: boolean
+          masking_rules: Json
+          project_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_events?: Json
+          custom_tags?: Json
+          id?: string
+          identify_config?: Json
+          is_active?: boolean
+          masking_rules?: Json
+          project_id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_events?: Json
+          custom_tags?: Json
+          id?: string
+          identify_config?: Json
+          is_active?: boolean
+          masking_rules?: Json
+          project_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tracking_dashboards: {
         Row: {
           created_at: string
