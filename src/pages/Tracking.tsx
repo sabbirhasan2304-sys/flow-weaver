@@ -84,6 +84,7 @@ export default function Tracking() {
           <TabsContent value="clarity"><ClarityIntegration /></TabsContent>
           <TabsContent value="destinations"><MarketingDestinations /></TabsContent>
           <TabsContent value="agency"><AgencyDashboard /></TabsContent>
+          <TabsContent value="backend"><BackendProviderSettings /></TabsContent>
           <TabsContent value="settings"><TrackingSettings /></TabsContent>
         </Tabs>
       </div>
