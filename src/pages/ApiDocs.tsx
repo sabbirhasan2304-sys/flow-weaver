@@ -13,7 +13,8 @@ import {
   Shield, Clock, Code, BookOpen, Terminal, Globe,
   FileJson, Lock, Activity, ArrowRight, ExternalLink,
   ShoppingCart, ShoppingBag, Plug, Play, Target,
-  Users, Mail, Settings, Search, ChevronRight, Sparkles, Download
+  Users, Mail, Settings, Search, ChevronRight, Sparkles, Download,
+  History, Package, Rocket, CheckCircle2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
