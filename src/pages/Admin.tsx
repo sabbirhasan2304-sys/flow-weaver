@@ -604,6 +604,13 @@ export default function Admin() {
                 <Settings className="h-4 w-4" />
                 <span>Settings</span>
               </TabsTrigger>
+              <TabsTrigger 
+                value="crashes" 
+                className="flex items-center gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground px-4 py-2"
+              >
+                <AlertTriangle className="h-4 w-4" />
+                <span>Crash Reports</span>
+              </TabsTrigger>
             </TabsList>
 
             <AnimatePresence mode="wait">
