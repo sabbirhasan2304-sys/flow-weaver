@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Play, Loader2, Copy, CheckCircle, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { endpoints, API_BASE_URL, type Endpoint } from "./apiDocsData";
+import { endpoints, INTERNAL_API_BASE_URL, type Endpoint } from "./apiDocsData";
 
 export function ApiPlayground() {
   const { toast } = useToast();
