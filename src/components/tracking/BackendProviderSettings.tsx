@@ -296,7 +296,7 @@ export function BackendProviderSettings() {
                   <div className={`h-10 w-10 rounded-lg border flex items-center justify-center ${provider.color}`}>
                     <Icon className="h-5 w-5" />
                   </div>
-                  {isConfigured && !isActive && (
+                  {isConfigured && !isActive && isAdmin && (
                     <Button
                       variant="ghost"
                       size="icon"
