@@ -340,6 +340,7 @@ export function BackendProviderSettings() {
                       variant="outline"
                       size="sm"
                       className="flex-1 text-xs"
+                      disabled={!isAdmin}
                       onClick={() => {
                         setSelectedProvider(provider.id);
                         if (config) {
@@ -361,10 +362,11 @@ export function BackendProviderSettings() {
                     <Button
                       size="sm"
                       className="flex-1 text-xs"
+                      disabled={!isAdmin}
                       onClick={() => switchProvider.mutate(provider.id)}
                     >
                       <Zap className="h-3 w-3 mr-1" />
-                      Switch
+                      {isAdmin ? 'Switch' : 'Admin Only'}
                     </Button>
                   )}
                   {isActive && !provider.requiresConfig && (
