@@ -36,8 +36,12 @@ import {
   Users, Search, Filter, Eye, Mail, UserCog, Shield, 
   Coins, CreditCard, MoreHorizontal, Pencil, Trash2,
   CheckCircle2, XCircle, Clock, Crown, Zap, Sparkles,
-  Plus, Minus, AlertTriangle, UserX, UserCheck, RefreshCw
+  Plus, Minus, AlertTriangle, UserX, UserCheck, RefreshCw,
+  LogIn, Workflow, BarChart3, Activity
 } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useNavigate } from 'react-router-dom';
+import { useImpersonation } from '@/hooks/useImpersonation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -68,6 +72,8 @@ interface Plan {
 }
 
 export function UserManagement() {
+  const navigate = useNavigate();
+  const { startImpersonation } = useImpersonation();
   const [users, setUsers] = useState<UserData[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -76,6 +82,9 @@ export function UserManagement() {
   const [filterPlan, setFilterPlan] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isOverviewOpen, setIsOverviewOpen] = useState(false);
+  const [overviewUser, setOverviewUser] = useState<UserData | null>(null);
+  const [overviewStats, setOverviewStats] = useState<{ workflows: number; executions: number; campaigns: number; contacts: number }>({ workflows: 0, executions: 0, campaigns: 0, contacts: 0 });
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreditsDialogOpen, setIsCreditsDialogOpen] = useState(false);
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
@@ -182,6 +191,40 @@ export function UserManagement() {
   const handleViewUser = (user: UserData) => {
     setSelectedUser(user);
     setIsViewDialogOpen(true);
+  };
+
+  const handleOpenOverview = async (user: UserData) => {
+    setOverviewUser(user);
+    setIsOverviewOpen(true);
+    // Fetch user-specific stats
+    const [
+      { count: wfCount },
+      { count: execCount },
+      { count: campCount },
+      { count: contactCount },
+    ] = await Promise.all([
+      supabase.from('workflows').select('*', { count: 'exact', head: true }).eq('workspace_id', '').or(`workspace_id.in.(select id from workspace_members where profile_id = '${user.id}')`),
+      supabase.from('executions').select('*', { count: 'exact', head: true }),
+      supabase.from('email_campaigns').select('*', { count: 'exact', head: true }).eq('profile_id', user.id),
+      supabase.from('email_contacts').select('*', { count: 'exact', head: true }).eq('profile_id', user.id),
+    ]);
+    setOverviewStats({
+      workflows: wfCount || 0,
+      executions: execCount || 0,
+      campaigns: campCount || 0,
+      contacts: contactCount || 0,
+    });
+  };
+
+  const handleImpersonate = (user: UserData) => {
+    startImpersonation({
+      profileId: user.id,
+      userId: user.user_id,
+      email: user.email,
+      fullName: user.full_name,
+    });
+    navigate('/dashboard');
+    toast.success(`Now viewing as ${user.full_name || user.email}`);
   };
 
   const handleEditUser = (user: UserData) => {
@@ -579,9 +622,18 @@ export function UserManagement() {
                               <Eye className="h-4 w-4 mr-2" />
                               View Details
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenOverview(u)}>
+                              <BarChart3 className="h-4 w-4 mr-2" />
+                              Quick Overview
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditUser(u)}>
                               <Pencil className="h-4 w-4 mr-2" />
                               Edit Profile
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleImpersonate(u)}>
+                              <LogIn className="h-4 w-4 mr-2" />
+                              Login as User
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleManageRole(u)}>
@@ -948,6 +1000,93 @@ export function UserManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* User Overview Side Panel */}
+      <Sheet open={isOverviewOpen} onOpenChange={setIsOverviewOpen}>
+        <SheetContent className="w-[400px] sm:w-[480px] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              User Overview
+            </SheetTitle>
+          </SheetHeader>
+          {overviewUser && (
+            <div className="space-y-6 mt-6">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-14 w-14 border-2">
+                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-violet-500/20 text-primary text-xl font-bold">
+                    {(overviewUser.full_name || overviewUser.email).charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">{overviewUser.full_name || 'No name'}</h3>
+                  <p className="text-sm text-muted-foreground">{overviewUser.email}</p>
+                  <div className="flex gap-2 mt-1.5">
+                    {getRoleBadge(overviewUser.role || 'user')}
+                    {getPlanBadge(overviewUser.subscription?.plan_name)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'Workflows', value: overviewStats.workflows, Icon: Workflow },
+                  { label: 'Executions', value: overviewStats.executions, Icon: Zap },
+                  { label: 'Campaigns', value: overviewStats.campaigns, Icon: Mail },
+                  { label: 'Contacts', value: overviewStats.contacts, Icon: Users },
+                ].map(({ label, value, Icon }) => (
+                  <div key={label} className="p-3 rounded-xl bg-muted/50 border border-border/50">
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
+                      <Icon className="h-3.5 w-3.5" /> {label}
+                    </div>
+                    <div className="text-2xl font-bold">{value}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Subscription</h4>
+                <div className="p-4 rounded-xl bg-muted/30 border border-border/50 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Plan</span>
+                    {getPlanBadge(overviewUser.subscription?.plan_name)}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Status</span>
+                    {overviewUser.subscription ? getStatusBadge(overviewUser.subscription.status) : <span className="text-sm">—</span>}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Credits</span>
+                    <span className="font-semibold flex items-center gap-1">
+                      <Coins className="h-3.5 w-3.5 text-amber-500" />
+                      {overviewUser.credits?.balance?.toFixed(0) || 0}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-muted/30 border border-border/50">
+                <div className="text-xs text-muted-foreground">Member since</div>
+                <div className="font-medium">
+                  {new Date(overviewUser.created_at).toLocaleDateString('en-US', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                  })}
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button className="flex-1 gap-2" onClick={() => { setIsOverviewOpen(false); handleImpersonate(overviewUser); }}>
+                  <LogIn className="h-4 w-4" />
+                  Login as User
+                </Button>
+                <Button variant="outline" className="flex-1 gap-2" onClick={() => { setIsOverviewOpen(false); handleEditUser(overviewUser); }}>
+                  <Pencil className="h-4 w-4" />
+                  Edit
+                </Button>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

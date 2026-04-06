@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useImpersonation } from '@/hooks/useImpersonation';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useSubscription } from '@/hooks/useSubscription';
 import { SubscriptionBadge } from '@/components/subscription/SubscriptionGate';
@@ -61,6 +62,7 @@ export default function Dashboard() {
   const location = useLocation();
   const { user, profile, signOut, activeWorkspace, loading: authLoading } = useAuth();
   const { isAdmin } = useAdmin();
+  const { isImpersonating, impersonatedUser } = useImpersonation();
   const { subscription, isWithinLimits, loading: subscriptionLoading } = useSubscription();
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,7 +80,6 @@ export default function Dashboard() {
   const canCreateWorkflow = isAdmin || (hasActiveSubscription && isWithinLimits('workflows', workflows.length));
 
   useEffect(() => {
-    // Wait for auth to finish loading before checking user
     if (authLoading || subscriptionLoading) return;
     
     if (!user) {
@@ -86,31 +87,51 @@ export default function Dashboard() {
       return;
     }
 
-    // Redirect to plan selection if user doesn't have an active subscription (and is not admin)
     if (!isAdmin && !hasActiveSubscription) {
       navigate('/select-plan');
       return;
     }
     
-    if (activeWorkspace) {
+    if (isImpersonating || activeWorkspace) {
       fetchWorkflows();
     }
-  }, [user, activeWorkspace, navigate, authLoading, subscriptionLoading, isAdmin, hasActiveSubscription]);
+  }, [user, activeWorkspace, navigate, authLoading, subscriptionLoading, isAdmin, hasActiveSubscription, isImpersonating]);
 
   const fetchWorkflows = async () => {
-    if (!activeWorkspace) return;
-    
     setLoading(true);
-    const { data, error } = await supabase
-      .from('workflows')
-      .select('*')
-      .eq('workspace_id', activeWorkspace.id)
-      .order('updated_at', { ascending: false });
     
-    if (error) {
-      toast.error('Failed to load workflows');
+    if (isImpersonating && impersonatedUser) {
+      // Admin viewing another user's workflows - fetch via their workspace
+      const { data: wsMembers } = await supabase
+        .from('workspace_members')
+        .select('workspace_id')
+        .eq('profile_id', impersonatedUser.profileId);
+      
+      const wsIds = wsMembers?.map(m => m.workspace_id) || [];
+      if (wsIds.length > 0) {
+        const { data, error } = await supabase
+          .from('workflows')
+          .select('*')
+          .in('workspace_id', wsIds)
+          .order('updated_at', { ascending: false });
+        
+        if (!error) setWorkflows(data || []);
+      } else {
+        setWorkflows([]);
+      }
     } else {
-      setWorkflows(data || []);
+      if (!activeWorkspace) { setLoading(false); return; }
+      const { data, error } = await supabase
+        .from('workflows')
+        .select('*')
+        .eq('workspace_id', activeWorkspace.id)
+        .order('updated_at', { ascending: false });
+      
+      if (error) {
+        toast.error('Failed to load workflows');
+      } else {
+        setWorkflows(data || []);
+      }
     }
     setLoading(false);
   };
