@@ -567,6 +567,9 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* User Dashboard Stats */}
+        {!loading && <UserDashboardStats />}
+
         {/* System Health Widget */}
         {isAdmin && !loading && (
           <div className="mb-6">
