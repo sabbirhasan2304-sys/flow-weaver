@@ -769,10 +769,131 @@ export default function Admin() {
                   </Card>
                 </motion.div>
               </TabsContent>
+
+              {/* Crash Reports Tab */}
+              <TabsContent value="crashes" className="mt-0">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <CrashReportsPanel />
+                </motion.div>
+              </TabsContent>
             </AnimatePresence>
           </Tabs>
         </motion.div>
       </motion.div>
     </DashboardLayout>
+  );
+}
+
+function CrashReportsPanel() {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchLogs();
+  }, []);
+
+  const fetchLogs = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from('error_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    setLogs(data || []);
+    setLoading(false);
+  };
+
+  return (
+    <Card className="border shadow-sm">
+      <CardHeader className="bg-muted/30 border-b flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            Crash Reports
+          </CardTitle>
+          <CardDescription>Recent application errors logged from users</CardDescription>
+        </div>
+        <Button variant="outline" size="sm" onClick={fetchLogs}>
+          <RefreshCw className="h-4 w-4 mr-1" /> Refresh
+        </Button>
+      </CardHeader>
+      <CardContent className="p-0">
+        {loading ? (
+          <div className="p-8 text-center text-muted-foreground">Loading...</div>
+        ) : logs.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground">
+            <CheckCircle2 className="h-10 w-10 mx-auto mb-2 text-primary" />
+            No crash reports yet — your app is running smoothly!
+          </div>
+        ) : (
+          <ScrollArea className="max-h-[600px]">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Error</TableHead>
+                  <TableHead>URL</TableHead>
+                  <TableHead></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logs.map(log => (
+                  <React.Fragment key={log.id}>
+                    <TableRow
+                      className="cursor-pointer"
+                      onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}
+                    >
+                      <TableCell className="whitespace-nowrap text-xs">
+                        {new Date(log.created_at).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate text-sm font-mono">
+                        {log.error_message}
+                      </TableCell>
+                      <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
+                        {log.url}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="destructive" className="text-[10px]">Error</Badge>
+                      </TableCell>
+                    </TableRow>
+                    {expandedId === log.id && (
+                      <TableRow>
+                        <TableCell colSpan={4} className="bg-muted/30 p-4">
+                          <div className="space-y-2">
+                            {log.user_id && (
+                              <p className="text-xs text-muted-foreground">User: {log.user_id}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground">Browser: {log.user_agent?.slice(0, 120)}</p>
+                            {log.error_stack && (
+                              <pre className="mt-2 max-h-40 overflow-auto rounded bg-muted p-2 text-[11px] whitespace-pre-wrap font-mono">
+                                {log.error_stack}
+                              </pre>
+                            )}
+                            {log.component_stack && (
+                              <details className="mt-1">
+                                <summary className="text-xs cursor-pointer text-muted-foreground">Component Stack</summary>
+                                <pre className="mt-1 max-h-32 overflow-auto rounded bg-muted p-2 text-[11px] whitespace-pre-wrap font-mono">
+                                  {log.component_stack}
+                                </pre>
+                              </details>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        )}
+      </CardContent>
+    </Card>
   );
 }
