@@ -2,7 +2,12 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe, Eye, Send, TrendingUp, Bug, CheckSquare, Search, Ghost, Network, Zap } from 'lucide-react';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft,
+  Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe, Eye, Send,
+  TrendingUp, Bug, CheckSquare, Search, Ghost, Network, Zap,
+} from 'lucide-react';
 import { TrackingOverview } from '@/components/tracking/TrackingOverview';
 import { EventLog } from '@/components/tracking/EventLog';
 import { MonitoringDashboard } from '@/components/tracking/MonitoringDashboard';
@@ -30,81 +35,150 @@ import { PredictiveRecovery } from '@/components/tracking/PredictiveRecovery';
 
 import { useNavigate } from 'react-router-dom';
 
+type TabDef = { value: string; label: string; icon: any; group: string; component: () => JSX.Element };
+
+const PRIMARY_TABS = ['overview', 'connect', 'events', 'destinations', 'monitoring'] as const;
+
 export default function Tracking() {
   const navigate = useNavigate();
   const [migrationOpen, setMigrationOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
+  const tabs: TabDef[] = [
+    { value: 'overview', label: 'Overview', icon: Activity, group: 'Core', component: () => <TrackingOverview onNavigateToConnect={() => setActiveTab('connect')} /> },
+    { value: 'connect', label: 'Connect', icon: Globe, group: 'Core', component: () => <ConnectWebsite /> },
+    { value: 'events', label: 'Events', icon: List, group: 'Core', component: () => <EventLog /> },
+    { value: 'destinations', label: 'Destinations', icon: Send, group: 'Core', component: () => <MarketingDestinations /> },
+    { value: 'monitoring', label: 'Monitoring', icon: Bell, group: 'Core', component: () => <MonitoringDashboard /> },
+
+    { value: 'debugger', label: 'Debugger', icon: Bug, group: 'Tools', component: () => <LiveDebugger /> },
+    { value: 'audit', label: 'Site Auditor', icon: Search, group: 'Tools', component: () => <SiteAuditor /> },
+    { value: 'mapper', label: 'AI Event Mapper', icon: Wand2, group: 'Tools', component: () => <AIEventMapper /> },
+    { value: 'dashboards', label: 'Custom Dashboards', icon: LayoutGrid, group: 'Tools', component: () => <CustomDashboard /> },
+
+    { value: 'recovery', label: 'Conversion Recovery', icon: TrendingUp, group: 'Recovery', component: () => <ConversionRecovery /> },
+    { value: 'predictive', label: 'Predictive Recovery', icon: Zap, group: 'Recovery', component: () => <PredictiveRecovery /> },
+    { value: 'ghost', label: 'Ghost Loader', icon: Ghost, group: 'Recovery', component: () => <GhostLoader /> },
+    { value: 'reliability', label: 'Reliability Engine', icon: RefreshCw, group: 'Recovery', component: () => <ReliabilityEngine /> },
+
+    { value: 'identity', label: 'Identity Hub', icon: Fingerprint, group: 'Identity & Privacy', component: () => <IdentityHub /> },
+    { value: 'stitching', label: 'Identity Stitching', icon: Network, group: 'Identity & Privacy', component: () => <IdentityStitching /> },
+    { value: 'consent', label: 'Consent Mode', icon: CheckSquare, group: 'Identity & Privacy', component: () => <ConsentModeConfig /> },
+    { value: 'privacy', label: 'Privacy Compliance', icon: Shield, group: 'Identity & Privacy', component: () => <PrivacyCompliance /> },
+
+    { value: 'poas', label: 'POAS', icon: DollarSign, group: 'Insights', component: () => <POASDashboard /> },
+    { value: 'store', label: 'NexusStore', icon: Database, group: 'Insights', component: () => <NexusStore /> },
+    { value: 'clarity', label: 'Clarity', icon: Eye, group: 'Insights', component: () => <ClarityIntegration /> },
+
+    { value: 'agency', label: 'Agency', icon: Users, group: 'Workspace', component: () => <AgencyDashboard /> },
+    { value: 'settings', label: 'Settings', icon: Settings, group: 'Workspace', component: () => <TrackingSettings /> },
+  ];
+
+  const groups = Array.from(new Set(tabs.map((t) => t.group)));
+  const moreTabs = tabs.filter((t) => !PRIMARY_TABS.includes(t.value as any));
+  const activeTabDef = tabs.find((t) => t.value === activeTab);
+  const isPrimary = PRIMARY_TABS.includes(activeTab as any);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">NexusTrack</h1>
-            <p className="text-muted-foreground">Server-side tracking & event monitoring</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setMigrationOpen(true)}>
-              <ArrowRightLeft className="h-4 w-4 mr-1" /> Migrate from Stape
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setOnboardingOpen(true)}>
-              <Sparkles className="h-4 w-4 mr-1" /> Setup Wizard
-            </Button>
-            <Button onClick={() => navigate('/dashboard')} size="sm">
-              <Plus className="h-4 w-4 mr-1" /> Create Tracking Workflow
-            </Button>
+        {/* Header */}
+        <div className="rounded-xl border border-border/50 bg-gradient-to-br from-primary/5 via-background to-background p-5 sm:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Zap className="h-5 w-5 text-primary" />
+                </div>
+                <h1 className="text-2xl font-bold text-foreground">NexusTrack</h1>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Server-side tracking, identity stitching & predictive event recovery.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => setMigrationOpen(true)}>
+                <ArrowRightLeft className="h-4 w-4 mr-1" /> Migrate from Stape
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setOnboardingOpen(true)}>
+                <Sparkles className="h-4 w-4 mr-1" /> Setup Wizard
+              </Button>
+              <Button onClick={() => navigate('/dashboard')} size="sm">
+                <Plus className="h-4 w-4 mr-1" /> Create Workflow
+              </Button>
+            </div>
           </div>
         </div>
 
+        {/* Primary tab strip + grouped "more" picker */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="flex-wrap h-auto gap-1">
-            <TabsTrigger value="connect" className="gap-1.5"><Globe className="h-4 w-4" /> Connect</TabsTrigger>
-            <TabsTrigger value="overview" className="gap-1.5"><Activity className="h-4 w-4" /> Overview</TabsTrigger>
-            <TabsTrigger value="events" className="gap-1.5"><List className="h-4 w-4" /> Events</TabsTrigger>
-            <TabsTrigger value="debugger" className="gap-1.5"><Bug className="h-4 w-4" /> Debugger</TabsTrigger>
-            <TabsTrigger value="ghost" className="gap-1.5"><Ghost className="h-4 w-4" /> Ghost Loader</TabsTrigger>
-            <TabsTrigger value="recovery" className="gap-1.5"><TrendingUp className="h-4 w-4" /> Recovery</TabsTrigger>
-            <TabsTrigger value="predictive" className="gap-1.5"><Zap className="h-4 w-4" /> Predictive</TabsTrigger>
-            <TabsTrigger value="poas" className="gap-1.5"><DollarSign className="h-4 w-4" /> POAS</TabsTrigger>
-            <TabsTrigger value="destinations" className="gap-1.5"><Send className="h-4 w-4" /> Destinations</TabsTrigger>
-            <TabsTrigger value="consent" className="gap-1.5"><CheckSquare className="h-4 w-4" /> Consent</TabsTrigger>
-            <TabsTrigger value="monitoring" className="gap-1.5"><Bell className="h-4 w-4" /> Monitoring</TabsTrigger>
-            <TabsTrigger value="reliability" className="gap-1.5"><RefreshCw className="h-4 w-4" /> Reliability</TabsTrigger>
-            <TabsTrigger value="privacy" className="gap-1.5"><Shield className="h-4 w-4" /> Privacy</TabsTrigger>
-            <TabsTrigger value="identity" className="gap-1.5"><Fingerprint className="h-4 w-4" /> Identity</TabsTrigger>
-            <TabsTrigger value="stitching" className="gap-1.5"><Network className="h-4 w-4" /> Stitching</TabsTrigger>
-            <TabsTrigger value="store" className="gap-1.5"><Database className="h-4 w-4" /> NexusStore</TabsTrigger>
-            <TabsTrigger value="audit" className="gap-1.5"><Search className="h-4 w-4" /> Audit</TabsTrigger>
-            <TabsTrigger value="mapper" className="gap-1.5"><Wand2 className="h-4 w-4" /> AI Mapper</TabsTrigger>
-            <TabsTrigger value="dashboards" className="gap-1.5"><LayoutGrid className="h-4 w-4" /> Dashboards</TabsTrigger>
-            <TabsTrigger value="clarity" className="gap-1.5"><Eye className="h-4 w-4" /> Clarity</TabsTrigger>
-            <TabsTrigger value="agency" className="gap-1.5"><Users className="h-4 w-4" /> Agency</TabsTrigger>
-            <TabsTrigger value="settings" className="gap-1.5"><Settings className="h-4 w-4" /> Settings</TabsTrigger>
-          </TabsList>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <TabsList className="h-auto p-1 bg-muted/40 backdrop-blur">
+              {tabs
+                .filter((t) => PRIMARY_TABS.includes(t.value as any))
+                .map((t) => {
+                  const Icon = t.icon;
+                  return (
+                    <TabsTrigger key={t.value} value={t.value} className="gap-1.5 text-xs sm:text-sm">
+                      <Icon className="h-4 w-4" /> {t.label}
+                    </TabsTrigger>
+                  );
+                })}
+            </TabsList>
 
-          <TabsContent value="connect"><ConnectWebsite /></TabsContent>
-          <TabsContent value="overview"><TrackingOverview onNavigateToConnect={() => setActiveTab('connect')} /></TabsContent>
-          <TabsContent value="events"><EventLog /></TabsContent>
-          <TabsContent value="debugger"><LiveDebugger /></TabsContent>
-          <TabsContent value="ghost"><GhostLoader /></TabsContent>
-          <TabsContent value="recovery"><ConversionRecovery /></TabsContent>
-          <TabsContent value="predictive"><PredictiveRecovery /></TabsContent>
-          <TabsContent value="poas"><POASDashboard /></TabsContent>
-          <TabsContent value="destinations"><MarketingDestinations /></TabsContent>
-          <TabsContent value="consent"><ConsentModeConfig /></TabsContent>
-          <TabsContent value="monitoring"><MonitoringDashboard /></TabsContent>
-          <TabsContent value="reliability"><ReliabilityEngine /></TabsContent>
-          <TabsContent value="privacy"><PrivacyCompliance /></TabsContent>
-          <TabsContent value="identity"><IdentityHub /></TabsContent>
-          <TabsContent value="stitching"><IdentityStitching /></TabsContent>
-          <TabsContent value="store"><NexusStore /></TabsContent>
-          <TabsContent value="audit"><SiteAuditor /></TabsContent>
-          <TabsContent value="mapper"><AIEventMapper /></TabsContent>
-          <TabsContent value="dashboards"><CustomDashboard /></TabsContent>
-          <TabsContent value="clarity"><ClarityIntegration /></TabsContent>
-          <TabsContent value="agency"><AgencyDashboard /></TabsContent>
-          <TabsContent value="settings"><TrackingSettings /></TabsContent>
+            <Select value={isPrimary ? '' : activeTab} onValueChange={(v) => v && setActiveTab(v)}>
+              <SelectTrigger className="w-[240px] h-9 text-sm">
+                <SelectValue placeholder={
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <LayoutGrid className="h-4 w-4" /> More features…
+                  </span>
+                }>
+                  {!isPrimary && activeTabDef && (
+                    <span className="flex items-center gap-1.5">
+                      <activeTabDef.icon className="h-4 w-4 text-primary" /> {activeTabDef.label}
+                    </span>
+                  )}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {groups
+                  .filter((g) => g !== 'Core')
+                  .map((g) => (
+                    <SelectGroup key={g}>
+                      <SelectLabel className="text-xs uppercase tracking-wide text-muted-foreground">{g}</SelectLabel>
+                      {moreTabs.filter((t) => t.group === g).map((t) => {
+                        const Icon = t.icon;
+                        return (
+                          <SelectItem key={t.value} value={t.value}>
+                            <span className="flex items-center gap-2">
+                              <Icon className="h-4 w-4 text-muted-foreground" /> {t.label}
+                            </span>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectGroup>
+                  ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Section breadcrumb for non-primary views */}
+          {!isPrimary && activeTabDef && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>{activeTabDef.group}</span>
+              <span className="opacity-50">›</span>
+              <span className="text-foreground font-medium flex items-center gap-1">
+                <activeTabDef.icon className="h-3.5 w-3.5" /> {activeTabDef.label}
+              </span>
+            </div>
+          )}
+
+          {tabs.map((t) => (
+            <TabsContent key={t.value} value={t.value} className="mt-0">
+              {t.component()}
+            </TabsContent>
+          ))}
         </Tabs>
       </div>
 
