@@ -220,6 +220,9 @@ export function PredictiveRecovery() {
           <Button variant="outline" size="sm" onClick={loadAll} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>
+          <Button variant="outline" size="sm" onClick={simulateStalledSession} disabled={running || !workspaceId}>
+            <FlaskConical className="h-4 w-4 mr-1" /> Simulate
+          </Button>
           <Button size="sm" onClick={runRecoveryNow} disabled={running || !workspaceId}>
             <Zap className={`h-4 w-4 mr-1 ${running ? "animate-pulse" : ""}`} /> Run Now
           </Button>
@@ -237,9 +240,14 @@ export function PredictiveRecovery() {
         <TabsList>
           <TabsTrigger value="sessions">Live Sessions</TabsTrigger>
           <TabsTrigger value="recovered">Recovered Events</TabsTrigger>
+          <TabsTrigger value="deliveries"><Send className="h-3.5 w-3.5 mr-1" />Deliveries</TabsTrigger>
           <TabsTrigger value="rules">Rules</TabsTrigger>
           <TabsTrigger value="snippet">Install</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="deliveries">
+          <DestinationDeliveryPanel workspaceId={workspaceId} />
+        </TabsContent>
 
         <TabsContent value="sessions">
           <Card>
