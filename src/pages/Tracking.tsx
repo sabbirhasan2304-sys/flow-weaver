@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe, Eye, Send, TrendingUp, Bug, CheckSquare, Search, Ghost, Network } from 'lucide-react';
+import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe, Eye, Send, TrendingUp, Bug, CheckSquare, Search, Ghost, Network, Zap } from 'lucide-react';
 import { TrackingOverview } from '@/components/tracking/TrackingOverview';
 import { EventLog } from '@/components/tracking/EventLog';
 import { MonitoringDashboard } from '@/components/tracking/MonitoringDashboard';
@@ -26,6 +26,7 @@ import { ConversionRecovery } from '@/components/tracking/ConversionRecovery';
 import { LiveDebugger } from '@/components/tracking/LiveDebugger';
 import { GhostLoader } from '@/components/tracking/GhostLoader';
 import { IdentityStitching } from '@/components/tracking/IdentityStitching';
+import { PredictiveRecovery } from '@/components/tracking/PredictiveRecovery';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -64,6 +65,7 @@ export default function Tracking() {
             <TabsTrigger value="debugger" className="gap-1.5"><Bug className="h-4 w-4" /> Debugger</TabsTrigger>
             <TabsTrigger value="ghost" className="gap-1.5"><Ghost className="h-4 w-4" /> Ghost Loader</TabsTrigger>
             <TabsTrigger value="recovery" className="gap-1.5"><TrendingUp className="h-4 w-4" /> Recovery</TabsTrigger>
+            <TabsTrigger value="predictive" className="gap-1.5"><Zap className="h-4 w-4" /> Predictive</TabsTrigger>
             <TabsTrigger value="poas" className="gap-1.5"><DollarSign className="h-4 w-4" /> POAS</TabsTrigger>
             <TabsTrigger value="destinations" className="gap-1.5"><Send className="h-4 w-4" /> Destinations</TabsTrigger>
             <TabsTrigger value="consent" className="gap-1.5"><CheckSquare className="h-4 w-4" /> Consent</TabsTrigger>
@@ -87,6 +89,7 @@ export default function Tracking() {
           <TabsContent value="debugger"><LiveDebugger /></TabsContent>
           <TabsContent value="ghost"><GhostLoader /></TabsContent>
           <TabsContent value="recovery"><ConversionRecovery /></TabsContent>
+          <TabsContent value="predictive"><PredictiveRecovery /></TabsContent>
           <TabsContent value="poas"><POASDashboard /></TabsContent>
           <TabsContent value="destinations"><MarketingDestinations /></TabsContent>
           <TabsContent value="consent"><ConsentModeConfig /></TabsContent>
