@@ -99,15 +99,54 @@ export function PrivacyCompliance() {
     onError: () => toast.error('Failed to save settings'),
   });
 
-  const runPIIScan = () => {
-    // Simulate PII scan against recent events
-    const mockFindings = [
-      { field: 'user_data.email', type: 'Email', severity: 'critical' },
-      { field: 'client_ip', type: 'IP Address', severity: 'warning' },
-      { field: 'user_data.phone', type: 'Phone', severity: 'warning' },
-    ];
-    setScanResult(mockFindings);
-    toast.info(`PII scan found ${mockFindings.length} issues`);
+  const [scanning, setScanning] = useState(false);
+
+  const runPIIScan = async () => {
+    if (!profile?.id) return;
+    setScanning(true);
+    try {
+      const { data, error } = await supabase
+        .from('tracking_events')
+        .select('payload')
+        .order('created_at', { ascending: false })
+        .limit(200);
+      if (error) throw error;
+
+      const findings: { field: string; type: string; severity: string }[] = [];
+      const seen = new Set<string>();
+
+      const walk = (obj: any, path: string) => {
+        if (obj == null) return;
+        if (typeof obj === 'string') {
+          for (const p of piiPatterns) {
+            if (p.pattern.test(obj)) {
+              const key = `${path}::${p.name}`;
+              if (!seen.has(key)) {
+                seen.add(key);
+                findings.push({ field: path, type: p.name, severity: p.severity });
+              }
+            }
+          }
+          return;
+        }
+        if (typeof obj === 'object') {
+          for (const k of Object.keys(obj)) walk(obj[k], path ? `${path}.${k}` : k);
+        }
+      };
+
+      (data ?? []).forEach((row: any) => walk(row.payload, ''));
+
+      setScanResult(findings);
+      if (findings.length === 0) {
+        toast.success('No PII detected in recent events');
+      } else {
+        toast.warning(`PII scan found ${findings.length} unique issue${findings.length === 1 ? '' : 's'}`);
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Scan failed');
+    } finally {
+      setScanning(false);
+    }
   };
 
   const severityColor: Record<string, string> = {
@@ -133,9 +172,11 @@ export function PrivacyCompliance() {
               <CardDescription>Scan event payloads for personally identifiable information before transmission</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-3">
-                <Button onClick={runPIIScan}><Scan className="h-4 w-4 mr-1" /> Run Scan</Button>
-                <p className="text-xs text-muted-foreground self-center">Scans recent event payloads for email, phone, IP, credit card, and SSN patterns</p>
+              <div className="flex flex-wrap gap-3 items-center">
+                <Button onClick={runPIIScan} disabled={scanning}>
+                  <Scan className={`h-4 w-4 mr-1 ${scanning ? 'animate-pulse' : ''}`} /> {scanning ? 'Scanning…' : 'Run Scan'}
+                </Button>
+                <p className="text-xs text-muted-foreground">Scans the last 200 event payloads for email, phone, IP, credit card, and SSN patterns.</p>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
@@ -149,19 +190,28 @@ export function PrivacyCompliance() {
 
               {scanResult && (
                 <div className="space-y-2 border rounded-lg p-4 bg-muted/30">
-                  <p className="text-sm font-medium text-foreground">Scan Results ({scanResult.length} findings)</p>
-                  {scanResult.map((r, i) => (
-                    <div key={i} className="flex items-center justify-between p-2 rounded border border-border">
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                        <div>
-                          <p className="text-sm text-foreground font-mono">{r.field}</p>
-                          <p className="text-xs text-muted-foreground">Type: {r.type}</p>
-                        </div>
-                      </div>
-                      <Badge variant="outline" className={severityColor[r.severity]}>{r.severity}</Badge>
+                  <p className="text-sm font-medium text-foreground">
+                    Scan Results ({scanResult.length} {scanResult.length === 1 ? 'finding' : 'findings'})
+                  </p>
+                  {scanResult.length === 0 ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      No PII patterns detected in your recent events. ✨
                     </div>
-                  ))}
+                  ) : (
+                    scanResult.map((r, i) => (
+                      <div key={i} className="flex items-center justify-between p-2 rounded border border-border">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <AlertTriangle className="h-4 w-4 text-yellow-600 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-sm text-foreground font-mono truncate">{r.field || '(root)'}</p>
+                            <p className="text-xs text-muted-foreground">Type: {r.type}</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className={severityColor[r.severity]}>{r.severity}</Badge>
+                      </div>
+                    ))
+                  )}
                 </div>
               )}
             </CardContent>
@@ -266,9 +316,10 @@ export function PrivacyCompliance() {
                 ))}
               </div>
 
-              <Button className="w-full" variant="outline" onClick={() => toast.success('GDPR compliance report generated!')}>
-                <FileText className="h-4 w-4 mr-1" /> Generate Compliance Report (PDF)
-              </Button>
+              <div className="flex items-start gap-2 text-xs text-muted-foreground p-3 rounded-md bg-muted/30 border border-border/40">
+                <FileText className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>Your selected region determines where event payloads are stored. Changing residency takes effect on new events; historical events stay in the previous region.</span>
+              </div>
 
               <Button onClick={() => saveSettings.mutate()}>Save Residency Settings</Button>
             </CardContent>

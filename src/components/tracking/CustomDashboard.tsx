@@ -40,28 +40,15 @@ const dataSources = [
   { value: 'total_events', label: 'Total Events' },
 ];
 
-const mockChartData = [
-  { name: 'Mon', value: 420 },
-  { name: 'Tue', value: 380 },
-  { name: 'Wed', value: 510 },
-  { name: 'Thu', value: 490 },
-  { name: 'Fri', value: 600 },
-  { name: 'Sat', value: 350 },
-  { name: 'Sun', value: 280 },
-];
-
-const mockPieData = [
-  { name: 'Delivered', value: 85, color: 'hsl(var(--primary))' },
-  { name: 'Failed', value: 8, color: '#ef4444' },
-  { name: 'Retried', value: 5, color: '#f97316' },
-  { name: 'Pending', value: 2, color: '#94a3b8' },
-];
-
-const mockStats: Record<string, string> = {
-  total_events: '12,847',
-  delivery_rate: '98.7%',
-  error_rate: '1.3%',
+const PIE_COLORS: Record<string, string> = {
+  delivered: 'hsl(var(--primary))',
+  success: 'hsl(var(--primary))',
+  failed: '#ef4444',
+  retried: '#f97316',
+  pending: '#94a3b8',
+  queued: '#64748b',
 };
+const fallbackColor = (i: number) => ['hsl(var(--primary))', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'][i % 6];
 
 export function CustomDashboard() {
   const { profile } = useAuth();
@@ -80,6 +67,61 @@ export function CustomDashboard() {
       return data || [];
     },
     enabled: !!profile?.id,
+  });
+
+  // Real tracking event aggregations for widgets
+  const { data: liveData } = useQuery({
+    queryKey: ['tracking-live-aggregates', profile?.id],
+    queryFn: async () => {
+      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { data } = await supabase
+        .from('tracking_events')
+        .select('status, source, destination, created_at')
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(2000);
+      const rows = data ?? [];
+
+      const total = rows.length;
+      const failed = rows.filter((r: any) => r.status === 'failed').length;
+      const delivered = rows.filter((r: any) => ['delivered', 'success'].includes(r.status)).length;
+      const deliveryRate = total ? ((delivered / total) * 100).toFixed(1) + '%' : '—';
+      const errorRate = total ? ((failed / total) * 100).toFixed(1) + '%' : '—';
+
+      const groupCount = (key: 'status' | 'source' | 'destination') => {
+        const m: Record<string, number> = {};
+        for (const r of rows as any[]) {
+          const k = r[key] || '(unknown)';
+          m[k] = (m[k] || 0) + 1;
+        }
+        return Object.entries(m).map(([name, value]) => ({ name, value }));
+      };
+
+      const days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        return { name: d.toLocaleDateString(undefined, { weekday: 'short' }), value: 0, ymd: d.toISOString().slice(0, 10) };
+      });
+      for (const r of rows as any[]) {
+        const ymd = (r.created_at ?? '').slice(0, 10);
+        const bucket = days.find((d) => d.ymd === ymd);
+        if (bucket) bucket.value++;
+      }
+
+      return {
+        stats: {
+          total_events: total.toLocaleString(),
+          delivery_rate: deliveryRate,
+          error_rate: errorRate,
+        } as Record<string, string>,
+        events_over_time: days.map(({ name, value }) => ({ name, value })),
+        events_by_status: groupCount('status'),
+        events_by_source: groupCount('source'),
+        events_by_destination: groupCount('destination'),
+      };
+    },
+    enabled: !!profile?.id,
+    refetchInterval: 30000,
   });
 
   const [selectedDashboard, setSelectedDashboard] = useState<any>(null);
@@ -130,53 +172,81 @@ export function CustomDashboard() {
   const removeWidget = (id: string) => setWidgets(widgets.filter(w => w.id !== id));
 
   const renderWidget = (widget: Widget) => {
+    const seriesByKey: Record<string, { name: string; value: number }[]> = {
+      events_over_time: liveData?.events_over_time ?? [],
+      events_by_status: liveData?.events_by_status ?? [],
+      events_by_source: liveData?.events_by_source ?? [],
+      events_by_destination: liveData?.events_by_destination ?? [],
+      delivery_rate: liveData?.events_by_status ?? [],
+      error_rate: liveData?.events_by_status ?? [],
+      total_events: liveData?.events_over_time ?? [],
+    };
+    const chartData = seriesByKey[widget.dataSource] ?? [];
+    const pieData = chartData.map((d, i) => ({
+      ...d,
+      color: PIE_COLORS[d.name?.toLowerCase?.()] ?? fallbackColor(i),
+    }));
+    const isEmpty = chartData.length === 0 || chartData.every((d) => !d.value);
+
     switch (widget.type) {
       case 'stat':
         return (
           <div className="text-center py-4">
-            <p className="text-3xl font-bold text-foreground">{mockStats[widget.dataSource] || '—'}</p>
+            <p className="text-3xl font-bold text-foreground">{liveData?.stats[widget.dataSource] ?? '—'}</p>
             <p className="text-xs text-muted-foreground mt-1">{widget.title}</p>
           </div>
         );
       case 'line_chart':
         return (
           <div className="h-[180px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={mockChartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="name" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-                <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-                <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
-                <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
+            {isEmpty ? (
+              <EmptyChart />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                  <XAxis dataKey="name" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
+                  <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
+                  <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
+                  <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
         );
       case 'bar_chart':
         return (
           <div className="h-[180px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={mockChartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="name" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-                <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-                <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {isEmpty ? (
+              <EmptyChart />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                  <XAxis dataKey="name" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
+                  <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
+                  <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }} />
+                  <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         );
       case 'pie_chart':
         return (
           <div className="h-[180px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={mockPieData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" paddingAngle={2}>
-                  {mockPieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                </Pie>
-                <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', fontSize: 12 }} />
-              </PieChart>
-            </ResponsiveContainer>
+            {isEmpty ? (
+              <EmptyChart />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" paddingAngle={2}>
+                    {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                  </Pie>
+                  <Tooltip contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', fontSize: 12 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         );
     }
@@ -315,6 +385,14 @@ export function CustomDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function EmptyChart() {
+  return (
+    <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+      No data in the last 7 days
     </div>
   );
 }
