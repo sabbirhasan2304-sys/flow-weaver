@@ -45,5 +45,7 @@ project_id = "euocvkvdixpxfznrduzi"
     verify_jwt = false
   [functions.session-heartbeat]
     verify_jwt = false
+  [functions.forward-to-destinations]
+    verify_jwt = false
   [functions.process-recovery-queue]
     verify_jwt = false

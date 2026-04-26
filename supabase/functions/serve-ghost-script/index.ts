@@ -101,6 +101,13 @@ function buildScript(opts: {
     blocks.push(decoys.map((d) => `var ${d}=${Math.floor(Math.random() * 1e6)};`).join(""));
   }
 
+  // Block G: predictive recovery — session heartbeat with sendBeacon.
+  // Maintains an in-memory intent object that merchants can update via
+  // window.nx('intent', 'InitiateCheckout', { value, currency, user }).
+  // Auto-detects checkout intent from URL path + clicks on [data-nx-intent].
+  const HB_URL = `${apiBase.replace(/\/track-event-alias.*/, "")}/session-heartbeat`;
+  blocks.push(`(function(){var WS="${workspaceId}";var SK="nx_sid_"+WS;var SID=sessionStorage.getItem(SK);if(!SID){SID=Math.random().toString(36).slice(2)+Date.now();sessionStorage.setItem(SK,SID);}window.NXIntent=window.NXIntent||{type:null,payload:{},user:{}};window.nx=window.nx||function(cmd,a,b){if(cmd==="intent"){window.NXIntent={type:a,payload:b||{},user:(b&&b.user)||window.NXIntent.user||{}};hb();}else if(cmd==="user"){window.NXIntent.user=Object.assign(window.NXIntent.user||{},a||{});}};function detect(){try{var p=location.pathname.toLowerCase();if(/checkout|payment/.test(p)&&!window.NXIntent.type){window.NXIntent.type="InitiateCheckout";}else if(/cart/.test(p)&&!window.NXIntent.type){window.NXIntent.type="AddToCart";}}catch(e){}}function hb(){detect();try{var body=JSON.stringify({workspace_id:WS,session_token:SID,page_url:location.href,intent_type:window.NXIntent.type,captured_payload:window.NXIntent.payload,hashed_user_data:window.NXIntent.user});if(navigator.sendBeacon){navigator.sendBeacon("${HB_URL}",new Blob([body],{type:"application/json"}));}else{fetch("${HB_URL}",{method:"POST",keepalive:true,headers:{"content-type":"application/json"},body:body}).catch(function(){});}}catch(e){}}document.addEventListener("click",function(e){var t=e.target&&e.target.closest&&e.target.closest("[data-nx-intent]");if(t){var it=t.getAttribute("data-nx-intent");window.nx("intent",it,{});}},true);document.addEventListener("visibilitychange",hb);window.addEventListener("pagehide",hb);setInterval(hb,20000);setTimeout(hb,2000);})();`);
+
   // Shuffle blocks deterministically by seed (Fisher-Yates with seeded PRNG)
   let s = shuffle_seed >>> 0;
   const rand = () => {

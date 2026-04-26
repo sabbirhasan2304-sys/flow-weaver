@@ -9,7 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Heart, Zap, RefreshCw, ShieldCheck, AlertTriangle, CheckCircle2, TrendingUp } from "lucide-react";
+import { Heart, Zap, RefreshCw, ShieldCheck, AlertTriangle, CheckCircle2, TrendingUp, FlaskConical, Send } from "lucide-react";
+import { DestinationDeliveryPanel } from "./DestinationDeliveryPanel";
 
 type Workspace = { id: string; name: string };
 type Rules = {
@@ -138,6 +139,43 @@ export function PredictiveRecovery() {
     }
   };
 
+  const simulateStalledSession = async () => {
+    if (!workspaceId) return;
+    setRunning(true);
+    try {
+      // Insert a fake high-intent session whose heartbeat is already 2 minutes old
+      const fakeToken = `sim_${Math.random().toString(36).slice(2)}_${Date.now()}`;
+      const past = new Date(Date.now() - 120 * 1000).toISOString();
+      const { error: insErr } = await supabase.from("predictive_sessions" as never).insert({
+        workspace_id: workspaceId,
+        session_token: fakeToken,
+        page_url: "https://example.com/checkout",
+        intent_type: "Purchase",
+        intent_score: 0.95,
+        captured_payload: { value: 99.99, currency: "USD", items: [{ id: "SIM-1", qty: 1 }] },
+        hashed_user_data: { em: "sha256_simulated_user" },
+        user_agent: "Simulated/1.0",
+        ip_hash: "simulated",
+        status: "active",
+        last_heartbeat_at: past,
+      } as never);
+      if (insErr) throw insErr;
+
+      // Trigger the worker immediately
+      const { data, error } = await supabase.functions.invoke("process-recovery-queue", { body: { trigger: "simulate" } });
+      if (error) throw error;
+      toast({
+        title: "Simulation complete",
+        description: `Recovered ${data?.recovered ?? 0} session(s). Check the Recovered + Deliveries tabs.`,
+      });
+      loadAll();
+    } catch (e: any) {
+      toast({ title: "Simulation failed", description: e.message, variant: "destructive" });
+    } finally {
+      setRunning(false);
+    }
+  };
+
   const stats = {
     activeSessions: sessions.filter((s) => s.status === "active").length,
     recoveredCount: recovered.length,
@@ -182,6 +220,9 @@ export function PredictiveRecovery() {
           <Button variant="outline" size="sm" onClick={loadAll} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>
+          <Button variant="outline" size="sm" onClick={simulateStalledSession} disabled={running || !workspaceId}>
+            <FlaskConical className="h-4 w-4 mr-1" /> Simulate
+          </Button>
           <Button size="sm" onClick={runRecoveryNow} disabled={running || !workspaceId}>
             <Zap className={`h-4 w-4 mr-1 ${running ? "animate-pulse" : ""}`} /> Run Now
           </Button>
@@ -199,9 +240,14 @@ export function PredictiveRecovery() {
         <TabsList>
           <TabsTrigger value="sessions">Live Sessions</TabsTrigger>
           <TabsTrigger value="recovered">Recovered Events</TabsTrigger>
+          <TabsTrigger value="deliveries"><Send className="h-3.5 w-3.5 mr-1" />Deliveries</TabsTrigger>
           <TabsTrigger value="rules">Rules</TabsTrigger>
           <TabsTrigger value="snippet">Install</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="deliveries">
+          <DestinationDeliveryPanel workspaceId={workspaceId} />
+        </TabsContent>
 
         <TabsContent value="sessions">
           <Card>

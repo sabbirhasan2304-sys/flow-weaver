@@ -221,6 +221,34 @@ Deno.serve(async (req) => {
             // Don't delete messages — they'll be retried
             continue;
           }
+
+          // Phase 3-followup: fan out to active marketing destinations
+          // (best-effort — never fail the queue if forwarding errors).
+          for (const row of newOnes) {
+            try {
+              const payload = row.payload as Record<string, unknown>;
+              const wsId = (row as { user_id: string }).user_id;
+              const eventForForward = {
+                event_name: row.event_name as string,
+                event_time: Math.floor(new Date(row.created_at as string).getTime() / 1000),
+                event_id: (payload?.event_id as string) ?? undefined,
+                event_source_url: (payload?.page_url as string) ?? undefined,
+                action_source: "website",
+                user_data: (payload?.user_data as Record<string, unknown>) ?? {},
+                custom_data: (payload?.custom_data as Record<string, unknown>) ?? payload ?? {},
+                recovered: Boolean((payload as { recovered?: boolean })?.recovered),
+              };
+              await supabase.functions.invoke("forward-to-destinations", {
+                body: {
+                  workspace_id: wsId,
+                  event: eventForForward,
+                  recovered: eventForForward.recovered,
+                },
+              });
+            } catch (fwdErr) {
+              console.error("forward-to-destinations failed", fwdErr);
+            }
+          }
         }
 
         totalProcessed += newOnes.length;
