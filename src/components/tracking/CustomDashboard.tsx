@@ -69,6 +69,61 @@ export function CustomDashboard() {
     enabled: !!profile?.id,
   });
 
+  // Real tracking event aggregations for widgets
+  const { data: liveData } = useQuery({
+    queryKey: ['tracking-live-aggregates', profile?.id],
+    queryFn: async () => {
+      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { data } = await supabase
+        .from('tracking_events')
+        .select('status, source, destination, created_at')
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(2000);
+      const rows = data ?? [];
+
+      const total = rows.length;
+      const failed = rows.filter((r: any) => r.status === 'failed').length;
+      const delivered = rows.filter((r: any) => ['delivered', 'success'].includes(r.status)).length;
+      const deliveryRate = total ? ((delivered / total) * 100).toFixed(1) + '%' : '—';
+      const errorRate = total ? ((failed / total) * 100).toFixed(1) + '%' : '—';
+
+      const groupCount = (key: 'status' | 'source' | 'destination') => {
+        const m: Record<string, number> = {};
+        for (const r of rows as any[]) {
+          const k = r[key] || '(unknown)';
+          m[k] = (m[k] || 0) + 1;
+        }
+        return Object.entries(m).map(([name, value]) => ({ name, value }));
+      };
+
+      const days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        return { name: d.toLocaleDateString(undefined, { weekday: 'short' }), value: 0, ymd: d.toISOString().slice(0, 10) };
+      });
+      for (const r of rows as any[]) {
+        const ymd = (r.created_at ?? '').slice(0, 10);
+        const bucket = days.find((d) => d.ymd === ymd);
+        if (bucket) bucket.value++;
+      }
+
+      return {
+        stats: {
+          total_events: total.toLocaleString(),
+          delivery_rate: deliveryRate,
+          error_rate: errorRate,
+        } as Record<string, string>,
+        events_over_time: days.map(({ name, value }) => ({ name, value })),
+        events_by_status: groupCount('status'),
+        events_by_source: groupCount('source'),
+        events_by_destination: groupCount('destination'),
+      };
+    },
+    enabled: !!profile?.id,
+    refetchInterval: 30000,
+  });
+
   const [selectedDashboard, setSelectedDashboard] = useState<any>(null);
   const [widgets, setWidgets] = useState<Widget[]>([]);
 
