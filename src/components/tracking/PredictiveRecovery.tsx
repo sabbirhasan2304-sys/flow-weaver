@@ -175,6 +175,8 @@ export function PredictiveRecovery() {
       setRunning(false);
     }
   };
+
+  const stats = {
     activeSessions: sessions.filter((s) => s.status === "active").length,
     recoveredCount: recovered.length,
     forwardedCount: recovered.filter((r) => r.status === "forwarded").length,
