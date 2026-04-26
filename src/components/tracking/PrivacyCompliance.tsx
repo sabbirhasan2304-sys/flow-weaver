@@ -172,9 +172,11 @@ export function PrivacyCompliance() {
               <CardDescription>Scan event payloads for personally identifiable information before transmission</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-3">
-                <Button onClick={runPIIScan}><Scan className="h-4 w-4 mr-1" /> Run Scan</Button>
-                <p className="text-xs text-muted-foreground self-center">Scans recent event payloads for email, phone, IP, credit card, and SSN patterns</p>
+              <div className="flex flex-wrap gap-3 items-center">
+                <Button onClick={runPIIScan} disabled={scanning}>
+                  <Scan className={`h-4 w-4 mr-1 ${scanning ? 'animate-pulse' : ''}`} /> {scanning ? 'Scanning…' : 'Run Scan'}
+                </Button>
+                <p className="text-xs text-muted-foreground">Scans the last 200 event payloads for email, phone, IP, credit card, and SSN patterns.</p>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
