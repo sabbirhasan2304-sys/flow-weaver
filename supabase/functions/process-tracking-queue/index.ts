@@ -156,6 +156,41 @@ Deno.serve(async (req) => {
             created_at: event.timestamp || request_meta.received_at,
           });
 
+          // Phase 2: Build identity signatures and enqueue for stitching
+          const sigs: Array<{ type: string; value: string }> = [];
+          if (hashedUserData.em) sigs.push({ type: "email_hash", value: String(hashedUserData.em) });
+          if (hashedUserData.ph) sigs.push({ type: "phone_hash", value: String(hashedUserData.ph) });
+          if (hashedUserData.external_id) sigs.push({ type: "external_id", value: String(hashedUserData.external_id) });
+          if (hashedUserData.fbp) sigs.push({ type: "cookie_id", value: `fbp:${hashedUserData.fbp}` });
+          // Soft signals: ip_subnet+UA hash and a coarse fingerprint
+          if (request_meta.ip && request_meta.ua) {
+            const ipSubnet = request_meta.ip.split(".").slice(0, 3).join(".") + ".0/24";
+            const uaHash = await hashPII(`${ipSubnet}|${request_meta.ua}`);
+            sigs.push({ type: "ip_subnet_ua", value: uaHash });
+          }
+          if (event.page_url && request_meta.ua) {
+            const fp = await hashPII(`${request_meta.ua}|${event.page_url.split("?")[0]}`);
+            sigs.push({ type: "fingerprint", value: fp });
+          }
+
+          if (sigs.length > 0 && userId) {
+            // userId here is the workspace_id (siteId) for tracking events
+            await supabase.rpc("enqueue_message", {
+              queue_name: "identity_stitch_queue",
+              payload: {
+                workspace_id: userId,
+                signatures: sigs,
+                context: {
+                  event_name: event.event_name,
+                  page_url: event.page_url,
+                  user_agent: request_meta.ua,
+                  ip_subnet: request_meta.ip ? request_meta.ip.split(".").slice(0, 3).join(".") + ".0/24" : null,
+                  timestamp: event.timestamp || request_meta.received_at,
+                },
+              },
+            });
+          }
+
           messageIdsToDelete.push(msg.msg_id);
         } catch (e) {
           console.error("Process error for msg", msg.msg_id, e);
