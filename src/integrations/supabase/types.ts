@@ -2579,11 +2579,29 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      delete_message: {
+        Args: { message_id: number; queue_name: string }
+        Returns: boolean
+      }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      enqueue_message: {
+        Args: { payload: Json; queue_name: string }
+        Returns: number
+      }
       get_profile_id: { Args: never; Returns: string }
+      get_queue_stats: {
+        Args: { queue_name: string }
+        Returns: {
+          newest_msg_age_sec: number
+          oldest_msg_age_sec: number
+          queue: string
+          queue_length: number
+          total_messages: number
+        }[]
+      }
       get_workspace_role: {
         Args: { p_profile_id: string; p_workspace_id: string }
         Returns: string
@@ -2621,6 +2639,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      move_message_to_dlq: {
+        Args: {
+          dlq_name: string
+          message_id: number
+          payload: Json
+          source_queue: string
+        }
+        Returns: number
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -2631,6 +2658,14 @@ export type Database = {
         Returns: number
       }
       read_email_batch: {
+        Args: { batch_size: number; queue_name: string; vt: number }
+        Returns: {
+          message: Json
+          msg_id: number
+          read_ct: number
+        }[]
+      }
+      read_message_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
           message: Json
