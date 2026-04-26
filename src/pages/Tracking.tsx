@@ -25,6 +25,7 @@ import { SiteAuditor } from '@/components/tracking/SiteAuditor';
 import { ConversionRecovery } from '@/components/tracking/ConversionRecovery';
 import { LiveDebugger } from '@/components/tracking/LiveDebugger';
 import { GhostLoader } from '@/components/tracking/GhostLoader';
+import { IdentityStitching } from '@/components/tracking/IdentityStitching';
 
 import { useNavigate } from 'react-router-dom';
 
