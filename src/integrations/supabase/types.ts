@@ -1287,6 +1287,53 @@ export type Database = {
           },
         ]
       }
+      ghost_loader_configs: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          inject_decoys: boolean
+          obfuscation_level: string
+          rotation_interval_minutes: number
+          script_slug: string
+          secret_seed: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          inject_decoys?: boolean
+          obfuscation_level?: string
+          rotation_interval_minutes?: number
+          script_slug?: string
+          secret_seed?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          inject_decoys?: boolean
+          obfuscation_level?: string
+          rotation_interval_minutes?: number
+          script_slug?: string
+          secret_seed?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ghost_loader_configs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nexus_store_collections: {
         Row: {
           created_at: string
@@ -1548,6 +1595,101 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      script_serve_logs: {
+        Row: {
+          blocked_hint: boolean
+          id: string
+          ip_hash: string | null
+          served_at: string
+          user_agent: string | null
+          variant_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          blocked_hint?: boolean
+          id?: string
+          ip_hash?: string | null
+          served_at?: string
+          user_agent?: string | null
+          variant_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          blocked_hint?: boolean
+          id?: string
+          ip_hash?: string | null
+          served_at?: string
+          user_agent?: string | null
+          variant_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "script_serve_logs_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "script_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "script_serve_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      script_variants: {
+        Row: {
+          created_at: string
+          endpoint_alias: string
+          expires_at: string
+          fn_name: string
+          global_var: string
+          id: string
+          is_active: boolean
+          served_count: number
+          shuffle_seed: number
+          token: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint_alias: string
+          expires_at: string
+          fn_name: string
+          global_var: string
+          id?: string
+          is_active?: boolean
+          served_count?: number
+          shuffle_seed: number
+          token: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          endpoint_alias?: string
+          expires_at?: string
+          fn_name?: string
+          global_var?: string
+          id?: string
+          is_active?: boolean
+          served_count?: number
+          shuffle_seed?: number
+          token?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "script_variants_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {
