@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe, Eye, Send, TrendingUp, Bug, CheckSquare, Search, Ghost } from 'lucide-react';
+import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe, Eye, Send, TrendingUp, Bug, CheckSquare, Search, Ghost, Network } from 'lucide-react';
 import { TrackingOverview } from '@/components/tracking/TrackingOverview';
 import { EventLog } from '@/components/tracking/EventLog';
 import { MonitoringDashboard } from '@/components/tracking/MonitoringDashboard';
@@ -71,6 +71,7 @@ export default function Tracking() {
             <TabsTrigger value="reliability" className="gap-1.5"><RefreshCw className="h-4 w-4" /> Reliability</TabsTrigger>
             <TabsTrigger value="privacy" className="gap-1.5"><Shield className="h-4 w-4" /> Privacy</TabsTrigger>
             <TabsTrigger value="identity" className="gap-1.5"><Fingerprint className="h-4 w-4" /> Identity</TabsTrigger>
+            <TabsTrigger value="stitching" className="gap-1.5"><Network className="h-4 w-4" /> Stitching</TabsTrigger>
             <TabsTrigger value="store" className="gap-1.5"><Database className="h-4 w-4" /> NexusStore</TabsTrigger>
             <TabsTrigger value="audit" className="gap-1.5"><Search className="h-4 w-4" /> Audit</TabsTrigger>
             <TabsTrigger value="mapper" className="gap-1.5"><Wand2 className="h-4 w-4" /> AI Mapper</TabsTrigger>
@@ -93,6 +94,7 @@ export default function Tracking() {
           <TabsContent value="reliability"><ReliabilityEngine /></TabsContent>
           <TabsContent value="privacy"><PrivacyCompliance /></TabsContent>
           <TabsContent value="identity"><IdentityHub /></TabsContent>
+          <TabsContent value="stitching"><IdentityStitching /></TabsContent>
           <TabsContent value="store"><NexusStore /></TabsContent>
           <TabsContent value="audit"><SiteAuditor /></TabsContent>
           <TabsContent value="mapper"><AIEventMapper /></TabsContent>
