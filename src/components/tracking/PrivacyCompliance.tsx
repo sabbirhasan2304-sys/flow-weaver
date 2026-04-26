@@ -99,15 +99,54 @@ export function PrivacyCompliance() {
     onError: () => toast.error('Failed to save settings'),
   });
 
-  const runPIIScan = () => {
-    // Simulate PII scan against recent events
-    const mockFindings = [
-      { field: 'user_data.email', type: 'Email', severity: 'critical' },
-      { field: 'client_ip', type: 'IP Address', severity: 'warning' },
-      { field: 'user_data.phone', type: 'Phone', severity: 'warning' },
-    ];
-    setScanResult(mockFindings);
-    toast.info(`PII scan found ${mockFindings.length} issues`);
+  const [scanning, setScanning] = useState(false);
+
+  const runPIIScan = async () => {
+    if (!profile?.id) return;
+    setScanning(true);
+    try {
+      const { data, error } = await supabase
+        .from('tracking_events')
+        .select('payload')
+        .order('created_at', { ascending: false })
+        .limit(200);
+      if (error) throw error;
+
+      const findings: { field: string; type: string; severity: string }[] = [];
+      const seen = new Set<string>();
+
+      const walk = (obj: any, path: string) => {
+        if (obj == null) return;
+        if (typeof obj === 'string') {
+          for (const p of piiPatterns) {
+            if (p.pattern.test(obj)) {
+              const key = `${path}::${p.name}`;
+              if (!seen.has(key)) {
+                seen.add(key);
+                findings.push({ field: path, type: p.name, severity: p.severity });
+              }
+            }
+          }
+          return;
+        }
+        if (typeof obj === 'object') {
+          for (const k of Object.keys(obj)) walk(obj[k], path ? `${path}.${k}` : k);
+        }
+      };
+
+      (data ?? []).forEach((row: any) => walk(row.payload, ''));
+
+      setScanResult(findings);
+      if (findings.length === 0) {
+        toast.success('No PII detected in recent events');
+      } else {
+        toast.warning(`PII scan found ${findings.length} unique issue${findings.length === 1 ? '' : 's'}`);
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Scan failed');
+    } finally {
+      setScanning(false);
+    }
   };
 
   const severityColor: Record<string, string> = {
