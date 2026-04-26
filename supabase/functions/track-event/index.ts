@@ -1,3 +1,5 @@
+// Phase 0: track-event now enqueues to pgmq for sub-20ms response.
+// The process-tracking-queue worker handles dedup, hashing, and DB inserts async.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
@@ -33,19 +35,6 @@ interface TrackingEvent {
   server_side?: boolean;
 }
 
-function hashPII(value: string): string {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(value.trim().toLowerCase());
-  return Array.from(new Uint8Array(data))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-function generateFingerprint(event: TrackingEvent, ip: string): string {
-  const raw = `${event.event_name}|${event.page_url || ""}|${ip}|${event.user_data?.email || ""}|${event.timestamp || ""}`;
-  return hashPII(raw);
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -79,7 +68,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Validate each event
+    // Quick validation only — heavy lifting happens in worker
     for (const event of events) {
       if (!event.event_name || typeof event.event_name !== "string") {
         return new Response(
@@ -94,128 +83,43 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Look up the site owner
-    let userId: string | null = null;
-
-    if (apiKey) {
-      // Validate API key
-      const keyPrefix = apiKey.substring(0, 8);
-      const { data: keyData } = await supabase
-        .from("api_keys")
-        .select("profile_id")
-        .eq("key_prefix", keyPrefix)
-        .eq("is_active", true)
-        .maybeSingle();
-      if (keyData) userId = keyData.profile_id;
-    }
-
-    if (!userId && siteId) {
-      // siteId is the profile_id for simplicity
-      userId = siteId;
-    }
-
-    if (!userId) {
-      return new Response(
-        JSON.stringify({ error: "Invalid credentials" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
-               req.headers.get("cf-connecting-ip") || 
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+               req.headers.get("cf-connecting-ip") ||
                "unknown";
     const ua = req.headers.get("user-agent") || "";
-    const now = new Date().toISOString();
+    const receivedAt = new Date().toISOString();
 
-    const processedEvents = events.map((event) => {
-      const fingerprint = generateFingerprint(event, ip);
+    // Enqueue each event for async processing — sub-20ms hot path
+    const enqueueResults = await Promise.allSettled(
+      events.map((event) =>
+        supabase.rpc("enqueue_message", {
+          queue_name: "tracking_events_queue",
+          payload: {
+            event,
+            auth: { siteId, apiKey: apiKey ? apiKey.substring(0, 8) : null },
+            request_meta: { ip, ua, received_at: receivedAt },
+          },
+        })
+      )
+    );
 
-      // Hash PII before storage
-      const hashedUserData: Record<string, unknown> = {};
-      if (event.user_data) {
-        if (event.user_data.email) hashedUserData.em = hashPII(event.user_data.email);
-        if (event.user_data.phone) hashedUserData.ph = hashPII(event.user_data.phone);
-        if (event.user_data.external_id) hashedUserData.external_id = event.user_data.external_id;
-        if (event.user_data.fbp) hashedUserData.fbp = event.user_data.fbp;
-        if (event.user_data.fbc) hashedUserData.fbc = event.user_data.fbc;
-      }
+    const enqueued = enqueueResults.filter((r) => r.status === "fulfilled").length;
+    const failed = enqueueResults.filter((r) => r.status === "rejected").length;
 
-      // Determine consent status
-      const consentGranted = !event.consent || (
-        event.consent.ad_storage !== "denied" && 
-        event.consent.analytics_storage !== "denied"
-      );
-
-      return {
-        user_id: userId,
-        event_name: event.event_name,
-        source: event.source || "web",
-        destination: event.destination || "server",
-        status: "pending",
-        payload: {
-          ...event.payload,
-          user_data: hashedUserData,
-          consent: event.consent || {},
-          page_url: event.page_url,
-          page_referrer: event.page_referrer,
-          ip_address: ip,
-          user_agent: ua,
-          server_side: true,
-          consent_granted: consentGranted,
-          event_id: event.event_id || crypto.randomUUID(),
-        },
-        event_fingerprint: fingerprint,
-        retry_count: 0,
-        created_at: event.timestamp || now,
-      };
-    });
-
-    // Deduplicate by fingerprint (within batch)
-    const seen = new Set<string>();
-    const uniqueEvents = processedEvents.filter((e) => {
-      if (seen.has(e.event_fingerprint)) return false;
-      seen.add(e.event_fingerprint);
-      return true;
-    });
-
-    // Check for existing fingerprints in last 5 minutes (dedup window)
-    const fingerprints = uniqueEvents.map((e) => e.event_fingerprint);
-    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-    
-    const { data: existingEvents } = await supabase
-      .from("tracking_events")
-      .select("event_fingerprint")
-      .in("event_fingerprint", fingerprints)
-      .gte("created_at", fiveMinAgo);
-
-    const existingFingerprints = new Set((existingEvents || []).map((e: any) => e.event_fingerprint));
-    const newEvents = uniqueEvents.filter((e) => !existingFingerprints.has(e.event_fingerprint));
-    const duplicateCount = uniqueEvents.length - newEvents.length;
-
-    if (newEvents.length > 0) {
-      const { error: insertError } = await supabase
-        .from("tracking_events")
-        .insert(newEvents);
-
-      if (insertError) {
-        console.error("Insert error:", insertError);
-        return new Response(
-          JSON.stringify({ error: "Failed to store events", details: insertError.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+    if (failed > 0) {
+      console.error("Enqueue failures:", failed);
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        accepted: newEvents.length,
-        duplicates: duplicateCount,
+        accepted: enqueued,
+        failed,
         total: events.length,
-        event_ids: newEvents.map((e) => e.event_id),
+        queued: true,
       }),
       {
-        status: 200,
+        status: 202, // Accepted — processing async
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
