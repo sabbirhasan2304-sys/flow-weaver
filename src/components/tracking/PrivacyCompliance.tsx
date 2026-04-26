@@ -190,19 +190,28 @@ export function PrivacyCompliance() {
 
               {scanResult && (
                 <div className="space-y-2 border rounded-lg p-4 bg-muted/30">
-                  <p className="text-sm font-medium text-foreground">Scan Results ({scanResult.length} findings)</p>
-                  {scanResult.map((r, i) => (
-                    <div key={i} className="flex items-center justify-between p-2 rounded border border-border">
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                        <div>
-                          <p className="text-sm text-foreground font-mono">{r.field}</p>
-                          <p className="text-xs text-muted-foreground">Type: {r.type}</p>
-                        </div>
-                      </div>
-                      <Badge variant="outline" className={severityColor[r.severity]}>{r.severity}</Badge>
+                  <p className="text-sm font-medium text-foreground">
+                    Scan Results ({scanResult.length} {scanResult.length === 1 ? 'finding' : 'findings'})
+                  </p>
+                  {scanResult.length === 0 ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      No PII patterns detected in your recent events. ✨
                     </div>
-                  ))}
+                  ) : (
+                    scanResult.map((r, i) => (
+                      <div key={i} className="flex items-center justify-between p-2 rounded border border-border">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <AlertTriangle className="h-4 w-4 text-yellow-600 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-sm text-foreground font-mono truncate">{r.field || '(root)'}</p>
+                            <p className="text-xs text-muted-foreground">Type: {r.type}</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className={severityColor[r.severity]}>{r.severity}</Badge>
+                      </div>
+                    ))
+                  )}
                 </div>
               )}
             </CardContent>
