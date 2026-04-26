@@ -1724,6 +1724,63 @@ export type Database = {
         }
         Relationships: []
       }
+      predictive_sessions: {
+        Row: {
+          captured_payload: Json
+          created_at: string
+          hashed_user_data: Json
+          id: string
+          intent_score: number
+          intent_type: string | null
+          ip_hash: string | null
+          last_heartbeat_at: string
+          page_url: string | null
+          recovered_at: string | null
+          session_token: string
+          status: string
+          updated_at: string
+          user_agent: string | null
+          visitor_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          captured_payload?: Json
+          created_at?: string
+          hashed_user_data?: Json
+          id?: string
+          intent_score?: number
+          intent_type?: string | null
+          ip_hash?: string | null
+          last_heartbeat_at?: string
+          page_url?: string | null
+          recovered_at?: string | null
+          session_token: string
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          visitor_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          captured_payload?: Json
+          created_at?: string
+          hashed_user_data?: Json
+          id?: string
+          intent_score?: number
+          intent_type?: string | null
+          ip_hash?: string | null
+          last_heartbeat_at?: string
+          page_url?: string | null
+          recovered_at?: string | null
+          session_token?: string
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          visitor_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1751,6 +1808,87 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      recovered_events: {
+        Row: {
+          created_at: string
+          destinations_forwarded: string[]
+          error_message: string | null
+          event_name: string
+          event_payload: Json
+          forwarded_at: string | null
+          id: string
+          intent_score: number
+          recovery_reason: string
+          session_id: string | null
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          destinations_forwarded?: string[]
+          error_message?: string | null
+          event_name: string
+          event_payload?: Json
+          forwarded_at?: string | null
+          id?: string
+          intent_score?: number
+          recovery_reason: string
+          session_id?: string | null
+          status?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          destinations_forwarded?: string[]
+          error_message?: string | null
+          event_name?: string
+          event_payload?: Json
+          forwarded_at?: string | null
+          id?: string
+          intent_score?: number
+          recovery_reason?: string
+          session_id?: string | null
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
+      recovery_rules: {
+        Row: {
+          created_at: string
+          eligible_event_types: string[]
+          enabled: boolean
+          forward_to_destinations: boolean
+          heartbeat_timeout_seconds: number
+          id: string
+          min_intent_score: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          eligible_event_types?: string[]
+          enabled?: boolean
+          forward_to_destinations?: boolean
+          heartbeat_timeout_seconds?: number
+          id?: string
+          min_intent_score?: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          eligible_event_types?: string[]
+          enabled?: boolean
+          forward_to_destinations?: boolean
+          heartbeat_timeout_seconds?: number
+          id?: string
+          min_intent_score?: number
+          updated_at?: string
+          workspace_id?: string
         }
         Relationships: []
       }
