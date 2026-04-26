@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe, Eye, Send, TrendingUp, Bug, CheckSquare, Search } from 'lucide-react';
+import { Activity, List, Bell, Settings, Plus, DollarSign, Database, Users, ArrowRightLeft, Sparkles, Shield, Fingerprint, RefreshCw, LayoutGrid, Wand2, Globe, Eye, Send, TrendingUp, Bug, CheckSquare, Search, Ghost } from 'lucide-react';
 import { TrackingOverview } from '@/components/tracking/TrackingOverview';
 import { EventLog } from '@/components/tracking/EventLog';
 import { MonitoringDashboard } from '@/components/tracking/MonitoringDashboard';
@@ -24,6 +24,7 @@ import { ConsentModeConfig } from '@/components/tracking/ConsentModeConfig';
 import { SiteAuditor } from '@/components/tracking/SiteAuditor';
 import { ConversionRecovery } from '@/components/tracking/ConversionRecovery';
 import { LiveDebugger } from '@/components/tracking/LiveDebugger';
+import { GhostLoader } from '@/components/tracking/GhostLoader';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -60,6 +61,7 @@ export default function Tracking() {
             <TabsTrigger value="overview" className="gap-1.5"><Activity className="h-4 w-4" /> Overview</TabsTrigger>
             <TabsTrigger value="events" className="gap-1.5"><List className="h-4 w-4" /> Events</TabsTrigger>
             <TabsTrigger value="debugger" className="gap-1.5"><Bug className="h-4 w-4" /> Debugger</TabsTrigger>
+            <TabsTrigger value="ghost" className="gap-1.5"><Ghost className="h-4 w-4" /> Ghost Loader</TabsTrigger>
             <TabsTrigger value="recovery" className="gap-1.5"><TrendingUp className="h-4 w-4" /> Recovery</TabsTrigger>
             <TabsTrigger value="poas" className="gap-1.5"><DollarSign className="h-4 w-4" /> POAS</TabsTrigger>
             <TabsTrigger value="destinations" className="gap-1.5"><Send className="h-4 w-4" /> Destinations</TabsTrigger>
@@ -81,6 +83,7 @@ export default function Tracking() {
           <TabsContent value="overview"><TrackingOverview onNavigateToConnect={() => setActiveTab('connect')} /></TabsContent>
           <TabsContent value="events"><EventLog /></TabsContent>
           <TabsContent value="debugger"><LiveDebugger /></TabsContent>
+          <TabsContent value="ghost"><GhostLoader /></TabsContent>
           <TabsContent value="recovery"><ConversionRecovery /></TabsContent>
           <TabsContent value="poas"><POASDashboard /></TabsContent>
           <TabsContent value="destinations"><MarketingDestinations /></TabsContent>
