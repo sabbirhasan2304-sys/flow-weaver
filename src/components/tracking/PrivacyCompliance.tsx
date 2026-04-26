@@ -316,9 +316,10 @@ export function PrivacyCompliance() {
                 ))}
               </div>
 
-              <Button className="w-full" variant="outline" onClick={() => toast.success('GDPR compliance report generated!')}>
-                <FileText className="h-4 w-4 mr-1" /> Generate Compliance Report (PDF)
-              </Button>
+              <div className="flex items-start gap-2 text-xs text-muted-foreground p-3 rounded-md bg-muted/30 border border-border/40">
+                <FileText className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>Your selected region determines where event payloads are stored. Changing residency takes effect on new events; historical events stay in the previous region.</span>
+              </div>
 
               <Button onClick={() => saveSettings.mutate()}>Save Residency Settings</Button>
             </CardContent>
