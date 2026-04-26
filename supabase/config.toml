@@ -37,3 +37,7 @@ project_id = "euocvkvdixpxfznrduzi"
     verify_jwt = false
   [functions.track-event]
     verify_jwt = false
+  [functions.serve-ghost-script]
+    verify_jwt = false
+  [functions.track-event-alias]
+    verify_jwt = false
