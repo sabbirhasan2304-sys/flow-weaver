@@ -388,3 +388,11 @@ export function CustomDashboard() {
     </div>
   );
 }
+
+function EmptyChart() {
+  return (
+    <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
+      No data in the last 7 days
+    </div>
+  );
+}
