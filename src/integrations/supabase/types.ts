@@ -337,6 +337,48 @@ export type Database = {
           },
         ]
       }
+      destination_delivery_logs: {
+        Row: {
+          created_at: string
+          destination_platform: string
+          error_message: string | null
+          event_name: string
+          http_status: number | null
+          id: string
+          latency_ms: number | null
+          recovered: boolean
+          request_id: string | null
+          success: boolean
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          destination_platform: string
+          error_message?: string | null
+          event_name: string
+          http_status?: number | null
+          id?: string
+          latency_ms?: number | null
+          recovered?: boolean
+          request_id?: string | null
+          success?: boolean
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          destination_platform?: string
+          error_message?: string | null
+          event_name?: string
+          http_status?: number | null
+          id?: string
+          latency_ms?: number | null
+          recovered?: boolean
+          request_id?: string | null
+          success?: boolean
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       email_ab_variants: {
         Row: {
           campaign_id: string
