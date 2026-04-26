@@ -1334,6 +1334,164 @@ export type Database = {
           },
         ]
       }
+      identity_match_decisions: {
+        Row: {
+          ai_model: string | null
+          ambiguous_features: Json | null
+          confidence: number
+          created_at: string
+          decision: string
+          id: string
+          method: string
+          reason: string | null
+          source_profile_id: string | null
+          target_profile_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          ai_model?: string | null
+          ambiguous_features?: Json | null
+          confidence?: number
+          created_at?: string
+          decision: string
+          id?: string
+          method: string
+          reason?: string | null
+          source_profile_id?: string | null
+          target_profile_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          ai_model?: string | null
+          ambiguous_features?: Json | null
+          confidence?: number
+          created_at?: string
+          decision?: string
+          id?: string
+          method?: string
+          reason?: string | null
+          source_profile_id?: string | null
+          target_profile_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "identity_match_decisions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      identity_profiles: {
+        Row: {
+          confidence_score: number
+          created_at: string
+          display_label: string | null
+          first_seen_at: string
+          id: string
+          last_seen_at: string
+          merged_into_id: string | null
+          metadata: Json
+          signal_count: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          confidence_score?: number
+          created_at?: string
+          display_label?: string | null
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          merged_into_id?: string | null
+          metadata?: Json
+          signal_count?: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          confidence_score?: number
+          created_at?: string
+          display_label?: string | null
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          merged_into_id?: string | null
+          metadata?: Json
+          signal_count?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "identity_profiles_merged_into_id_fkey"
+            columns: ["merged_into_id"]
+            isOneToOne: false
+            referencedRelation: "identity_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "identity_profiles_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      identity_signatures: {
+        Row: {
+          created_at: string
+          first_seen_at: string
+          id: string
+          last_seen_at: string
+          profile_id: string
+          seen_count: number
+          signature_type: string
+          signature_value: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          profile_id: string
+          seen_count?: number
+          signature_type: string
+          signature_value: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          profile_id?: string
+          seen_count?: number
+          signature_type?: string
+          signature_value?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "identity_signatures_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "identity_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "identity_signatures_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nexus_store_collections: {
         Row: {
           created_at: string
