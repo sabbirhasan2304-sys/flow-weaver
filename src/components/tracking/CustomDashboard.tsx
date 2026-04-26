@@ -40,28 +40,15 @@ const dataSources = [
   { value: 'total_events', label: 'Total Events' },
 ];
 
-const mockChartData = [
-  { name: 'Mon', value: 420 },
-  { name: 'Tue', value: 380 },
-  { name: 'Wed', value: 510 },
-  { name: 'Thu', value: 490 },
-  { name: 'Fri', value: 600 },
-  { name: 'Sat', value: 350 },
-  { name: 'Sun', value: 280 },
-];
-
-const mockPieData = [
-  { name: 'Delivered', value: 85, color: 'hsl(var(--primary))' },
-  { name: 'Failed', value: 8, color: '#ef4444' },
-  { name: 'Retried', value: 5, color: '#f97316' },
-  { name: 'Pending', value: 2, color: '#94a3b8' },
-];
-
-const mockStats: Record<string, string> = {
-  total_events: '12,847',
-  delivery_rate: '98.7%',
-  error_rate: '1.3%',
+const PIE_COLORS: Record<string, string> = {
+  delivered: 'hsl(var(--primary))',
+  success: 'hsl(var(--primary))',
+  failed: '#ef4444',
+  retried: '#f97316',
+  pending: '#94a3b8',
+  queued: '#64748b',
 };
+const fallbackColor = (i: number) => ['hsl(var(--primary))', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'][i % 6];
 
 export function CustomDashboard() {
   const { profile } = useAuth();
