@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ArrowRight, CheckCircle2, Loader2, Key, Package, Database, Workflow } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Loader2, Key, Package, Database, Workflow, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -21,45 +21,91 @@ const migrationSteps = [
   { id: 4, title: 'Review & Confirm', icon: Workflow },
 ];
 
-const mockMappings = {
-  containers: [
-    { name: 'Main sGTM Container', tags: 12, triggers: 8, status: 'compatible' },
-    { name: 'Analytics Container', tags: 6, triggers: 4, status: 'compatible' },
-  ],
-  powerUps: [
-    { name: 'Cookie Keeper', nexusEquivalent: 'Cookie Recovery Node', status: 'mapped' },
-    { name: 'Anonymizer', nexusEquivalent: 'PII Anonymizer Node', status: 'mapped' },
-    { name: 'Bot Detection', nexusEquivalent: 'Bot Filter Node', status: 'mapped' },
-    { name: 'GEO Headers', nexusEquivalent: 'Geo Enrichment Node', status: 'mapped' },
-    { name: 'User ID', nexusEquivalent: 'User ID Generator', status: 'mapped' },
-  ],
-  storeCollections: [
-    { name: 'products', documents: 1250, status: 'ready' },
-    { name: 'user_attributes', documents: 8400, status: 'ready' },
-  ],
+type ScanResult = {
+  containers: { name: string; tags: number; triggers: number; status: string }[];
+  powerUps: { name: string; nexusEquivalent: string; status: string }[];
+  storeCollections: { name: string; documents: number; status: string }[];
+};
+
+const POWER_UP_MAP: Record<string, string> = {
+  'Cookie Keeper': 'Cookie Recovery Node',
+  'Anonymizer': 'PII Anonymizer Node',
+  'Bot Detection': 'Bot Filter Node',
+  'GEO Headers': 'Geo Enrichment Node',
+  'User ID': 'User ID Generator',
+  'GTM Server-Side': 'Pipeline Builder',
 };
 
 export function StapeMigrationWizard({ open, onOpenChange }: Props) {
   const [step, setStep] = useState(1);
   const [apiKey, setApiKey] = useState('');
   const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const [result, setResult] = useState<ScanResult | null>(null);
 
-  const startScan = () => {
+  const startScan = async () => {
     setScanning(true);
-    setTimeout(() => {
-      setScanning(false);
+    setScanError(null);
+    setResult(null);
+    try {
+      // Try Stape's public API. If it fails (CORS / invalid key / no account),
+      // surface the error honestly instead of fabricating data.
+      const res = await fetch('https://api.stape.io/api/v1/containers', {
+        headers: { 'X-API-Key': apiKey, 'Accept': 'application/json' },
+      }).catch(() => null);
+
+      if (!res || !res.ok) {
+        // We can't reach Stape from the browser (CORS) or the key is invalid.
+        // Show an honest empty scan so the user can still proceed manually.
+        setResult({ containers: [], powerUps: [], storeCollections: [] });
+        setScanError(
+          res
+            ? `Stape API returned ${res.status}. Please double-check the key, or import a manual export below.`
+            : 'Could not reach the Stape API directly from the browser (CORS). Import a manual JSON export to continue.',
+        );
+        setStep(3);
+        return;
+      }
+
+      const json = await res.json();
+      const containers = (json.data ?? json.containers ?? []).map((c: any) => ({
+        name: c.name ?? c.id,
+        tags: c.tags_count ?? 0,
+        triggers: c.triggers_count ?? 0,
+        status: 'compatible',
+      }));
+      const powerUps = (json.power_ups ?? []).map((p: any) => ({
+        name: p.name,
+        nexusEquivalent: POWER_UP_MAP[p.name] ?? 'Custom Node',
+        status: POWER_UP_MAP[p.name] ? 'mapped' : 'manual',
+      }));
+      const storeCollections = (json.store_collections ?? []).map((s: any) => ({
+        name: s.name,
+        documents: s.documents_count ?? 0,
+        status: 'ready',
+      }));
+      setResult({ containers, powerUps, storeCollections });
       setStep(3);
-    }, 2500);
+    } catch (e: any) {
+      setScanError(e?.message ?? 'Unknown scan error');
+      setResult({ containers: [], powerUps: [], storeCollections: [] });
+      setStep(3);
+    } finally {
+      setScanning(false);
+    }
   };
 
   const completeMigration = () => {
-    toast.success('Migration complete! Your tracking workflows are ready.');
+    toast.success('Migration plan saved! Configure your destinations to finish.');
     onOpenChange(false);
     setStep(1);
     setApiKey('');
+    setResult(null);
+    setScanError(null);
   };
 
   const progress = ((step - 1) / 3) * 100;
+  const totalDocs = result?.storeCollections.reduce((s, c) => s + c.documents, 0) ?? 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -71,7 +117,7 @@ export function StapeMigrationWizard({ open, onOpenChange }: Props) {
 
         <Progress value={progress} className="mb-4" />
 
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 flex-wrap">
           {migrationSteps.map((s) => {
             const Icon = s.icon;
             return (
@@ -85,11 +131,14 @@ export function StapeMigrationWizard({ open, onOpenChange }: Props) {
 
         {step === 1 && (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">Enter your Stape.io API key to begin the migration. We'll scan your account and map everything to NexusTrack equivalents.</p>
+            <p className="text-sm text-muted-foreground">
+              Enter your Stape.io API key to begin. We'll attempt to read your containers, power-ups and store
+              collections, then map them to NexusTrack equivalents.
+            </p>
             <div>
               <Label>Stape API Key</Label>
               <Input value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="stape_api_xxxxxxxxxxxxxxxx" type="password" />
-              <p className="text-xs text-muted-foreground mt-1">Find this in your Stape dashboard under Settings → API</p>
+              <p className="text-xs text-muted-foreground mt-1">Settings → API in your Stape dashboard.</p>
             </div>
             <Button onClick={() => { setStep(2); startScan(); }} disabled={!apiKey.trim()} className="w-full">
               Start Scan <ArrowRight className="h-4 w-4 ml-1" />
@@ -97,60 +146,52 @@ export function StapeMigrationWizard({ open, onOpenChange }: Props) {
           </div>
         )}
 
-        {step === 2 && (
+        {step === 2 && scanning && (
           <div className="flex flex-col items-center py-8">
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-            <p className="text-foreground font-medium">Scanning your Stape account...</p>
+            <p className="text-foreground font-medium">Scanning your Stape account…</p>
             <p className="text-sm text-muted-foreground">Reading containers, power-ups, and store data</p>
           </div>
         )}
 
-        {step === 3 && (
+        {step === 3 && result && (
           <div className="space-y-4">
-            <Card>
-              <CardContent className="p-4">
-                <h4 className="font-medium text-foreground mb-2">Containers ({mockMappings.containers.length})</h4>
-                {mockMappings.containers.map((c) => (
-                  <div key={c.name} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                    <div>
-                      <p className="text-sm text-foreground">{c.name}</p>
-                      <p className="text-xs text-muted-foreground">{c.tags} tags, {c.triggers} triggers</p>
-                    </div>
-                    <Badge variant="outline" className="bg-green-500/10 text-green-600">{c.status}</Badge>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            {scanError && (
+              <div className="flex items-start gap-2 p-3 rounded-md bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-sm border border-yellow-500/30">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>{scanError}</span>
+              </div>
+            )}
 
-            <Card>
-              <CardContent className="p-4">
-                <h4 className="font-medium text-foreground mb-2">Power-Up Mappings ({mockMappings.powerUps.length})</h4>
-                {mockMappings.powerUps.map((p) => (
-                  <div key={p.name} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                    <div>
-                      <p className="text-sm text-foreground">{p.name}</p>
-                      <p className="text-xs text-muted-foreground">→ {p.nexusEquivalent}</p>
-                    </div>
-                    <Badge variant="outline" className="bg-blue-500/10 text-blue-600">{p.status}</Badge>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            <ScanCard title="Containers" count={result.containers.length}>
+              {result.containers.length === 0 ? (
+                <EmptyRow text="No containers detected." />
+              ) : (
+                result.containers.map((c) => (
+                  <Row key={c.name} primary={c.name} secondary={`${c.tags} tags · ${c.triggers} triggers`} status={c.status} tone="emerald" />
+                ))
+              )}
+            </ScanCard>
 
-            <Card>
-              <CardContent className="p-4">
-                <h4 className="font-medium text-foreground mb-2">Store Collections ({mockMappings.storeCollections.length})</h4>
-                {mockMappings.storeCollections.map((s) => (
-                  <div key={s.name} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                    <div>
-                      <p className="text-sm text-foreground">{s.name}</p>
-                      <p className="text-xs text-muted-foreground">{s.documents.toLocaleString()} documents</p>
-                    </div>
-                    <Badge variant="outline" className="bg-purple-500/10 text-purple-600">{s.status}</Badge>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            <ScanCard title="Power-Up Mappings" count={result.powerUps.length}>
+              {result.powerUps.length === 0 ? (
+                <EmptyRow text="No power-ups detected." />
+              ) : (
+                result.powerUps.map((p) => (
+                  <Row key={p.name} primary={p.name} secondary={`→ ${p.nexusEquivalent}`} status={p.status} tone="blue" />
+                ))
+              )}
+            </ScanCard>
+
+            <ScanCard title="Store Collections" count={result.storeCollections.length}>
+              {result.storeCollections.length === 0 ? (
+                <EmptyRow text="No store collections detected." />
+              ) : (
+                result.storeCollections.map((s) => (
+                  <Row key={s.name} primary={s.name} secondary={`${s.documents.toLocaleString()} documents`} status={s.status} tone="purple" />
+                ))
+              )}
+            </ScanCard>
 
             <Button onClick={() => setStep(4)} className="w-full">
               Review Migration <ArrowRight className="h-4 w-4 ml-1" />
@@ -158,28 +199,19 @@ export function StapeMigrationWizard({ open, onOpenChange }: Props) {
           </div>
         )}
 
-        {step === 4 && (
+        {step === 4 && result && (
           <div className="space-y-4">
             <Card>
               <CardContent className="p-4 space-y-3">
                 <h4 className="font-medium text-foreground">Migration Summary</h4>
                 <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{mockMappings.containers.length}</p>
-                    <p className="text-xs text-muted-foreground">Containers</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{mockMappings.powerUps.length}</p>
-                    <p className="text-xs text-muted-foreground">Power-Ups</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{mockMappings.storeCollections.reduce((s, c) => s + c.documents, 0).toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">Documents</p>
-                  </div>
+                  <Stat label="Containers" value={result.containers.length} />
+                  <Stat label="Power-Ups" value={result.powerUps.length} />
+                  <Stat label="Documents" value={totalDocs.toLocaleString()} />
                 </div>
-                <div className="flex items-center gap-2 text-sm text-green-600">
+                <div className="flex items-center gap-2 text-sm text-emerald-600">
                   <CheckCircle2 className="h-4 w-4" />
-                  All resources are compatible and ready to migrate
+                  Plan ready — destinations will be configured after import.
                 </div>
               </CardContent>
             </Card>
@@ -193,5 +225,46 @@ export function StapeMigrationWizard({ open, onOpenChange }: Props) {
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ScanCard({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <h4 className="font-medium text-foreground mb-2">{title} ({count})</h4>
+        <div>{children}</div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function Row({ primary, secondary, status, tone }: { primary: string; secondary: string; status: string; tone: 'emerald' | 'blue' | 'purple' }) {
+  const toneClass = {
+    emerald: 'bg-emerald-500/10 text-emerald-600',
+    blue: 'bg-blue-500/10 text-blue-600',
+    purple: 'bg-purple-500/10 text-purple-600',
+  }[tone];
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-border last:border-0">
+      <div className="min-w-0">
+        <p className="text-sm text-foreground truncate">{primary}</p>
+        <p className="text-xs text-muted-foreground truncate">{secondary}</p>
+      </div>
+      <Badge variant="outline" className={toneClass}>{status}</Badge>
+    </div>
+  );
+}
+
+function EmptyRow({ text }: { text: string }) {
+  return <p className="text-xs text-muted-foreground py-2">{text}</p>;
+}
+
+function Stat({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div>
+      <p className="text-2xl font-bold text-foreground">{value}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
+    </div>
   );
 }
