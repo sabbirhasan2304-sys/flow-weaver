@@ -29,6 +29,7 @@ import { AdminActivityFeed } from '@/components/admin/AdminActivityFeed';
 import { AdminEmailOverview } from '@/components/admin/AdminEmailOverview';
 import { AdminPlatformSettings } from '@/components/admin/AdminPlatformSettings';
 import { DataManagement } from '@/components/admin/DataManagement';
+import { QueueHealthWidget } from '@/components/admin/QueueHealthWidget';
 import { toast } from 'sonner';
 
 interface Stats {
@@ -436,6 +437,11 @@ export default function Admin() {
               </div>
             </CardContent>
           </Card>
+        </motion.div>
+
+        {/* Queue Health */}
+        <motion.div variants={item}>
+          <QueueHealthWidget />
         </motion.div>
 
         {/* Activity Feed */}
