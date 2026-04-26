@@ -135,14 +135,36 @@ Deno.serve(async (req) => {
 
       if (insertErr) throw insertErr;
 
-      // 2. Enqueue into the existing tracking_events_queue so the
-      //    Phase 0 worker handles dedupe + destination forwarding.
+      // 2. Forward to active marketing destinations (Meta, TikTok, GA4, Google Ads).
+      let deliveredPlatforms: string[] = ["tracking_pipeline"];
+      let forwardError: string | null = null;
       if (rules.forward_to_destinations) {
+        try {
+          const { data: forwardRes, error: fwdErr } = await supabase.functions.invoke(
+            "forward-to-destinations",
+            {
+              body: {
+                workspace_id: session.workspace_id,
+                event: recoveredEvent,
+                recovered: true,
+              },
+            },
+          );
+          if (fwdErr) throw fwdErr;
+          const delivered = (forwardRes as { delivered?: string[] } | null)?.delivered ?? [];
+          deliveredPlatforms = delivered.length > 0 ? delivered : ["no_active_destinations"];
+        } catch (e) {
+          forwardError = e instanceof Error ? e.message : "forward failed";
+          deliveredPlatforms = [];
+        }
+
+        // Also push into the tracking pipeline so the event gets recorded
+        // and re-sent to any newly-added destinations later.
         await supabase.rpc("enqueue_message", {
           queue_name: "tracking_events_queue",
           payload: {
             event: recoveredEvent,
-            auth: { workspace_id: session.workspace_id, source: "recovery" },
+            auth: { workspace_id: session.workspace_id, source: "recovery", siteId: session.workspace_id },
             request_meta: {
               ip: null,
               ua: session.user_agent,
@@ -155,9 +177,10 @@ Deno.serve(async (req) => {
         await supabase
           .from("recovered_events")
           .update({
-            status: "forwarded",
+            status: forwardError ? "failed" : "forwarded",
             forwarded_at: new Date().toISOString(),
-            destinations_forwarded: ["tracking_pipeline"],
+            destinations_forwarded: deliveredPlatforms,
+            error_message: forwardError,
           })
           .eq("id", recoveredRow.id);
       }
